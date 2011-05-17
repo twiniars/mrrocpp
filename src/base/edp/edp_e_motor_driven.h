@@ -16,6 +16,7 @@
 #include <boost/thread/condition.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include "base/lib/condition_synchroniser.h"
 #include "base/kinematics/kinematics_manager.h"
 #include "base/edp/in_out.h"
 #include "base/edp/edp_effector.h"
@@ -208,6 +209,11 @@ public:
 	in_out_buffer in_out_obj;
 
 	/*!
+	 * \brief to wait for servo_buffer load in servo
+	 */
+	lib::condition_synchroniser sb_loaded;
+
+	/*!
 	 * \brief object to handle measurements
 	 *
 	 * It is implemented as the thread that collects the measurement in cyclic buffer and then saving it to the text file.
@@ -247,7 +253,7 @@ public:
 	 *
 	 * The attributes are initialized here.
 	 */
-	motor_driven_effector(lib::configurator &_config, lib::robot_name_t l_robot_name);
+	motor_driven_effector(shell &_shell, lib::robot_name_t l_robot_name);
 
 	/*!
 	 * \brief class destructor

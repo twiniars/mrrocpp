@@ -32,7 +32,7 @@ namespace sensor {
 
 // Rejstracja procesu VSP
 ATI6284_force::ATI6284_force(common::manip_effector &_master) :
-	force(_master), dev_name("/dev/comedi0")
+	force(_master), dev_name("/dev/comedi1")
 {
 	printf("FT6284KB created !!! \n");
 
@@ -50,9 +50,9 @@ void ATI6284_force::connect_to_hardware(void)
 
 	device = comedi_open(dev_name.c_str());
 
-	if (!device)
-		printf("unable to open device !!! \n");
-	//  throw runtime_error("Could not open device");
+	if (!device) {
+		throw std::runtime_error("Could not open device");
+	}
 
 	if (comedi_apply_calibration(device, 0, 0, 0, 0, NULL) != 0)
 		printf("unable to callibrate device \n");
@@ -94,7 +94,7 @@ void ATI6284_force::wait_for_particular_event()
 	lib::timespec_increment_ns(&wake_time, COMMCYCLE_TIME_NS);
 
 	int err = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wake_time, NULL);
-	if(err != 0) {
+	if (err != 0) {
 		fprintf(stderr, "clock_nanosleep(): %s\n", strerror(err));
 	}
 
