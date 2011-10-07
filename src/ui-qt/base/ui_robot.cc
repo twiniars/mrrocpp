@@ -17,6 +17,9 @@
 #include "mainwindow.h"
 #include "menu_bar_action.h"
 #include "signal_dispatcher.h"
+#include "../base/menu_bar.h"
+#include "../base/menu_bar_action.h"
+#include "../base/mp.h"
 
 namespace mrrocpp {
 namespace ui {
@@ -42,7 +45,7 @@ UiRobot::UiRobot(Interface& _interface, lib::robot_name_t _robot_name, int _numb
 			(boost::shared_ptr <lib::sr_ecp>) new lib::sr_ecp(lib::ECP, "ui_" + robot_name, interface.network_sr_attach_point);
 
 	process_control_window_created = false;
-	wgt_robot_pc = new wgt_robot_process_control(interface, this, interface.get_main_window());
+	wgt_robot_pc = new wgt_robot_process_control("R PC", interface, this, interface.get_main_window());
 
 	current_pos = new double[number_of_servos];
 	desired_pos = new double[number_of_servos];
@@ -115,13 +118,6 @@ void UiRobot::unblock_ecp_trigger()
 		wgt_robot_pc->unblock_all_ecp_trigger_widgets();
 }
 
-void UiRobot::set_robot_process_control_window(wgt_robot_process_control *wgt_pc)
-{
-	wgt_robot_pc = wgt_pc;
-	if (interface.get_wgt_pc()->isVisible())
-		wgt_robot_pc->my_open();
-}
-
 void UiRobot::open_robot_process_control_window()
 {
 	if (wgt_robot_pc)
@@ -132,8 +128,7 @@ void UiRobot::delete_robot_process_control_window()
 {
 	if (wgt_robot_pc)
 		wgt_robot_pc->my_close();
-	delete wgt_robot_pc;
-	wgt_robot_pc = NULL;
+
 }
 
 wgt_robot_process_control * UiRobot::get_wgt_robot_pc()
@@ -147,7 +142,6 @@ int UiRobot::edp_create_int()
 
 	try { // dla bledow robot :: ECP_error
 
-		// dla robota bird_hand
 		if (state.edp.state == 0) {
 
 			state.edp.is_synchronised = false;
@@ -319,7 +313,7 @@ void UiRobot::connect_to_ecp_pulse_chanell()
 
 	) {
 		if (errno == EINTR
-			)
+		)
 			break;
 		if ((tmp++) < lib::CONNECT_RETRY) {
 			usleep(lib::CONNECT_DELAY);
@@ -456,6 +450,63 @@ int UiRobot::move_to_preset_position(int variant)
 	return 1;
 }
 
+int UiRobot::manage_interface()
+{
+	MainWindow *mw = interface.get_main_window();
+
+	switch (state.edp.state)
+	{
+		case -1:
+			mw->enable_menu_item(false, 1, robot_menu);
+			break;
+		case 0:
+			mw->enable_menu_item(false, 2, EDP_Unload, wgt_robot_process_control_action);
+			mw->enable_menu_item(true, 1, robot_menu);
+			mw->enable_menu_item(true, 1, EDP_Load);
+			break;
+		case 1:
+		case 2:
+			mw->enable_menu_item(true, 1, robot_menu);
+			mw->enable_menu_item(true, 1, wgt_robot_process_control_action);
+
+			// jesli robot jest zsynchronizowany
+			if (state.edp.is_synchronised) {
+				mw->enable_menu_item(true, 1, mw->getMenuBar()->menuall_Preset_Positions);
+
+				switch (interface.mp->mp_state.state)
+				{
+					case common::UI_MP_NOT_PERMITED_TO_RUN:
+					case common::UI_MP_PERMITED_TO_RUN:
+						mw->enable_menu_item(true, 1, EDP_Unload);
+						mw->enable_menu_item(false, 1, EDP_Load);
+						block_ecp_trigger();
+						break;
+					case common::UI_MP_WAITING_FOR_START_PULSE:
+						mw->enable_menu_item(false, 2, EDP_Load, EDP_Unload);
+						block_ecp_trigger();
+						break;
+					case common::UI_MP_TASK_RUNNING:
+						unblock_ecp_trigger();
+						break;
+					case common::UI_MP_TASK_PAUSED:
+						block_ecp_trigger();
+						break;
+					default:
+						break;
+				}
+			} else // jesli robot jest niezsynchronizowany
+			{
+				mw->enable_menu_item(true, 1, EDP_Unload);
+				mw->enable_menu_item(false, 1, EDP_Load);
+			}
+			break;
+		default:
+			break;
+	}
+
+	return 1;
+}
+
 int UiRobot::reload_configuration()
 {
 
@@ -554,8 +605,7 @@ int UiRobot::reload_configuration()
 				break;
 		}
 
-	} else // jesli  irp6 on_track ma byc nieaktywne
-	{
+	} else {
 		switch (state.edp.state)
 		{
 			case -1:
@@ -569,7 +619,7 @@ int UiRobot::reload_configuration()
 			default:
 				break;
 		}
-	} // end irp6_on_track
+	}
 
 	return 1;
 }
