@@ -10,7 +10,7 @@
 #include <sstream>
 
 #include "base/mp/mp_task.h"
-#include "base/mp/MP_main_error.h"
+
 #include "mp_t_edge_follow_mr.h"
 #include "base/lib/mrmath/mrmath.h"
 
@@ -92,7 +92,7 @@ void edge_follow_mr::main_task_algorithm(void)
 
 	// sekwencja generator na wybranym chwytaku
 
-	char tmp_string[lib::MP_2_ECP_NEXT_STATE_STRING_SIZE];
+	char tmp_string[lib::MP_2_ECP_STRING_SIZE];
 
 	lib::irp6_tfg::mp_to_ecp_parameters mp_ecp_command;
 

@@ -5,7 +5,7 @@
 #include "base/lib/sr/srlib.h"
 #include "base/mp/mp_task.h"
 
-#include "base/mp/MP_main_error.h"
+
 #include "base/lib/mrmath/mrmath.h"
 #include "robot/bird_hand/dp_bird_hand.h"
 #include "mp_t_birdhand_graspit.h"
@@ -127,8 +127,8 @@ void graspit::main_task_algorithm(void)
 		// TODO: throw
 	}
 
-	char tmp_string1[lib::MP_2_ECP_NEXT_STATE_STRING_SIZE];
-	char tmp_string2[lib::MP_2_ECP_NEXT_STATE_STRING_SIZE];
+	char tmp_string1[lib::MP_2_ECP_STRING_SIZE];
+	char tmp_string2[lib::MP_2_ECP_STRING_SIZE];
 
 	struct _irp6
 	{

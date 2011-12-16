@@ -5,13 +5,15 @@
 //
 // -------------------------------------------------------------------------
 
+#include <boost/assign/list_of.hpp>
+
 #include "base/lib/typedefs.h"
 #include "base/lib/impconst.h"
 #include "base/lib/com_buf.h"
 
 #include "base/lib/sr/srlib.h"
 
-#include "base/mp/MP_main_error.h"
+
 #include "base/mp/mp_task.h"
 #include "application/ball/mp_g_ball.h"
 #include "application/ball/mp_t_ball.h"

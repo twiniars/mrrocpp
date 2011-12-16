@@ -15,13 +15,13 @@ wgt_smb_command::wgt_smb_command(QString _widget_label, mrrocpp::ui::common::Int
 
 	// utworzenie list widgetow
 
-	checkBox_fl_up_Vector.append(ui.checkBox_fl1_up);
-	checkBox_fl_up_Vector.append(ui.checkBox_fl2_up);
-	checkBox_fl_up_Vector.append(ui.checkBox_fl3_up);
+	checkBox_fl_in_Vector.append(ui.checkBox_fl1_in);
+	checkBox_fl_in_Vector.append(ui.checkBox_fl2_in);
+	checkBox_fl_in_Vector.append(ui.checkBox_fl3_in);
 
-	checkBox_fl_down_Vector.append(ui.checkBox_fl1_down);
-	checkBox_fl_down_Vector.append(ui.checkBox_fl2_down);
-	checkBox_fl_down_Vector.append(ui.checkBox_fl3_down);
+	checkBox_fl_out_Vector.append(ui.checkBox_fl1_out);
+	checkBox_fl_out_Vector.append(ui.checkBox_fl2_out);
+	checkBox_fl_out_Vector.append(ui.checkBox_fl3_out);
 
 	checkBox_fl_undetachable_Vector.append(ui.checkBox_fl1_udetachable);
 	checkBox_fl_undetachable_Vector.append(ui.checkBox_fl2_udetachable);
@@ -34,13 +34,13 @@ wgt_smb_command::wgt_smb_command(QString _widget_label, mrrocpp::ui::common::Int
 	checkBox_m_mip_Vector.append(ui.checkBox_ml_mip);
 	checkBox_m_mip_Vector.append(ui.checkBox_ms_mip);
 
-	radioButton_fl_up_Vector.append(ui.radioButton_fl1_up);
-	radioButton_fl_up_Vector.append(ui.radioButton_fl2_up);
-	radioButton_fl_up_Vector.append(ui.radioButton_fl3_up);
+	radioButton_fl_in_Vector.append(ui.radioButton_fl1_in);
+	radioButton_fl_in_Vector.append(ui.radioButton_fl2_in);
+	radioButton_fl_in_Vector.append(ui.radioButton_fl3_in);
 
-	radioButton_fl_down_Vector.append(ui.radioButton_fl1_down);
-	radioButton_fl_down_Vector.append(ui.radioButton_fl2_down);
-	radioButton_fl_down_Vector.append(ui.radioButton_fl3_down);
+	radioButton_fl_out_Vector.append(ui.radioButton_fl1_out);
+	radioButton_fl_out_Vector.append(ui.radioButton_fl2_out);
+	radioButton_fl_out_Vector.append(ui.radioButton_fl3_out);
 
 	doubleSpinBox_m_current_position_Vector.append(ui.doubleSpinBox_ml_current_position);
 	doubleSpinBox_m_current_position_Vector.append(ui.doubleSpinBox_ms_current_position);
@@ -52,8 +52,8 @@ wgt_smb_command::wgt_smb_command(QString _widget_label, mrrocpp::ui::common::Int
 	doubleSpinBox_m_relative_Vector.append(ui.doubleSpinBox_ms_relative);
 
 	// uruchomienei timera
-	timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(timer_slot()));
+	timer = (boost::shared_ptr <QTimer>) new QTimer(this);
+	connect(timer.get(), SIGNAL(timeout()), this, SLOT(timer_slot()));
 	timer->start(interface.position_refresh_interval);
 
 	// podpiecie pozostalych sygnalow do slotow
@@ -113,6 +113,7 @@ int wgt_smb_command::init()
 				robot->ui_ecp_robot->execute_motion();
 				robot->ui_ecp_robot->the_robot->smb_multi_leg_reply_data_request_port.get();
 				lib::epos::epos_reply *er;
+				lib::smb::smb_ext_epos_reply *ser;
 
 				if (ui.radioButton_m_motor->isChecked()) {
 
@@ -123,7 +124,7 @@ int wgt_smb_command::init()
 					er = &robot->ui_ecp_robot->the_robot->epos_joint_reply_data_request_port.data;
 				} else if (ui.radioButton_m_ext->isChecked()) {
 					robot->ui_ecp_robot->the_robot->epos_external_reply_data_request_port.get();
-					er = &robot->ui_ecp_robot->the_robot->epos_external_reply_data_request_port.data;
+					ser = &robot->ui_ecp_robot->the_robot->epos_external_reply_data_request_port.data;
 				}
 
 				// sets leg state
@@ -132,14 +133,26 @@ int wgt_smb_command::init()
 						robot->ui_ecp_robot->the_robot->smb_multi_leg_reply_data_request_port.data;
 
 				for (int i = 0; i < lib::smb::LEG_CLAMP_NUMBER; i++) {
-					checkBox_fl_up_Vector[i]->setChecked(mlr.leg[i].is_up);
-					checkBox_fl_down_Vector[i]->setChecked(mlr.leg[i].is_down);
+					checkBox_fl_in_Vector[i]->setChecked(mlr.leg[i].is_in);
+					checkBox_fl_out_Vector[i]->setChecked(mlr.leg[i].is_out);
 					checkBox_fl_attached_Vector[i]->setChecked(mlr.leg[i].is_attached);
 				}
 
-				for (int i = 0; i < lib::smb::NUM_OF_SERVOS; i++) {
-					checkBox_m_mip_Vector[i]->setChecked(er->epos_controller[i].motion_in_progress);
-					doubleSpinBox_m_current_position_Vector[i]->setValue(er->epos_controller[i].position);
+				if (ui.radioButton_m_motor->isChecked()) {
+					for (int i = 0; i < lib::smb::NUM_OF_SERVOS; i++) {
+						checkBox_m_mip_Vector[i]->setChecked(er->epos_controller[i].motion_in_progress);
+						doubleSpinBox_m_current_position_Vector[i]->setValue(er->epos_controller[i].position);
+					}
+				} else if (ui.radioButton_m_joint->isChecked()) {
+					for (int i = 0; i < lib::smb::NUM_OF_SERVOS; i++) {
+						checkBox_m_mip_Vector[i]->setChecked(er->epos_controller[i].motion_in_progress);
+						doubleSpinBox_m_current_position_Vector[i]->setValue(er->epos_controller[i].position);
+					}
+				} else if (ui.radioButton_m_ext->isChecked()) {
+					for (int i = 0; i < lib::smb::NUM_OF_SERVOS; i++) {
+						checkBox_m_mip_Vector[i]->setChecked(ser->epos_controller[i].motion_in_progress);
+						doubleSpinBox_m_current_position_Vector[i]->setValue(ser->epos_controller[i].position);
+					}
 				}
 
 			} else {
@@ -248,10 +261,10 @@ void wgt_smb_command::on_pushButton_fl_execute_clicked()
 		for (int i = 0; i < lib::smb::LEG_CLAMP_NUMBER; i++) {
 			// wybierz wariant
 
-			if (radioButton_fl_up_Vector[i]->isChecked()) {
-				fc.leg[i] = lib::smb::UP;
-			} else if (radioButton_fl_down_Vector[i]->isChecked()) {
-				fc.leg[i] = lib::smb::DOWN;
+			if (radioButton_fl_in_Vector[i]->isChecked()) {
+				fc.leg[i] = lib::smb::IN;
+			} else if (radioButton_fl_out_Vector[i]->isChecked()) {
+				fc.leg[i] = lib::smb::OUT;
 			}
 
 			fc.undetachable[i] = false;
@@ -274,21 +287,21 @@ void wgt_smb_command::on_pushButton_fl_execute_clicked()
 
 }
 
-void wgt_smb_command::on_pushButton_fl_all_up_clicked()
+void wgt_smb_command::on_pushButton_fl_all_in_clicked()
 {
 // dla kazdej z nog
 	for (int i = 0; i < lib::smb::LEG_CLAMP_NUMBER; i++) {
 		// wybierz wariant
-		radioButton_fl_up_Vector[i]->setChecked(true);
+		radioButton_fl_in_Vector[i]->setChecked(true);
 	}
 }
 
-void wgt_smb_command::on_pushButton_fl_all_down_clicked()
+void wgt_smb_command::on_pushButton_fl_all_out_clicked()
 {
 // dla kazdej z nog
 	for (int i = 0; i < lib::smb::LEG_CLAMP_NUMBER; i++) {
 		// wybierz wariant
-		radioButton_fl_down_Vector[i]->setChecked(true);
+		radioButton_fl_out_Vector[i]->setChecked(true);
 	}
 }
 

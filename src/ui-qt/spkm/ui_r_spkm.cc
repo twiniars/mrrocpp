@@ -52,7 +52,7 @@ void UiRobot::ui_get_controler_state(lib::controller_state_t & robot_controller_
 
 int UiRobot::edp_create_int_extra_operations()
 {
-	wgts[WGT_SPKM_INC]->synchro_depended_init();
+	//wgts[WGT_SPKM_INC]->synchro_depended_init();
 	return 1;
 }
 
@@ -119,7 +119,7 @@ int UiRobot::manage_interface()
 			// jesli robot jest zsynchronizowany
 			if (state.edp.is_synchronised) {
 				menuspkm_Pre_synchro_moves->setEnabled(false);
-				mw->getMenuBar()->menuall_Preset_Positions->setEnabled(true);
+				mw->menuall_Preset_Positions_setEnabled(true);
 
 				switch (interface.mp->mp_state.state)
 				{
@@ -145,7 +145,7 @@ int UiRobot::manage_interface()
 			{
 				menuspkm_Pre_synchro_moves->setEnabled(true);
 				menuspkm_Post_synchro_moves->setEnabled(false);
-				mw->getMenuBar()->menuall_Preset_Positions->setEnabled(false);
+				mw->menuall_Preset_Positions_setEnabled(false);
 
 			}
 			break;
@@ -165,7 +165,7 @@ void UiRobot::setup_menubar()
 	actionspkm_Synchronisation = new Ui::MenuBarAction(QString("&Synchronisation"), this, menuBar);
 	actionspkm_Motors = new Ui::MenuBarAction(QString("&Motors"), wgts[WGT_SPKM_INC], signalDispatcher, menuBar);
 	actionspkm_Motors_post = new Ui::MenuBarAction(QString("&Motors"), wgts[WGT_SPKM_INC], signalDispatcher, menuBar);
-	actionspkm_Joints = new Ui::MenuBarAction(QString("&JOINTS"), wgts[WGT_SPKM_INT], signalDispatcher, menuBar);
+	actionspkm_Joints = new Ui::MenuBarAction(QString("&Joints"), wgts[WGT_SPKM_INT], signalDispatcher, menuBar);
 	actionspkm_External = new Ui::MenuBarAction(QString("&External"), wgts[WGT_SPKM_EXT], signalDispatcher, menuBar);
 	actionspkm_Synchro_Position = new Ui::MenuBarAction(QString("&Synchro Position"), this, menuBar);
 	actionspkm_Front_Position = new Ui::MenuBarAction(QString("&Front Position"), this, menuBar);
@@ -253,7 +253,7 @@ int UiRobot::execute_motor_motion()
 {
 	try {
 
-		ui_ecp_robot->move_motors(desired_pos, lib::epos::NON_SYNC_TRAPEZOIDAL);
+		ui_ecp_robot->move_motors(desired_pos, lib::epos::SYNC_TRAPEZOIDAL);
 
 	} // end try
 	CATCH_SECTION_IN_ROBOT
@@ -265,7 +265,7 @@ int UiRobot::execute_joint_motion()
 {
 	try {
 
-		ui_ecp_robot->move_joints(desired_pos, lib::epos::NON_SYNC_TRAPEZOIDAL);
+		ui_ecp_robot->move_joints(desired_pos, lib::epos::SYNC_TRAPEZOIDAL);
 
 	} // end try
 	CATCH_SECTION_IN_ROBOT

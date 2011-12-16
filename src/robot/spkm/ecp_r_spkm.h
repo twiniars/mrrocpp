@@ -9,9 +9,18 @@
  * @ingroup spkm
  */
 
+#include <boost/shared_ptr.hpp>
+
 #include "base/ecp/ecp_robot.h"
-#include "const_spkm.h"
+#include "base/ecp/ecp_task.h"
+
+#include "base/lib/agent/InputBuffer.h"
+#include "base/lib/agent/RemoteAgent.h"
+
 #include "base/kinematics/kinematics_manager.h"
+
+#include "base/lib/swarmtypes.h"
+#include "dp_spkm.h"
 
 namespace mrrocpp {
 namespace ecp {
@@ -52,17 +61,17 @@ public:
 	/**
 	 * @brief epos external motion command data port
 	 */
-	lib::single_thread_port <lib::epos::epos_simple_command> epos_external_command_data_port;
+	lib::single_thread_port <lib::spkm::spkm_epos_simple_command> epos_external_command_data_port;
 
 	/**
 	 * @brief epos brake command data port
 	 */
-	lib::single_thread_port <bool> epos_brake_command_data_port;
+	lib::single_thread_port <lib::empty_t> epos_brake_command_data_port;
 
 	/**
 	 * @brief epos brake command data port
 	 */
-	lib::single_thread_port <bool> epos_clear_fault_data_port;
+	lib::single_thread_port <lib::empty_t> epos_clear_fault_data_port;
 
 	/**
 	 * @brief epos motion status reply data request port
@@ -77,7 +86,7 @@ public:
 	/**
 	 * @brief epos motion status with external reply data request port
 	 */
-	lib::single_thread_request_port <lib::epos::epos_reply> epos_external_reply_data_request_port;
+	lib::single_thread_request_port <lib::spkm::spkm_ext_epos_reply, lib::spkm::POSE_SPECIFICATION> epos_external_reply_data_request_port;
 
 	/**
 	 * @brief constructor called from UI

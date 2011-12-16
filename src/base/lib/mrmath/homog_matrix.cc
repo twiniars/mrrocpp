@@ -1,5 +1,8 @@
-#include <cstdio>
+#include <cmath>
 #include <ostream>
+
+#include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -17,22 +20,7 @@ const double Homog_matrix::ALPHA_SENSITIVITY = 0.000001;
 
 Homog_matrix::Homog_matrix()
 {
-	// Tworzy macierz jednostkowa
-	// 			| 1 0 0 0 |
-	// 			| 0 1 0 0 |
-	// 			| 0 0 1 0 |
-
-	// i - i-ta kolumna
-	// j - j-ty wiersz
-
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 3; j++) {
-			if (i == j)
-				matrix_m[j][i] = 1;
-			else
-				matrix_m[j][i] = 0;
-		}
-	}
+	setIdentity();
 }
 
 Homog_matrix::Homog_matrix(const K_vector & versor_x, const K_vector & versor_y, const K_vector & versor_z, const K_vector & angles)
@@ -136,6 +124,11 @@ Homog_matrix::Homog_matrix(double r11, double r12, double r13, double t1, double
 	matrix_m[2][3] = t3;
 }
 
+Homog_matrix::Homog_matrix(const std::string & str)
+{
+	set(str);
+}
+
 Homog_matrix::Homog_matrix(const Eigen::Matrix <double, 3, 4>& eigen_matrix)
 {
 	for (int i = 0; i < 3; ++i) {
@@ -143,6 +136,68 @@ Homog_matrix::Homog_matrix(const Eigen::Matrix <double, 3, 4>& eigen_matrix)
 			matrix_m[i][j] = eigen_matrix(i, j);
 		}
 	}
+}
+
+
+void Homog_matrix::setIdentity()
+{
+	// Tworzy macierz jednostkowa
+	// 			| 1 0 0 0 |
+	// 			| 0 1 0 0 |
+	// 			| 0 0 1 0 |
+
+	// i - i-ta kolumna
+	// j - j-ty wiersz
+
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 3; j++) {
+			if (i == j)
+				matrix_m[j][i] = 1;
+			else
+				matrix_m[j][i] = 0;
+		}
+	}
+}
+
+void Homog_matrix::set(const std::string & str)
+{
+	// Prepare char-separated tokenizer
+	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+
+	// Setup skipped skip-delimiters and kept-delimiters
+	boost::char_separator<char> sep(" \t\r\n", "[;]");
+
+	// Instantiate tokenizer
+	tokenizer tokens(str, sep);
+
+	// Setup token iterator
+	tokenizer::iterator tok_iter = tokens.begin();
+
+	// Parse matrix string
+	if(*tok_iter++ != "[") throw std::runtime_error("Opening bracket expected");
+	matrix_m[0][0] = boost::lexical_cast<double>(*tok_iter++);
+	matrix_m[0][1] = boost::lexical_cast<double>(*tok_iter++);
+	matrix_m[0][2] = boost::lexical_cast<double>(*tok_iter++);
+	matrix_m[0][3] = boost::lexical_cast<double>(*tok_iter++);
+	if(*tok_iter++ != ";") throw std::runtime_error("1st semicolon expected");
+	matrix_m[1][0] = boost::lexical_cast<double>(*tok_iter++);
+	matrix_m[1][1] = boost::lexical_cast<double>(*tok_iter++);
+	matrix_m[1][2] = boost::lexical_cast<double>(*tok_iter++);
+	matrix_m[1][3] = boost::lexical_cast<double>(*tok_iter++);
+	if(*tok_iter++ != ";") throw std::runtime_error("2nd semicolon expected");
+	matrix_m[2][0] = boost::lexical_cast<double>(*tok_iter++);
+	matrix_m[2][1] = boost::lexical_cast<double>(*tok_iter++);
+	matrix_m[2][2] = boost::lexical_cast<double>(*tok_iter++);
+	matrix_m[2][3] = boost::lexical_cast<double>(*tok_iter++);
+	if(*tok_iter++ != ";") throw std::runtime_error("3rd semicolon expected");
+	if(boost::lexical_cast<double>(*tok_iter++) != 0) throw std::runtime_error("1st zero expected");
+	if(boost::lexical_cast<double>(*tok_iter++) != 0) throw std::runtime_error("2nd zero expected");
+	if(boost::lexical_cast<double>(*tok_iter++) != 0) throw std::runtime_error("3rd zero expected");
+	if(boost::lexical_cast<double>(*tok_iter++) != 1) throw std::runtime_error("1 zero expected");
+	if(*tok_iter++ != "]") throw std::runtime_error("Closing bracket expected");
+
+	// Check if all tokens has been parsed
+	if(tok_iter != tokens.end()) throw std::runtime_error("End-of-string expected");
 }
 
 // Przeksztalcenie do formy XYZ_EULER_ZYZ i zwrocenie w tablicy.
@@ -210,6 +265,7 @@ Homog_matrix::Homog_matrix(const Eigen::Matrix <double, 3, 4>& eigen_matrix)
  t[5] = gamma;
  }
  */
+
 
 void Homog_matrix::get_xyz_euler_zyz(Xyz_Euler_Zyz_vector & l_vector) const
 {
@@ -896,4 +952,3 @@ Homog_matrix Homog_matrix::interpolate(double t, const Homog_matrix& other)
 
 } // namespace lib
 } // namespace mrrocpp
-

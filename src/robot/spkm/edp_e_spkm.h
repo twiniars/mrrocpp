@@ -15,6 +15,7 @@
 
 #include "base/edp/edp_e_manip.h"
 #include "const_spkm.h"
+#include "dp_spkm.h"
 
 #include "robot/canopen/gateway.h"
 #include "robot/maxon/epos.h"
@@ -24,7 +25,6 @@ namespace mrrocpp {
 namespace edp {
 namespace spkm {
 
-// Klasa reprezentujaca robota IRp-6 na postumencie.
 /*!
  * @brief class of EDP SwarmItFix parallel kinematic manipulator
  *
@@ -68,11 +68,35 @@ private:
 	 */
 	lib::JointArray desired_joints_old;
 
-	//! Variable denoting whether previous end-effector pose in the cartesian space is known.
-	bool is_previous_cartesian_pose_known;
+	//! Variable denoting whether current end-effector pose in the cartesian space is known.
+	bool is_current_cartesian_pose_known;
+
+	/*!
+	 * \brief Tool transformation (SHEAD).
+	 * \author tkornuta
+	 */
+	lib::Homog_matrix shead_frame;
+
+	/*!
+	 * \brief Desired tool frame (pose of the SHEAD tip in the PKM base reference frame).
+	 * \author tkornuta
+	 */
+	lib::Homog_matrix desired_shead_frame;
+
+	/*!
+	 * \brief Current tool frame (pose of the SHEAD tip in the PKM base reference frame).
+	 * \author tkornuta
+	 */
+	lib::Homog_matrix current_shead_frame;
 
 	//! Handler for the asynchronous execution of the interpolated profile motion
 	maxon::ipm_executor <lib::spkm::NUM_OF_MOTION_SEGMENTS, lib::spkm::NUM_OF_SERVOS> ipm_handler;
+
+	/*!
+	 * \brief Method initializes all SPKM variables (including motors, joints and frames), depending on working mode (robot_test_mode) and robot state.
+	 * Called only once after process creation.
+	 */
+	void check_controller_state();
 
 protected:
 	lib::spkm::cbuffer ecp_edp_cbuffer;
@@ -96,12 +120,6 @@ public:
 	effector(common::shell &_shell, lib::robot_name_t l_robot_name);
 
 	/*!
-	 * @brief Method sets initial values of motor and joint positions.
-	 * @note The number_of_servos should be previously set.
-	 */
-	void reset_variables();
-
-	/*!
 	 * @brief motors synchronization
 	 *
 	 * This method synchronizes motors of the robots.
@@ -121,6 +139,25 @@ public:
 	 * it chooses the single thread variant from the manip_effector
 	 */
 	void move_arm(const lib::c_buffer &instruction);
+
+	/*!
+	 * \brief Method responsible for parsing of the command for motors controlling the legs and SPKM rotation.
+	 * \author tkornuta
+	 */
+	void parse_motor_command();
+
+	/*!
+	 * \brief Method responsible for motion of motors controlling the legs and SPKM rotation.
+	 * \author tkornuta
+	 */
+	void execute_motor_motion();
+
+	/*!
+	 * \brief Method responsible for interpolated motion in the operational space.
+	 * \author tkornuta
+	 */
+	void interpolated_motion_in_operational_space();
+
 
 	void get_controller_state(lib::c_buffer &instruction);
 
