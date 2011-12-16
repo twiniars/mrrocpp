@@ -191,7 +191,7 @@ std::cout<<"INICJACJA ECP"<<std::endl;
 											subtask_m[ecp_mp::sub_task::ECP_ST_BIAS_EDP_FORCE] = ecpst;
 										}
 										xmlFree(argument);
-									} else if (!xmlStrcmp(child_node->children->name, (const xmlChar *) "ecp_smooth_gen")) {
+									} else if (!xmlStrcmp(child_node->children->name, (const xmlChar *) "ecp_newsmooth_gen")) {
 										xmlChar *argument = xmlNodeGetContent(child_node->children);
 										if (argument && xmlStrcmp(argument, (const xmlChar *) ""))
 										{
