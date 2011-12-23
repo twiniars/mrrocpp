@@ -27,8 +27,6 @@ robot::robot(const lib::robot_name_t & _robot_name, lib::configurator &_config, 
 		epos_joint_reply_data_request_port(lib::epos::EPOS_JOINT_REPLY_DATA_REQUEST_PORT, port_manager),
 		epos_external_reply_data_request_port(lib::spkm::EPOS_EXTERNAL_REPLY_DATA_REQUEST_PORT, port_manager)
 {
-	// Stworzenie listy dostepnych kinematyk.
-	create_kinematic_models_for_given_robot();
 }
 
 robot::robot(const lib::robot_name_t & _robot_name, common::task::task_base& _ecp_object) :
@@ -42,8 +40,6 @@ robot::robot(const lib::robot_name_t & _robot_name, common::task::task_base& _ec
 		epos_joint_reply_data_request_port(lib::epos::EPOS_JOINT_REPLY_DATA_REQUEST_PORT, port_manager),
 		epos_external_reply_data_request_port(lib::spkm::EPOS_EXTERNAL_REPLY_DATA_REQUEST_PORT, port_manager)
 {
-	// Stworzenie listy dostepnych kinematyk.
-	create_kinematic_models_for_given_robot();
 }
 
 void robot::create_command()
@@ -114,6 +110,10 @@ void robot::create_command()
 
 	if (epos_brake_command_data_port.get() == mrrocpp::lib::single_thread_port_interface::NewData) {
 		ecp_command.set_type = ARM_DEFINITION;
+		if (!is_synchronised()) {
+			ecp_command.motion_type = lib::RELATIVE;
+			ecp_command.set_arm_type = lib::MOTOR;
+		}
 		// generator command interpretation
 		// narazie proste przepisanie
 
@@ -233,8 +233,6 @@ void robot::get_reply()
 					edp_ecp_rbuffer.epos_controller[i].motion_in_progress;
 		}
 
-
-
 		epos_external_reply_data_request_port.data.contact = edp_ecp_rbuffer.contact;
 
 		for (int i = 0; i < 6; ++i) {
@@ -248,15 +246,6 @@ void robot::get_reply()
 		epos_external_reply_data_request_port.set();
 	}
 
-}
-
-// Stworzenie modeli kinematyki dla robota IRp-6 na postumencie.
-void robot::create_kinematic_models_for_given_robot(void)
-{
-	// Stworzenie wszystkich modeli kinematyki.
-	add_kinematic_model(new kinematics::spkm::kinematic_model_spkm());
-	// Ustawienie aktywnego modelu.
-	set_kinematic_model(0);
 }
 
 } // namespace spkm
