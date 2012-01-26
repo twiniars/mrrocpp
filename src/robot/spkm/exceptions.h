@@ -28,12 +28,10 @@ inline std::string to_string(pose_specification const & e)
 {
 	switch (e.value())
 	{
-		case lib::spkm::XYZ_EULER_ZYZ:
-			return "XYZ_EULER_ZYZ";
-		case lib::spkm::TOOL_ORIENTED_XYZ_EULER_ZYZ_WITH_TOOL:
-			return "TOOL_ORIENTED_XYZ_EULER_ZYZ_WITH_TOOL";
-		case lib::spkm::WRIST_ORIENTED_XYZ_EULER_ZYZ_WITH_TOOL:
-			return "WRIST_ORIENTED_XYZ_EULER_ZYZ_WITH_TOOL";
+		case lib::spkm::WRIST_XYZ_EULER_ZYZ:
+			return "WRIST_XYZ_EULER_ZYZ";
+		case lib::spkm::TOOL_XYZ_EULER_ZYZ:
+			return "TOOL_XYZ_EULER_ZYX";
 		case lib::spkm::JOINT:
 			return "JOINT";
 		case lib::spkm::MOTOR:
@@ -69,8 +67,6 @@ REGISTER_NON_FATAL_ERROR(nfe_thyk_alpha_limit_exceeded, "Thyk alpha limit is exc
  * \author Tomasz Kornuta
  */
 REGISTER_NON_FATAL_ERROR(nfe_thyk_beta_limit_exceeded, "Thyk beta limit is exceeded")
-
-
 
 } // namespace spkm
 } // namespace edp

@@ -54,6 +54,8 @@ public:
 
 	void get_lineEdit_position(double* val, int number_of_servos);
 
+	QString get_lineEdit_qstring();
+
 	Ui::MainWindow * get_ui();
 
 	void closeEvent(QCloseEvent * event);
@@ -69,7 +71,6 @@ public:
 
 	void menuall_Preset_Positions_setEnabled(bool value);
 
-
 private:
 	Ui::MainWindow *ui;
 	Ui::MenuBar *menuBar;
@@ -77,7 +78,7 @@ private:
 	mrrocpp::ui::common::Interface& interface;
 	Ui::SignalDispatcher *signalDispatcher;
 
-	pthread_t main_thread_id;
+	const pthread_t main_thread_id;
 
 	wgt_base::my_open_ptr openFunctionPointer;
 

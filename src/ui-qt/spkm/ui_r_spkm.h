@@ -6,7 +6,7 @@
 #include "../base/ui.h"
 #include "../base/ui_robot.h"
 #include "robot/spkm/const_spkm.h"
-#include "robot/spkm/kinematic_parameters_spkm1.h"
+#include "robot/spkm/kinematic_parameters_spkm.h"
 
 #include "wgt_spkm_inc.h"
 #include "wgt_spkm_int.h"
@@ -38,14 +38,14 @@ class EcpRobot;
 
 class UiRobot : public common::UiRobot
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 
 	double current_pos[lib::spkm::NUM_OF_SERVOS]; // pozycja biezaca
 	double desired_pos[lib::spkm::NUM_OF_SERVOS]; // pozycja zadana
 
-	kinematics::spkm1::kinematic_parameters_spkm1 kinematic_params;
+	kinematics::spkm::kinematic_parameters_spkm* kinematic_params;
 
 	EcpRobot *ui_ecp_robot;
 
@@ -56,24 +56,23 @@ public:
 
 	UiRobot(common::Interface& _interface, lib::robot_name_t _robot_name);
 
-	int manage_interface();
-	void delete_ui_ecp_robot();
-	void null_ui_ecp_robot();
-	int synchronise();
+	void manage_interface();
+
+	void synchronise();
 	int synchronise_int();
 
-	int move_to_synchro_position();
-	int move_to_front_position();
-	int move_to_preset_position(int variant);
+	void move_to_synchro_position();
+	void move_to_front_position();
+	void move_to_preset_position(int variant);
 
 	int execute_motor_motion();
 	int execute_joint_motion();
 
 	int execute_clear_fault();
 	int execute_stop_motor();
-	int edp_create_int_extra_operations();
-	int ui_get_edp_pid();
-	void ui_get_controler_state(lib::controller_state_t & robot_controller_initial_state_l);
+	int execute_brake_motor();
+	int execute_disable_brake();
+	void edp_create_int_extra_operations();
 
 	void setup_menubar();
 

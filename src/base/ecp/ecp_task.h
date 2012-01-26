@@ -70,6 +70,7 @@ private:
 	 * @brief Initializes communication channels
 	 */
 	void initialize_communication(void);
+
 protected:
 	/**
 	 * @brief Gets next state from MP
@@ -83,11 +84,14 @@ protected:
 	typedef lib::MP_COMMAND_PACKAGE mp_command_t;
 
 public:
+	const boost::shared_ptr<robot::ecp_robot_base> & ecp_m_robot;
+
+public:
 	// TODO: following packages should be 'protected'
 	/**
 	 * @brief MP server proxy
 	 */
-	RemoteAgent MP;
+	lib::agent::RemoteAgent MP;
 
 	/**
 	 * @brief Reply to MP
@@ -96,14 +100,14 @@ public:
 	ecp_reply_t ecp_reply;
 
 	//! Data buffer in the MP
-	OutputBuffer <ecp_reply_t> reply;
+	lib::agent::OutputBuffer <ecp_reply_t> reply;
 
 	/**
 	 * Data buffer with command from MP
 	 *
 	 * Buffer itself is a private object. Access to the data is provided with a 'const' access reference.
 	 */
-	InputBuffer <mp_command_t> command;
+	lib::agent::InputBuffer <mp_command_t> command;
 
 	/**
 	 * @brief buffered MP command
@@ -137,7 +141,7 @@ public:
 	 * @brief Constructor
 	 * @param _config configurator object reference.
 	 */
-	task_base(lib::configurator &_config);
+	task_base(lib::configurator &_config, boost::shared_ptr<robot::ecp_robot_base> & robot_ref);
 
 	/**
 	 * @brief Destructor
@@ -212,7 +216,7 @@ public:
 	 * @param _config configurator object reference.
 	 */
 	_task(lib::configurator &_config) :
-		task_base(_config)
+		task_base(_config, (boost::shared_ptr<robot::ecp_robot_base> &) ecp_m_robot)
 	{
 	}
 
@@ -234,9 +238,9 @@ public:
 	typedef _task <ECP_ROBOT_T> task_t;
 
 	/**
-	 * @brief Associated single robot object shared pointer
+	 * @brief Associated robot object shared pointer
 	 */
-	boost::shared_ptr <ECP_ROBOT_T> ecp_m_robot;
+	boost::shared_ptr<ECP_ROBOT_T> ecp_m_robot;
 };
 
 typedef _task <robot::ecp_robot> task;

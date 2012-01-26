@@ -23,19 +23,10 @@ namespace shead {
  * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
  * @ingroup shead
  */
-class robot : public common::robot::ecp_robot, public kinematics::common::kinematics_manager
+class robot : public common::robot::_ecp_robot <lib::shead::c_buffer, lib::shead::r_buffer>
+		, public kinematics::common::kinematics_manager
 {
 protected:
-
-	/**
-	 * @brief EDP command buffer
-	 */
-	lib::shead::cbuffer ecp_edp_cbuffer;
-
-	/**
-	 * @brief EDP reply buffer
-	 */
-	lib::shead::rbuffer edp_ecp_rbuffer;
 
 	void create_kinematic_models_for_given_robot(void);
 
@@ -64,12 +55,12 @@ public:
 	/**
 	 * @brief head soldification command data port
 	 */
-	lib::single_thread_port <lib::shead::SOLIDIFICATION_ACTIVATION> shead_head_soldification_data_port;
+	lib::single_thread_port <lib::shead::SOLIDIFICATION_ACTIVATION> solidification_data_port;
 
 	/**
 	 * @brief vacuum activation command data port
 	 */
-	lib::single_thread_port <lib::shead::VACUUM_ACTIVATION> shead_vacuum_activation_data_port;
+	lib::single_thread_port <lib::shead::VACUUM_ACTIVATION> vacuum_activation_data_port;
 
 	/**
 	 * @brief epos motion status reply data request port
