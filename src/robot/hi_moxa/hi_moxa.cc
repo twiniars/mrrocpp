@@ -163,7 +163,6 @@ int HI_moxa::get_current(int drive_number)
 	return ret;
 }
 
-
 float HI_moxa::get_voltage(int drive_number)
 {
 	float ret = VOLTAGE;

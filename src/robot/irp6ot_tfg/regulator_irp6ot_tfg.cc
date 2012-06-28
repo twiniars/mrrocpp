@@ -72,7 +72,7 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 	double current_error;
 	double current_desired;
 	double current_measured;
-	static int low_measure_counter;
+//	static int low_measure_counter;
 
 	alg_par_status = common::ALGORITHM_AND_PARAMETERS_OK;
 
