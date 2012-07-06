@@ -269,7 +269,7 @@ void force::get_reading(void)
 		}
 
 	} else {
-		sr_msg->message(lib::NON_FATAL_ERROR, "Nie zainicjowano gravity_transformation");
+		//sr_msg->message(lib::NON_FATAL_ERROR, "Nie zainicjowano gravity_transformation");
 	}
 
 }
