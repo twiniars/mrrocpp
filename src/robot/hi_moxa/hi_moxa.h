@@ -100,7 +100,7 @@ public:
 	 * @param parameter			parameter type
 	 * @param new_value			parameter value
 	 */
-	virtual void set_parameter(int drive_number, const int parameter, uint32_t new_value);
+	virtual void set_parameter(int drive_number, const int parameter, ...);
 
 	/**
 	 * @brief read motor current from communication buffer
@@ -140,7 +140,7 @@ public:
 	 * @param parameter			parameter type
 	 * @param new_value			parameter value
 	 */
-	virtual int set_parameter_now(int drive_number, const int parameter, uint32_t new_value);
+	virtual int set_parameter_now(int drive_number, const int parameter, ...);
 
 	/**
 	 * @brief reset all motor positions and position increments in communication buffer

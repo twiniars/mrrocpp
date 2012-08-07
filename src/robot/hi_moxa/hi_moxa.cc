@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <iostream>
+#include <cstdarg>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -146,28 +147,35 @@ void HI_moxa::set_current(int drive_number, double set_value)
 #endif
 }
 
-void HI_moxa::set_parameter(int drive_number, const int parameter, uint32_t new_value)
+void HI_moxa::set_parameter(int drive_number, const int parameter, ...)
 {
+	va_list newValue;
+	va_start(newValue, parameter);
 	switch (parameter)
 	{
 		case NF_COMMAND_SetDrivesMisc:
-			NFComBuf.SetDrivesMisc.data[drive_number] = (uint32_t) new_value;
+			NFComBuf.SetDrivesMisc.data[drive_number] = (uint32_t)va_arg(newValue, int);
 			servo_data[drive_number].commandArray[servo_data[drive_number].commandCnt++] = NF_COMMAND_SetDrivesMisc;
 			break;
 		case NF_COMMAND_SetDrivesMaxCurrent:
-			NFComBuf.SetDrivesMaxCurrent.data[drive_number] = (int16_t) new_value;
+			NFComBuf.SetDrivesMaxCurrent.data[drive_number] = (int16_t)va_arg(newValue, int);
 			servo_data[drive_number].commandArray[servo_data[drive_number].commandCnt++] =
 					NF_COMMAND_SetDrivesMaxCurrent;
 			break;
 		case NF_COMMAND_SetDrivesMode:
-			NFComBuf.SetDrivesMode.data[drive_number] = (uint8_t) new_value;
+			NFComBuf.SetDrivesMode.data[drive_number] = (uint8_t)va_arg(newValue, int);
 			servo_data[drive_number].commandArray[servo_data[drive_number].commandCnt++] = NF_COMMAND_SetDrivesMode;
+			break;
+		case NF_COMMAND_SetCurrentRegulator:
+			NFComBuf.SetCurrentRegulator.data[drive_number] = va_arg(newValue, NF_STRUCT_Regulator);
+			servo_data[drive_number].commandArray[servo_data[drive_number].commandCnt++] = NF_COMMAND_SetCurrentRegulator;
 			break;
 		default:
 			std::cout << "[error] HI_moxa::set_parameter() invalid parameter" << std::endl;
 			return;
 			break;
 	}
+	va_end(newValue);
 }
 
 int HI_moxa::get_current(int drive_number)
@@ -479,11 +487,14 @@ uint64_t HI_moxa::read_write_hardware(void)
 	return ret;
 }
 
-int HI_moxa::set_parameter_now(int drive_number, const int parameter, uint32_t new_value)
+int HI_moxa::set_parameter_now(int drive_number, const int parameter, ...)
 {
 	struct timespec delay;
 	uint8_t setParamCommandCnt = 0;
 	uint8_t setParamCommandArray[10];
+
+	va_list newValue;
+	va_start(newValue, parameter);
 
 	if (master.robot_test_mode) {
 		return 0;
@@ -492,22 +503,27 @@ int HI_moxa::set_parameter_now(int drive_number, const int parameter, uint32_t n
 	switch (parameter)
 	{
 		case NF_COMMAND_SetDrivesMisc:
-			NFComBuf.SetDrivesMisc.data[drive_number] = (uint32_t) new_value;
+			NFComBuf.SetDrivesMisc.data[drive_number] = (uint32_t)va_arg(newValue, int);
 			setParamCommandArray[setParamCommandCnt++] = NF_COMMAND_SetDrivesMisc;
 			break;
 		case NF_COMMAND_SetDrivesMaxCurrent:
-			NFComBuf.SetDrivesMaxCurrent.data[drive_number] = (int16_t) new_value;
+			NFComBuf.SetDrivesMaxCurrent.data[drive_number] = (int16_t)va_arg(newValue, int);
 			setParamCommandArray[setParamCommandCnt++] = NF_COMMAND_SetDrivesMaxCurrent;
 			break;
 		case NF_COMMAND_SetDrivesMode:
-			NFComBuf.SetDrivesMode.data[drive_number] = (uint8_t) new_value;
+			NFComBuf.SetDrivesMode.data[drive_number] = (uint8_t)va_arg(newValue, int);
 			setParamCommandArray[setParamCommandCnt++] = NF_COMMAND_SetDrivesMode;
 			break;
+		case NF_COMMAND_SetCurrentRegulator:
+			NFComBuf.SetCurrentRegulator.data[drive_number] = va_arg(newValue, NF_STRUCT_Regulator);
+			setParamCommandArray[setParamCommandCnt++] = NF_COMMAND_SetCurrentRegulator;
+			break;
 		default:
-			std::cout << "[error] HI_moxa::set_parameter_now() invalid parameter" << std::endl;
+			std::cout << "[error] HI_moxa::set_parameter_now() invalid parameter " << (int)parameter << std::endl;
 			return -1;
 			break;
 	}
+	va_end(newValue);
 
 	// Add Read Drive Status request
 	setParamCommandArray[setParamCommandCnt++] = NF_COMMAND_ReadDrivesStatus;
@@ -534,12 +550,12 @@ int HI_moxa::set_parameter_now(int drive_number, const int parameter, uint32_t n
 		SerialPort[drive_number]->write(txBuf, txCnt + 5);
 
 		// hardware panic; do not print error information; do not wait for response
-		if (parameter == NF_COMMAND_SetDrivesMode && new_value == NF_DrivesMode_ERROR
+		if (parameter == NF_COMMAND_SetDrivesMode && NFComBuf.SetDrivesMode.data[drive_number] == NF_DrivesMode_ERROR
 			)
 			return 0;
 
 		// Give some time for a response to return
-		delay.tv_nsec = 1000000;
+		delay.tv_nsec = 1700000;
 		delay.tv_sec = 0;
 		nanosleep(&delay, NULL);
 
@@ -551,7 +567,7 @@ int HI_moxa::set_parameter_now(int drive_number, const int parameter, uint32_t n
 					return 0;
 				}
 			} else {
-				std::cout << "[error] param set ack timeout for drive (" << drive_number << ")" << std::endl;
+				std::cout << "[error] param (" << parameter << ") set ack timeout for drive (" << drive_number << ")" << std::endl;
 				break;
 			}
 		}
