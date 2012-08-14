@@ -48,18 +48,24 @@ const std::string ports_strings[] =
  * @brief IRp6 postument overcurrent threshold [mA]
  * @ingroup irp6p_m
  */
-const int MAX_CURRENT_0 = 15000;
-const int MAX_CURRENT_1 = 18000;
-const int MAX_CURRENT_2 = 10000;
-const int MAX_CURRENT_3 = 10000;
-const int MAX_CURRENT_4 = 10000;
-const int MAX_CURRENT_5 = 10000;
+const int16_t MAX_CURRENT_0 = 15000;
+const int16_t MAX_CURRENT_1 = 18000;
+const int16_t MAX_CURRENT_2 = 10000;
+const int16_t MAX_CURRENT_3 = 10000;
+const int16_t MAX_CURRENT_4 = 10000;
+const int16_t MAX_CURRENT_5 = 10000;
 
 /*!
  * @brief IRp6 postument max encoder increment
  * @ingroup irp6p_m
  */
 const double MAX_INCREMENT[] = { 1000, 1000, 1000, 1000, 1000, 1000 };
+
+/*!
+ * @brief IRp6 postument motor driver cards addresses
+ * @ingroup irp6p_m
+ */
+const unsigned int CARD_ADDRESSES[] = { 0, 1, 2, 3, 4, 5 };
 
 } // namespace irp6p_m
 } // namespace lib

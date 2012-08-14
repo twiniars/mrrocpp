@@ -246,6 +246,8 @@ void force::get_reading(void)
 
 				sr_msg->message(lib::NON_FATAL_ERROR, buffer.str());
 			}
+		} else {
+			sr_msg->message(lib::NON_FATAL_ERROR, "Nie zainicjowano gravity_transformation");
 		}
 
 		// przygotowanie odczytu dla readera przetransformowanego do ukladu narzedzia
@@ -267,9 +269,6 @@ void force::get_reading(void)
 				//	std::cerr << " " << std::endl;
 			}
 		}
-
-	} else {
-		//sr_msg->message(lib::NON_FATAL_ERROR, "Nie zainicjowano gravity_transformation");
 	}
 
 }
