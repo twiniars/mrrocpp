@@ -1,6 +1,6 @@
 /*!
  * @file
- * @brief File containing methods of the rys imu sensor class.
+ * @brief File containing methods of the adis16362_imu imu sensor class.
  *
  * @author yoyek
  *
@@ -26,47 +26,46 @@ namespace mrrocpp {
 namespace edp {
 namespace sensor {
 
-rys_imu::rys_imu(common::manip_effector &_master) :
+adis16362_imu::adis16362_imu(common::manip_effector &_master) :
 		imu(_master)
 {
-	printf("rys_imu created !!! \n");
-	sr_msg->message("RYS IMU sensor being created");
-
+	printf("ADIS16362 IMU created !!! \n");
+	sr_msg->message("ADIS16362 IMU sensor being created");
 }
 
-void rys_imu::connect_to_hardware(void)
+void adis16362_imu::connect_to_hardware(void)
 {
-	ri = new IMU();
+	ai = new IMU();
 }
 
-rys_imu::~rys_imu(void)
+adis16362_imu::~adis16362_imu(void)
 {
 	if (!imu_sensor_test_mode) {
 		disconnect_from_hardware();
 	}
-	printf("Destruktor rys sensor\n");
+	printf("Destruktor ADIS16362 IMU sensor\n");
 }
 
-void rys_imu::disconnect_from_hardware(void)
+void adis16362_imu::disconnect_from_hardware(void)
 {
-	delete ri;
+	delete ai;
 }
 
-void rys_imu::configure_particular_sensor(void)
+void adis16362_imu::configure_particular_sensor(void)
 {
-	sr_msg->message("RYS IMU sensor being configured");
+	sr_msg->message("ADIS16362 IMU sensor being configured");
 }
 
-void rys_imu::wait_for_particular_event()
+void adis16362_imu::wait_for_particular_event()
 {
-	usleep(12000);
+//	usleep(1000);
 }
 
-void rys_imu::get_particular_reading(void)
+void adis16362_imu::get_particular_reading(void)
 {
 	static int i = 1;
 
-	ldata = ri->getReading();
+	ldata = ai->getReading();
 
 	if (((i++) % 1000) == 0) {
 		std::cout << i << std::endl;
@@ -77,7 +76,7 @@ void rys_imu::get_particular_reading(void)
 
 imu* return_created_edp_imu_sensor(common::manip_effector &_master)
 {
-	return new rys_imu(_master);
+	return new adis16362_imu(_master);
 }
 
 /*****************************  *****************************/
