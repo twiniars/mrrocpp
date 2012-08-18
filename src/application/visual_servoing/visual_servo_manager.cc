@@ -301,6 +301,17 @@ void visual_servo_manager::add_termination_condition(boost::shared_ptr <terminat
 	termination_conditions.push_back(term_cond);
 }
 
+void visual_servo_manager::remove_termination_condition(boost::shared_ptr <termination_condition> term_cond)
+{
+	std::vector <boost::shared_ptr <servovision::termination_condition> > ::iterator it;
+	for(it=termination_conditions.begin(); it!=termination_conditions.end(); ++it){
+		if(it->get() == term_cond.get()){
+			termination_conditions.erase(it);
+			break;
+		}
+	}
+}
+
 double visual_servo_manager::get_linear_speed() const
 {
 	return velocity.norm();
