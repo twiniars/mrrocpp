@@ -206,6 +206,8 @@ protected:
 
 public:
 
+	bool servo_mode;
+
 	/*!
 	 * \brief method to read current joint position stored in global_current_joints
 	 *
@@ -364,6 +366,14 @@ public:
 	 * it is impossible to move robot in absolute coordinates before synchronisation.
 	 */
 	virtual void synchronise();
+
+	/*!
+	 * \brief method to unsynchronise robot
+	 *
+	 * it is impossible to move robot in absolute coordinates before synchronisation.
+	 */
+	virtual void unsynchronise();
+
 
 	/*!
 	 * \brief method to compute servo_current_motor_pos, servo_cuurent_joints_pos and surve_current_frame in child classes

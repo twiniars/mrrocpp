@@ -282,7 +282,7 @@ void servo_buffer::operator()()
 			{
 				boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
 
-				master.rb_obj->step_data.servo_mode = false; // tryb bierny
+				master.servo_mode = master.rb_obj->step_data.servo_mode = false; // tryb bierny
 			}
 
 			/* Nie otrzymano nowego polecenia */
@@ -294,13 +294,16 @@ void servo_buffer::operator()()
 			{
 				boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
 
-				master.rb_obj->step_data.servo_mode = true; // tryb czynny
+				master.servo_mode = master.rb_obj->step_data.servo_mode = true; // tryb czynny
 			}
 
 			switch (command_type())
 			{
 				case SYNCHRONISE:
 					synchronise(); // synchronizacja
+					break;
+				case UNSYNCHRONISE:
+					unsynchronise(); // desynchronizacja
 					break;
 				case MOVE:
 					Move(); // realizacja makrokroku ruchu
@@ -396,6 +399,8 @@ bool servo_buffer::get_command(void)
 		switch (command_type())
 		{
 			case SYNCHRONISE:
+				return true; // wyjscie bez kontaktu z EDP_MASTER
+			case UNSYNCHRONISE:
 				return true; // wyjscie bez kontaktu z EDP_MASTER
 			case MOVE:
 				return true; // wyjscie bez kontaktu z EDP_MASTER
@@ -758,6 +763,27 @@ void servo_buffer::synchronise(void)
 	// kk = 0;
 
 	// printf("koniec synchro\n");
+	reply_to_EDP_MASTER();
+}
+
+void servo_buffer::unsynchronise(void)
+{
+
+	//	master.msg->message("synchro start");
+	//printf("synchro \n");
+	if (master.robot_test_mode) {
+		// W.S. Tylko przy testowaniu
+		clear_reply_status();
+		clear_reply_status_tmp();
+		reply_to_EDP_MASTER();
+		return;
+	}
+
+	for (int j = 0; j < (master.number_of_servos); j++) {
+// desynchronizacja
+		hi->unsynchro(j);
+
+	} // end: for
 	reply_to_EDP_MASTER();
 }
 

@@ -27,7 +27,7 @@ namespace common {
 
 /*-----------------------------------------------------------------------*/
 regulator::regulator(uint8_t _axis_number, uint8_t reg_no, uint8_t reg_par_no, common::motor_driven_effector &_master, REG_OUTPUT _reg_output) :
-		new_desired_velocity_error(true), axis_number(_axis_number), master(_master), reg_output(_reg_output)
+		reg_output(_reg_output), new_desired_velocity_error(true), axis_number(_axis_number), master(_master)
 {
 	// Konstruktor abstrakcyjnego regulatora
 	// Inicjuje zmienne, ktore kazdy regulator konkretny musi miec i aktualizowac,
@@ -50,6 +50,7 @@ regulator::regulator(uint8_t _axis_number, uint8_t reg_no, uint8_t reg_par_no, c
 	set_value_new = 0; // wielkosc kroku do realizacji przez HIP (wypelnienie PWM -- u[k])
 	set_value_old = 0; // wielkosc kroku do realizacji przez HIP (wypelnienie PWM -- u[k-1])
 	set_value_very_old = 0; // wielkosc kroku do realizacji przez HIP (wypelnienie PWM -- u[k-2])
+	output_value = 0.0;
 
 	delta_eint = 0.0; // przyrost calki uchybu
 	delta_eint_old = 0.0; // przyrost calki uchybu w poprzednim kroku
@@ -228,6 +229,82 @@ NL_regulator::NL_regulator(uint8_t _axis_number, uint8_t reg_no, uint8_t reg_par
 	measured_current = 0;
 }
 /*-----------------------------------------------------------------------*/
+
+void NL_regulator::compute_set_value_final_computations()
+{
+
+	static bool last_servo_mode = false;
+
+	// scope-locked reader data update
+	{
+		boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
+
+		master.rb_obj->step_data.desired_inc[axis_number] = (float) step_new_pulse; // pozycja osi 0
+		master.rb_obj->step_data.current_inc[axis_number] = (short int) position_increment_new;
+		master.rb_obj->step_data.pwm[axis_number] = (float) set_value_new;
+		master.rb_obj->step_data.uchyb[axis_number] = (float) (step_new_pulse - position_increment_new);
+		master.rb_obj->step_data.measured_current[axis_number] = measured_current;
+	}
+
+	if (set_value_new > MAX_PWM)
+		set_value_new = MAX_PWM;
+	if (set_value_new < -MAX_PWM)
+		set_value_new = -MAX_PWM;
+
+	// use existing axis_number to display particular regulator data, otherwise set to 10
+	int display_axis_number = 10;
+
+	if (axis_number == display_axis_number) {
+		if (last_servo_mode != master.servo_mode) {
+			std::cout << "sm changed to: " << master.servo_mode << std::endl;
+			last_servo_mode = master.servo_mode;
+		}
+	}
+
+	switch (reg_output)
+	{
+		case common::REG_OUTPUT::PWM_OUTPUT: {
+
+			output_value = set_value_new;
+			// use axis_number to display particular regulator data
+			if ((axis_number == display_axis_number) && (master.servo_mode == true)) {
+				std::cout << "pwm_a: " << display_axis_number << " sm: " << master.servo_mode << " meassured_current: "
+						<< measured_current << " desired_pwm: " << output_value << " kp: "
+						<< measured_current / output_value << " pin: " << position_increment_new << std::endl;
+			}
+
+		}
+			break;
+		case common::REG_OUTPUT::CURRENT_OUTPUT: {
+
+			output_value = set_value_new * current_reg_kp;
+
+			if (output_value > max_output_current) {
+				output_value = max_output_current;
+			} else if (output_value < -max_output_current) {
+				output_value = -max_output_current;
+			}
+			// use axis_number to display particular regulator data
+			if ((axis_number == display_axis_number) && (master.servo_mode == true))
+			//if ((axis_number == display_axis_number))
+					{
+				std::cout << "cascade_a: " << display_axis_number << " sm: " << master.servo_mode
+						<< " meassured_current: " << measured_current << " desired_current: " << output_value
+						<< " pin: " << position_increment_new << std::endl;
+			}
+
+		}
+			break;
+	}
+
+	// przepisanie nowych wartosci zmiennych do zmiennych przechowujacych wartosci poprzednie
+	position_increment_old = position_increment_new;
+	delta_eint_old = delta_eint;
+	step_old_pulse = step_new_pulse;
+	set_value_very_old = set_value_old;
+	set_value_old = set_value_new;
+	PWM_value = (int) set_value_new;
+}
 
 NL_regulator::~NL_regulator()
 {
