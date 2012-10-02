@@ -283,7 +283,7 @@ enum GRIPPER_STATE_ENUM
 //------------------------------------------------------------------------------
 enum INSTRUCTION_TYPE
 {
-	SET, GET, SET_GET, SYNCHRO, QUERY
+	SET, GET, SET_GET, SYNCHRO, QUERY, UNSYNCHRO
 };
 
 //------------------------------------------------------------------------------
@@ -365,12 +365,10 @@ private:
 
 //------------------------------------------------------------------------------
 /*! robot_model */
-typedef struct
-
-_robot_model
+struct robot_model_t
 {
 	//! Constructor set default discriminant type
-	_robot_model() :
+	robot_model_t() :
 			type(ROBOT_MODEL_SPECIFICATION(-1))
 	{
 	}
@@ -434,7 +432,7 @@ private:
 				break;
 		}
 	}
-} robot_model_t;
+};
 
 //------------------------------------------------------------------------------
 //                                  c_buffer
@@ -444,7 +442,7 @@ typedef robot_model_t c_buffer_robot_model_t;
 
 //------------------------------------------------------------------------------
 /*! arm */
-typedef struct c_buffer_arm
+struct c_buffer_arm_t
 {
 	//----------------------------------------------------------
 	struct
@@ -478,7 +476,7 @@ private:
 		ar & pf_def.behaviour;
 
 	}
-} c_buffer_arm_t;
+};
 
 //------------------------------------------------------------------------------
 struct c_buffer
@@ -493,8 +491,7 @@ struct c_buffer
 	ROBOT_MODEL_SPECIFICATION get_robot_model_type;
 	/*! Definition type of the end-effector's given position. */
 	POSE_SPECIFICATION set_arm_type;
-	/*! Definition type of the end-effector's read position. */
-	POSE_SPECIFICATION get_arm_type;
+
 	/*! Binary outputs values. */
 	uint16_t output_values;
 
@@ -586,7 +583,6 @@ private:
 		ar & get_type;
 		ar & get_robot_model_type;
 		ar & set_arm_type;
-		ar & get_arm_type;
 		ar & output_values;
 		ar & interpolation_type;
 		ar & motion_type;
@@ -606,7 +602,7 @@ private:
 typedef robot_model_t r_buffer_robot_model_t;
 
 //------------------------------------------------------------------------------
-typedef struct _controller_state_t
+struct controller_state_t
 {
 	//! Flag informing whether the robot is synchronized or not.
 	bool is_synchronised;
@@ -629,18 +625,17 @@ private:
 		ar & is_power_on;
 		ar & robot_in_fault_state;
 	}
-} controller_state_t;
+};
 
 //------------------------------------------------------------------------------
 /*! arm */
-typedef struct r_buffer_arm
+struct r_buffer_arm_t
 {
 	/*!
 	 *  Sposob  zdefiniowania polozenia zadanego koncowki.
 	 *  @todo Translate to English.
 	 */
-	POSE_SPECIFICATION type;
-
+	// POSE_SPECIFICATION type;
 	struct
 	{
 		/*!
@@ -649,11 +644,9 @@ typedef struct r_buffer_arm
 		 */
 		lib::Homog_matrix arm_frame;
 
-		/*!
-		 *  XYZ + orientacja koncowki wzgledem ukladu bazowego.
-		 *  @todo Translate to English.
-		 */
-		double arm_coordinates[lib::MAX_SERVOS_NR];
+		double joint_coordinates[lib::MAX_SERVOS_NR];
+
+		double motor_coordinates[lib::MAX_SERVOS_NR];
 
 		lib::Ft_vector force_xyz_torque_xyz;
 	} pf_def;
@@ -688,11 +681,16 @@ typedef struct r_buffer_arm
 		 */
 		float average_cubic[lib::MAX_SERVOS_NR];
 
+		/*!
+		 *  energy
+		 * For the whole macrostep sum of measured currents for current step multiplied by pwm for previous step
+		 */
+		float energy[lib::MAX_SERVOS_NR];
+
 	} measured_current;
 
 	/*!
-	 *  Stan w ktorym znajduje sie regulator chwytaka.
-	 *  @todo Translate to English.
+	 *  State of grippers regutor
 	 */
 	int16_t gripper_reg_state;
 
@@ -704,17 +702,11 @@ private:
 	template <class Archive>
 	void serialize(Archive & ar, const unsigned int version)
 	{
-		ar & type;
+		//	ar & type;
 
-		switch (type)
-		{
-			case FRAME:
-				ar & pf_def.arm_frame;
-				break;
-			default:
-				ar & pf_def.arm_coordinates;
-				break;
-		}
+		ar & pf_def.arm_frame;
+		ar & pf_def.joint_coordinates;
+		ar & pf_def.motor_coordinates;
 
 		ar & pf_def.force_xyz_torque_xyz;
 		ar & gripper_reg_state;
@@ -724,9 +716,10 @@ private:
 		ar & measured_current.maximum_module;
 		ar & measured_current.average_square;
 		ar & measured_current.average_cubic;
+		ar & measured_current.energy;
 
 	}
-} r_buffer_arm_t;
+};
 
 //------------------------------------------------------------------------------
 struct r_buffer_base
@@ -822,7 +815,7 @@ public:
 	/*!
 	 * \brief template method to put data into the memory (serialize)
 	 */
-	template <typename BUFFER_TYPE>
+template	<typename BUFFER_TYPE>
 	void set(const BUFFER_TYPE & buffer)
 	{
 		xdr_oarchive <> oa;
@@ -896,7 +889,6 @@ private:
 		ar & next_state;
 		ar & variant;
 		ar & sg_buf;
-		// ar & playerpos_goal; // this is not used at this moment
 	}
 };
 
@@ -942,7 +934,8 @@ struct ECP_REPLY_PACKAGE
 
 	// TODO: this should be rather union, but it is not possible to union non-POD objects
 	r_buffer reply_package;
-	char recognized_command[ECP_2_MP_STRING_SIZE];
+	int variant;
+	seter_geter_buffer_t sg_buf;
 
 private:
 	//! Give access to boost::serialization framework
@@ -954,7 +947,8 @@ private:
 	{
 		ar & reply;
 		ar & reply_package;
-		ar & recognized_command; // TODO: this should be handled in better way...
+		ar & variant;
+		ar & sg_buf;
 	}
 };
 // ------------------------------------------------------------------------
@@ -962,7 +956,7 @@ private:
 /**
  * @brief Empty data structure.
  */
-typedef struct _empty
+struct empty_t
 {
 private:
 	//! Give access to boost::serialization framework
@@ -973,7 +967,7 @@ private:
 	void serialize(Archive & ar, const unsigned int version)
 	{
 	}
-} empty_t;
+};
 
 } // namespace lib
 } // namespace mrrocpp

@@ -40,10 +40,10 @@ namespace edp {
 namespace common {
 
 // Bufor polecen i odpowiedzi EDP_MASTER
-boost::shared_ptr<effector> master;
+boost::shared_ptr <effector> master;
 
 // obiekt do wykrywania obecnosci drugiego edp jeszcze przed powolaniem klasy efectora
-boost::shared_ptr<shell> edp_shell;
+boost::shared_ptr <shell> edp_shell;
 
 /* Przechwycenie sygnalu */
 void catch_signal(int sig)
@@ -57,6 +57,12 @@ void catch_signal(int sig)
 			}
 			exit(EXIT_SUCCESS);
 			break;
+		case SIGUSR2:
+				if (edp_shell) {
+					edp_shell->msg->message(lib::SYSTEM_ERROR, "edp terminated unexpectecly");
+				}
+				exit(EXIT_SUCCESS);
+				break;
 		case SIGSEGV:
 			fprintf(stderr, "Segmentation fault in EDP process\n");
 			signal(SIGSEGV, SIG_DFL);
@@ -83,14 +89,14 @@ int main(int argc, char *argv[])
 		signal(SIGTERM, &edp::common::catch_signal);
 		signal(SIGHUP, &edp::common::catch_signal);
 		signal(SIGSEGV, &edp::common::catch_signal);
-
+		signal(SIGUSR2, &edp::common::catch_signal);
 		// avoid transporting Ctrl-C signal from UI console
 		signal(SIGINT, SIG_IGN);
 
 		// create configuration object
 		lib::configurator _config(argv[1], argv[2], argv[3]);
 
-		edp::common::edp_shell = (boost::shared_ptr<edp::common::shell>) new edp::common::shell(_config);
+		edp::common::edp_shell = (boost::shared_ptr <edp::common::shell>) new edp::common::shell(_config);
 
 		if (!edp::common::edp_shell->detect_hardware_busy()) {
 			throw std::runtime_error("hardware busy while loading, closing automatically ...");
@@ -99,17 +105,20 @@ int main(int argc, char *argv[])
 #if defined(HAVE_MLOCKALL)
 		// Try to lock memory to avoid swapping whlie executing in real-time
 		if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
-			perror("No real-time warrany: mlockall() failed");
+			perror("No real-time warranty: mlockall() failed");
 		}
 #endif /* HAVE_MLOCKALL */
 
 		lib::set_process_sched();
 
-		edp::common::master = (boost::shared_ptr<edp::common::effector>) edp::common::return_created_efector(*(edp::common::edp_shell));
+		edp::common::master =
+				(boost::shared_ptr <edp::common::effector>) edp::common::return_created_efector(*(edp::common::edp_shell));
+
+		edp::common::master->initialize_communication();
 
 		edp::common::master->create_threads();
 
-		edp::common::master->initialize_communication();
+		edp::common::master->msg->message("edp loaded");
 
 		//	printf("1\n");
 		//	delay (20000);

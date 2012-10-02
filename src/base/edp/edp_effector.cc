@@ -62,7 +62,6 @@ void effector::initialize_communication()
 		lib::set_thread_priority(lib::PTHREAD_MAX_PRIORITY - 2);
 	}
 
-	msg->message("edp loaded");
 }
 
 void effector::establish_error(lib::r_buffer_base & reply, uint64_t err0, uint64_t err1)
@@ -72,16 +71,6 @@ void effector::establish_error(lib::r_buffer_base & reply, uint64_t err0, uint64
 	reply.error_no.error1 = err1;
 }
 
-void effector::instruction_deserialization()
-{
-}
-
-void effector::reply_serialization()
-{
-}
-
 } // namespace common
 } // namespace edp
-}
-// namespace mrrocpp
-
+} // namespace mrrocpp

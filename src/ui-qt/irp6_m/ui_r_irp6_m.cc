@@ -36,6 +36,22 @@ void UiRobot::synchronise()
 {
 }
 
+void UiRobot::unsynchronise()
+{
+	msg->message(lib::NON_FATAL_ERROR, "unsynchronise begin");
+	if ((is_edp_loaded()) && (state.edp.is_synchronised == true)) {
+
+		msg->message(lib::NON_FATAL_ERROR, "unsynchronise inside");
+		std::cout << "ui unsynchronise()" << std::endl;
+		close_all_windows();
+		ui_ecp_robot->ecp->unsynchronise();
+		get_edp_state();
+		interface.manage_interface();
+		std::cout << "ui unsynchronise() end" << std::endl;
+		msg->message(lib::NON_FATAL_ERROR, "unsynchronise end");
+	}
+}
+
 int UiRobot::execute_motor_motion()
 {
 	try {
@@ -94,7 +110,6 @@ UiRobot::UiRobot(common::Interface& _interface, lib::robot_name_t _robot_name, i
 {
 }
 
-
 void UiRobot::manage_interface()
 {
 
@@ -107,6 +122,7 @@ void UiRobot::manage_interface()
 			break;
 		case common::UI_EDP_OFF:
 			menu_Preset_Positions->setEnabled(false);
+			menu_Special->setEnabled(false);
 			action_Synchronisation->setEnabled(false);
 			menu_Pre_Synchro_Moves->setEnabled(false);
 			menu_Absolute_Moves->setEnabled(false);
@@ -126,7 +142,14 @@ void UiRobot::manage_interface()
 				{
 					case common::UI_MP_NOT_PERMITED_TO_RUN:
 					case common::UI_MP_PERMITED_TO_RUN:
+						menu_Special->setEnabled(true);
+						menu_Preset_Positions->setEnabled(true);
+						menu_Absolute_Moves->setEnabled(true);
+						menu_Relative_Moves->setEnabled(true);
+						menu_Tool->setEnabled(true);
+						break;
 					case common::UI_MP_WAITING_FOR_START_PULSE:
+						menu_Special->setEnabled(false);
 						menu_Preset_Positions->setEnabled(true);
 						menu_Absolute_Moves->setEnabled(true);
 						menu_Relative_Moves->setEnabled(true);
@@ -137,6 +160,7 @@ void UiRobot::manage_interface()
 
 						break;
 					case common::UI_MP_TASK_PAUSED:
+						menu_Special->setEnabled(false);
 						menu_Preset_Positions->setEnabled(false);
 						menu_Absolute_Moves->setEnabled(false);
 						menu_Relative_Moves->setEnabled(false);
@@ -150,6 +174,12 @@ void UiRobot::manage_interface()
 			{
 				action_Synchronisation->setEnabled(true);
 				menu_Pre_Synchro_Moves->setEnabled(true);
+
+				menu_Preset_Positions->setEnabled(false);
+				menu_Special->setEnabled(false);
+				menu_Absolute_Moves->setEnabled(false);
+				menu_Relative_Moves->setEnabled(false);
+				menu_Tool->setEnabled(false);
 			}
 			break;
 		default:
@@ -172,6 +202,7 @@ void UiRobot::setup_menubar()
 	Ui::SignalDispatcher *signalDispatcher = interface.get_main_window()->getSignalDispatcher();
 
 	action_Synchronisation = new Ui::MenuBarAction(QString("&Synchronisation"), this, menuBar);
+	action_UnSynchronisation = new Ui::MenuBarAction(QString("&UnSynchronisation"), this, menuBar);
 	action_Synchro_Position = new Ui::MenuBarAction(QString("&Synchro Position"), this, menuBar);
 	action_Front_Position = new Ui::MenuBarAction(QString("&Front Position"), this, menuBar);
 	action_Position_0 = new Ui::MenuBarAction(QString("Position &0"), this, menuBar);
@@ -198,11 +229,13 @@ void UiRobot::setup_menubar()
 	menu_Absolute_Moves = new QMenu(robot_menu);
 	menu_Relative_Moves = new QMenu(robot_menu);
 	menu_Tool = new QMenu(robot_menu);
+	menu_Special = new QMenu(robot_menu);
 
 	robot_menu->addAction(menu_Pre_Synchro_Moves->menuAction());
 	robot_menu->addAction(menu_Absolute_Moves->menuAction());
 	robot_menu->addAction(menu_Relative_Moves->menuAction());
 	robot_menu->addAction(menu_Tool->menuAction());
+
 	menu_Pre_Synchro_Moves->addAction(action_Synchronisation);
 	menu_Pre_Synchro_Moves->addAction(action_Pre_Synchro_Moves_Motors);
 	menu_Absolute_Moves->addAction(action_Absolute_Moves_Motors);
@@ -231,8 +264,14 @@ void UiRobot::setup_menubar()
 
 	menu_Preset_Positions->setTitle(QApplication::translate("MainWindow", "&Preset positions", 0, QApplication::UnicodeUTF8));
 
+	robot_menu->addSeparator();
+	robot_menu->addAction(menu_Special->menuAction());
+	menu_Special->addAction(action_UnSynchronisation);
+	menu_Special->setTitle(QApplication::translate("MainWindow", "&Special", 0, QApplication::UnicodeUTF8));
+
 	// connections
 	connect(action_Synchronisation, SIGNAL(triggered(mrrocpp::ui::common::UiRobot*)), signalDispatcher, SLOT(on_Synchronisation_triggered(mrrocpp::ui::common::UiRobot*)), Qt::AutoCompatConnection);
+	connect(action_UnSynchronisation, SIGNAL(triggered(mrrocpp::ui::common::UiRobot*)), signalDispatcher, SLOT(on_UnSynchronisation_triggered(mrrocpp::ui::common::UiRobot*)), Qt::AutoCompatConnection);
 	connect(action_Synchro_Position, SIGNAL(triggered(mrrocpp::ui::common::UiRobot*)), signalDispatcher, SLOT(on_Synchro_Position_triggered(mrrocpp::ui::common::UiRobot*)), Qt::AutoCompatConnection);
 	connect(action_Front_Position, SIGNAL(triggered(mrrocpp::ui::common::UiRobot*)), signalDispatcher, SLOT(on_Front_Position_triggered(mrrocpp::ui::common::UiRobot*)), Qt::AutoCompatConnection);
 	connect(action_Position_0, SIGNAL(triggered(mrrocpp::ui::common::UiRobot*)), signalDispatcher, SLOT(on_Position_0_triggered(mrrocpp::ui::common::UiRobot*)), Qt::AutoCompatConnection);

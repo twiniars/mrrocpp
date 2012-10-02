@@ -74,8 +74,12 @@ protected:
 
 	// is sensor_frame right turn
 	bool is_right_turn_frame;
-	// sensor_frame related to wrist frame
-	lib::Homog_matrix sensor_frame;
+
+	// force_sensor_frame related to wrist frame
+	lib::Homog_matrix force_sensor_frame;
+
+	// imu_frame related to wrist frame
+	lib::Homog_matrix imu_frame;
 
 	lib::ForceTrans *gravity_transformation; // klasa likwidujaca wplyw grawitacji na czujnik
 
@@ -84,13 +88,15 @@ protected:
 	virtual void connect_to_hardware(void) = 0;
 	virtual void disconnect_from_hardware(void) = 0;
 
-	void configure_sensor(void);
-
 	// particular force sensor configuration
 	virtual void configure_particular_sensor(void) = 0;
 
 	// particular force sensor get reading
 	virtual void get_particular_reading(void) = 0;
+
+	virtual void wait_for_particular_event(void) = 0; // oczekiwanie na zdarzenie
+
+	void configure_sensor(void);
 
 	// ft_table used in get_reading and get_particualr_reading
 	lib::Ft_vector ft_table;
@@ -98,6 +104,9 @@ protected:
 	lib::Ft_vector force_constraints;
 
 	void get_reading(void);
+
+	// computes inertial force
+	lib::Ft_vector compute_inertial_force(lib::Xyz_Angle_Axis_vector & output_acc, const lib::Homog_matrix curr_frame);
 
 	struct _from_vsp
 	{
@@ -111,6 +120,10 @@ protected:
 
 	void clear_cb();
 
+	lib::Xyz_Angle_Axis_vector gravitational_acceleration;
+
+	lib::Homog_matrix tool_mass_center_translation;
+
 public:
 	void operator()();
 	boost::mutex mtx;
@@ -119,16 +132,12 @@ public:
 	//! komunikacja z SR
 	boost::shared_ptr <lib::sr_vsp> sr_msg;
 
-	//! dostep do nowej wiadomosci dla vsp
-	lib::condition_synchroniser edp_vsp_synchroniser;
+	lib::condition_synchroniser first_measure_synchroniser;
 
 	//! dostep do nowej wiadomosci dla vsp
 	lib::condition_synchroniser new_command_synchroniser;
 
 	common::FORCE_ORDER command;
-
-	//! zakonczenie obydwu watkow
-	bool TERMINATE;
 
 	//! czy czujnik skonfigurowany?
 	bool is_sensor_configured;
@@ -146,7 +155,6 @@ public:
 	virtual ~force();
 
 	void wait_for_event(void); // oczekiwanie na zdarzenie
-	virtual void wait_for_particular_event(void) = 0; // oczekiwanie na zdarzenie
 
 	void set_force_tool(void);
 };

@@ -10,6 +10,7 @@
 
 #include <boost/utility.hpp>
 
+#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 
@@ -44,7 +45,7 @@ const int SYNCHRO_FINAL_STOP_STEP_NUMBER = 25; // liczba krokow zatrzymania podc
 //------------------------------------------------------------------------------
 enum SERVO_COMMAND
 {
-	MOVE, READ, SYNCHRONISE, SERVO_ALGORITHM_AND_PARAMETERS
+	MOVE, READ, SYNCHRONISE, UNSYNCHRONISE, SERVO_ALGORITHM_AND_PARAMETERS
 };
 
 //------------------------------------------------------------------------------
@@ -110,11 +111,7 @@ class servo_buffer : public boost::noncopyable
 {
 	// Bufor polecen przysylanych z EDP_MASTER dla SERVO
 	// Obiekt z algorytmem regulacji
-private:
-
 protected:
-	boost::thread *thread_id;
-
 	HardwareInterface* hi; // obiekt odpowiedzialny za kontakt ze sprzetem
 
 	// regulator_group
@@ -160,6 +157,8 @@ protected:
 	void compute_current_measurement_statistics();
 
 public:
+	boost::thread thread_id;
+
 	lib::condition_synchroniser thread_started;
 
 	edp_master_command command; // polecenie z EDP_MASTER dla SERVO
@@ -211,6 +210,10 @@ public:
 
 	virtual void synchronise(void);
 
+	//! synchronizacja
+
+	virtual void unsynchronise(void);
+
 	//! ustawia flage w hardware interfejs powodujaca stop awaryjny
 	void set_hi_panic(void);
 
@@ -230,7 +233,7 @@ public:
 	int synchro_move_to_encoder_zero(common::regulator* &crp, int j);
 
 	//! obliczenie nastepnej wartosci zadanej dla wszystkich napedow
-	uint64_t compute_all_set_values(void);
+	virtual uint64_t compute_all_set_values(void);
 
 	//! wydruk - do celow uruchomieniowych !!!
 	void ppp(void) const;

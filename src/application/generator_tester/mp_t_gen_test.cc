@@ -19,9 +19,10 @@
 #include "base/lib/sr/srlib.h"
 
 #include "ecp_mp_t_gen_test.h"
-#include "application/generator_tester/ecp_mp_st_const_vel_gen_test.h"
+
 #include "application/generator_tester/ecp_mp_st_smooth_gen_test.h"
 #include "application/generator_tester/ecp_mp_st_spline_gen_test.h"
+#include "application/generator_tester/ecp_mp_st_const_vel_gen_test.h"
 
 #include "robot/irp6ot_m/mp_r_irp6ot_m.h"
 #include "robot/irp6p_m/mp_r_irp6p_m.h"
@@ -39,9 +40,9 @@ task* return_created_mp_task(lib::configurator &_config)
 //Robot creation, depending on the configuration file
 void gen_test::create_robots()
 {
-	ACTIVATE_MP_ROBOT(irp6ot_m);
+        ACTIVATE_MP_ROBOT(irp6ot_m);
 	ACTIVATE_MP_ROBOT(irp6p_m);
-	ACTIVATE_MP_ROBOT(conveyor);
+        ACTIVATE_MP_ROBOT(conveyor);
 }
 
 gen_test::gen_test(lib::configurator &_config) :
@@ -54,93 +55,70 @@ void gen_test::main_task_algorithm(void)
 
 	sr_ecp_msg->message("Gen Test (MP) START");
 
-	lib::robot_name_t manipulator_name;
-	lib::robot_name_t gripper_name;
+        //lib::robot_name_t manipulator_name;
+        //lib::robot_name_t gripper_name;
 
 	// Track
 
 	/*if (config.value <int> ("is_irp6ot_m_active", lib::UI_SECTION)) {
-	 //------------------- CONSTANT VELOCITY GENERATOR -------------------
+             //------------------- CONSTANT VELOCITY GENERATOR -------------------
 
-	 set_next_ecp_state(ecp_mp::sub_task::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", 0, lib::irp6ot_m::ROBOT_NAME);
+             set_next_ecp_state(ecp_mp::subtask::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", 0, lib::irp6ot_m::ROBOT_NAME);
 
-	 wait_for_task_termination(false, 1, lib::irp6ot_m::ROBOT_NAME.c_str());
+             wait_for_task_termination(false, 1, lib::irp6ot_m::ROBOT_NAME.c_str());
 
-	 //------------------- CONSTANT VELOCITY GENERATOR END -------------------
+             //------------------- CONSTANT VELOCITY GENERATOR END -------------------
+    */
+             //------------------- SMOOTH GENERATOR -------------------
+             set_next_ecp_state(ecp_mp::generator::ECP_MP_SMOOTH_GEN_TEST, (int) 5, "", lib::irp6ot_m::ROBOT_NAME);
 
-	 //------------------- SMOOTH GENERATOR -------------------
-	 set_next_ecp_state(ecp_mp::sub_task::ECP_ST_SMOOTH_GEN_TEST, (int) 5, "", 0, lib::irp6ot_m::ROBOT_NAME);
+             wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME.c_str());
+             //------------------- SMOOTH GENERATOR END -------------------
 
-	 wait_for_task_termination(false, 1, lib::irp6ot_m::ROBOT_NAME.c_str());
-	 //------------------- SMOOTH GENERATOR END -------------------
+             //------------------- SPLINE GENERATOR -------------------
+    /*	 set_next_ecp_state(ecp_mp::subtask::ECP_ST_SPLINE_GEN_TEST, (int) 5, "", 0, lib::irp6ot_m::ROBOT_NAME);
 
-	 //------------------- SPLINE GENERATOR -------------------
-	 set_next_ecp_state(ecp_mp::sub_task::ECP_ST_SPLINE_GEN_TEST, (int) 5, "", 0, lib::irp6ot_m::ROBOT_NAME);
-
-	 wait_for_task_termination(false, 1, lib::irp6ot_m::ROBOT_NAME.c_str());
-	 //------------------- SPLINE GENERATOR END -------------------
+             wait_for_task_termination(false, 1, lib::irp6ot_m::ROBOT_NAME.c_str());
+             //------------------- SPLINE GENERATOR END -------------------
 	 }*/
 
 	// Postument
 	if (config.value <int>("is_irp6p_m_active", lib::UI_SECTION)) {
-		//------------------- CONSTANT VELOCITY GENERATOR -------------------
-		//set_next_ecp_state(ecp_mp::sub_task::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
+            //------------------- CONSTANT VELOCITY GENERATOR -------------------
+            //set_next_ecp_state(ecp_mp::subtask::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
 
-		//wait_for_task_termination(false, 1, lib::irp6p_m::ROBOT_NAME.c_str());
-		//------------------- CONSTANT VELOCITY GENERATOR END -------------------
+            //wait_for_task_termination(false, 1, lib::irp6p_m::ROBOT_NAME.c_str());
+            //------------------- CONSTANT VELOCITY GENERATOR END -------------------
 
-		//------------------- SMOOTH GENERATOR -------------------
-		set_next_ecp_state(ecp_mp::sub_task::ECP_ST_SMOOTH_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
+            //------------------- SMOOTH GENERATOR -------------------
+            set_next_ecp_state(ecp_mp::generator::ECP_MP_SMOOTH_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
+            wait_for_task_termination(false, lib::irp6p_m::ROBOT_NAME);
+            //------------------- SMOOTH GENERATOR END -------------------
 
-		wait_for_task_termination(false, 1, lib::irp6p_m::ROBOT_NAME.c_str());
-		//------------------- SMOOTH GENERATOR END -------------------
+            //------------------- SPLINE GENERATOR -------------------
+            //set_next_ecp_state(ecp_mp::subtask::ECP_ST_SPLINE_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
 
-		//------------------- SPLINE GENERATOR -------------------
-		//set_next_ecp_state(ecp_mp::sub_task::ECP_ST_SPLINE_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
-
-		// wait_for_task_termination(false, 1, lib::irp6p_m::ROBOT_NAME.c_str());
-		//------------------- SPLINE GENERATOR END -------------------
+            //wait_for_task_termination(false, 1, lib::irp6p_m::ROBOT_NAME.c_str());
+            //------------------- SPLINE GENERATOR END -------------------
 	}
 
-	// Polycrank
-
-	/*if (config.value <int> ("is_polycrank_active", lib::UI_SECTION)) {
-	 //------------------- CONSTANT VELOCITY GENERATOR -------------------
-	 set_next_ecp_state(ecp_mp::sub_task::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", 0, lib::polycrank::ROBOT_NAME);
-
-	 wait_for_task_termination(false, 1, lib::polycrank::ROBOT_NAME.c_str());
-	 //------------------- CONSTANT VELOCITY GENERATOR END -------------------
-
-	 //------------------- SMOOTH GENERATOR -------------------
-	 set_next_ecp_state(ecp_mp::sub_task::ECP_ST_SMOOTH_GEN_TEST, (int) 5, "", 0, lib::polycrank::ROBOT_NAME);
-
-	 wait_for_task_termination(false, 1, lib::polycrank::ROBOT_NAME.c_str());
-	 //------------------- SMOOTH GENERATOR END -------------------
-
-	 //------------------- SPLINE GENERATOR -------------------
-	 set_next_ecp_state(ecp_mp::sub_task::ECP_ST_SPLINE_GEN_TEST, (int) 5, "", 0, lib::polycrank::ROBOT_NAME);
-
-	 wait_for_task_termination(false, 1, lib::polycrank::ROBOT_NAME.c_str());
-	 //------------------- SPLINE GENERATOR END -------------------
-	 }
-
-	 // Conveyor
+	/*// Conveyor
 
 	 if (config.value <int> ("is_conveyor_active", lib::UI_SECTION)) {
 	 //------------------- CONSTANT VELOCITY GENERATOR -------------------
-	 set_next_ecp_state(ecp_mp::sub_task::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", 0, lib::conveyor::ROBOT_NAME);
+	 set_next_ecp_state(ecp_mp::subtask::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", 0, lib::conveyor::ROBOT_NAME);
 
 	 wait_for_task_termination(false, 1, lib::conveyor::ROBOT_NAME.c_str());
 	 //------------------- CONSTANT VELOCITY GENERATOR END -------------------
 
 	 //------------------- SMOOTH GENERATOR -------------------
-	 set_next_ecp_state(ecp_mp::sub_task::ECP_ST_SMOOTH_GEN_TEST, (int) 5, "", 0, lib::conveyor::ROBOT_NAME);
+	 set_next_ecp_state(ecp_mp::generator::ECP_ST_SMOOTH_GEN_TEST, (int) 5, "", 0, lib::conveyor::ROBOT_NAME);
 
 	 wait_for_task_termination(false, 1, lib::conveyor::ROBOT_NAME.c_str());
 	 //------------------- SMOOTH GENERATOR END -------------------
 
 	 //------------------- SPLINE GENERATOR -------------------
-	 set_next_ecp_state(ecp_mp::sub_task::ECP_ST_SPLINE_GEN_TEST, (int) 5, "", 0, lib::conveyor::ROBOT_NAME);
+	 set_next_ecp_state(ecp_mp::subtask::ECP_ST_SPLINE_GEN_TEST, (int) 5, "", 0, lib::conveyor::ROBOT_NAME);
 
 	 wait_for_task_termination(false, 1, lib::conveyor::ROBOT_NAME.c_str());
 	 //------------------- SPLINE GENERATOR END -------------------

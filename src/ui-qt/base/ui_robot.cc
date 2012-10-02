@@ -178,22 +178,13 @@ int UiRobot::edp_create_int()
 
 						connect_to_reader();
 
-						// odczytanie poczatkowego stanu robota (komunikuje sie z EDP)
-						lib::controller_state_t robot_controller_initial_state_tmp;
-
-						ui_get_controler_state(robot_controller_initial_state_tmp);
-
-						if (robot_controller_initial_state_tmp.robot_in_fault_state) {
-							msg->message(lib::FATAL_ERROR, "Robot in fault state");
-						}
-
-						state.edp.is_synchronised = robot_controller_initial_state_tmp.is_synchronised;
+						get_edp_state();
 					}
 				}
 
 				catch (ecp::exception::se_r & error) {
 					/* Obsluga bledow ECP */
-					close_edp_connections();
+					abort_edp();
 				} /*end: catch */
 
 			}
@@ -230,6 +221,20 @@ int UiRobot::edp_create_int()
 
 	return 1;
 
+}
+
+void UiRobot::get_edp_state()
+{
+	// odczytanie poczatkowego stanu robota (komunikuje sie z EDP)
+	lib::controller_state_t robot_controller_initial_state_tmp;
+
+	ui_get_controler_state(robot_controller_initial_state_tmp);
+
+	if (robot_controller_initial_state_tmp.robot_in_fault_state) {
+		msg->message(lib::FATAL_ERROR, "Robot in fault state");
+	}
+
+	state.edp.is_synchronised = robot_controller_initial_state_tmp.is_synchronised;
 }
 
 const lib::robot_name_t UiRobot::getName()
@@ -309,7 +314,7 @@ void UiRobot::pulse_reader_execute(int code, int value)
 	}
 }
 
-void UiRobot::connect_to_ecp_pulse_chanell()
+void UiRobot::connect_to_ecp_pulse_channel()
 {
 	short tmp = 0;
 	// kilka sekund  (~1) na otworzenie urzadzenia
@@ -362,7 +367,7 @@ void UiRobot::pulse_ecp()
 {
 	if (state.edp.is_synchronised) { // o ile ECP dziala (sprawdzanie poprzez dzialanie odpowiedniego EDP)
 		if (state.ecp.trigger_fd == lib::invalid_fd) {
-			connect_to_ecp_pulse_chanell();
+			connect_to_ecp_pulse_channel();
 		}
 
 		if (state.ecp.trigger_fd != lib::invalid_fd) {
@@ -392,7 +397,7 @@ bool UiRobot::deactivate_ecp_trigger()
 	return false;
 }
 
-void UiRobot::close_edp_connections()
+void UiRobot::abort_edp()
 {
 
 	if (state.edp.reader_fd != lib::invalid_fd) {
@@ -421,10 +426,13 @@ void UiRobot::EDP_slay_int()
 
 		interface.block_sigchld();
 
-		close_edp_connections();
+		std::cout << "EDP_slay_int" << std::endl;
+
+		abort_edp();
 
 		// Changed to false - the waitpid won't hang during execution.
 		interface.wait_for_child_termination((pid_t) state.edp.pid, true);
+		//interface.wait_for_child_termination(-1, true);
 
 		interface.unblock_sigchld();
 
@@ -484,7 +492,7 @@ bool UiRobot::is_edp_loaded()
 	return ((state.edp.state == UI_EDP_WAITING_TO_START_READER) || (state.edp.state == UI_EDP_WAITING_TO_STOP_READER));
 }
 
-int UiRobot::ui_get_edp_pid()
+pid_t UiRobot::ui_get_edp_pid() const
 {
 	return ui_ecp_robot->ecp->get_EDP_pid();
 }

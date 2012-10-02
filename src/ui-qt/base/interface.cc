@@ -26,7 +26,6 @@
 
 #include "ui_ecp_dialogs/wgt_yes_no.h"
 #include "ui_ecp_dialogs/wgt_swarm.h"
-#include "ui_ecp_dialogs/wgt_plan.h"
 #include "ui_ecp_dialogs/wgt_message.h"
 #include "ui_ecp_dialogs/wgt_input_integer.h"
 #include "ui_ecp_dialogs/wgt_input_double.h"
@@ -38,16 +37,6 @@
 #include "base/lib/ping.h"
 
 #include "config.h"
-
-#if (R_SWARMITFIX == 1)
-#include "../spkm/ui_r_spkm1.h"
-#include "../spkm/ui_r_spkm2.h"
-#include "../smb/ui_r_smb1.h"
-#include "../smb/ui_r_smb2.h"
-#include "../shead/ui_r_shead1.h"
-#include "../shead/ui_r_shead2.h"
-#include "../sbench/ui_r_sbench.h"
-#endif
 
 #if (R_BIRD_HAND == 1)
 #include "../bird_hand/ui_r_bird_hand.h"
@@ -407,12 +396,6 @@ void Interface::raise_ui_ecp_window_slot()
 	switch (ecp_to_ui_msg.ecp_message)
 	{ // rodzaj polecenia z ECP
 
-		case lib::PLAN_STEP_MODE:
-
-			//wgt_swarm_obj->my_open(true);
-			wgt_plan_obj->my_open(true);
-
-			break;
 		case lib::C_XYZ_ANGLE_AXIS:
 			if (teachingstate == ui::common::MP_RUNNING) {
 				teachingstate = ui::common::ECP_TEACHING;
@@ -596,11 +579,10 @@ void Interface::set_ui_state_notification(UI_NOTIFICATION_STATE_ENUM new_notifac
 int Interface::wait_for_child_termination(pid_t pid, bool hang)
 {
 	int status;
-	pid_t child_pid;
+	pid_t child_pid = 0;
 	if (hang) {
 		int iterator = 0;
-		child_pid = 0;
-		while ((child_pid <= 0) && (iterator < 50)) {
+		while ((child_pid <= 0) && (iterator < 200)) {
 			child_pid = waitpid(pid, &status, WNOHANG);
 			iterator++;
 			boost::this_thread::sleep(boost::posix_time::milliseconds(100));
@@ -649,15 +631,6 @@ common::robots_t Interface::getRobots() const
 
 void Interface::create_robots()
 {
-#if (R_SWARMITFIX == 1)
-	ADD_UI_ROBOT(spkm1);
-	ADD_UI_ROBOT(spkm2);
-	ADD_UI_ROBOT(smb1);
-	ADD_UI_ROBOT(smb2);
-	ADD_UI_ROBOT(shead1);
-	ADD_UI_ROBOT(shead2);
-	ADD_UI_ROBOT(sbench);
-#endif
 
 #if (R_BIRD_HAND == 1)
 	ADD_UI_ROBOT(bird_hand);
@@ -716,7 +689,6 @@ void Interface::init()
 	wgt_pc = new wgt_process_control(*this);
 	wgt_yes_no_obj = new wgt_yes_no(*this);
 	wgt_swarm_obj = new wgt_swarm(*this);
-	wgt_plan_obj = new wgt_plan(*this);
 	wgt_message_obj = new wgt_message(*this);
 	wgt_input_integer_obj = new wgt_input_integer(*this);
 	wgt_input_double_obj = new wgt_input_double(*this);
@@ -1374,7 +1346,6 @@ void Interface::unload_all()
 
 void Interface::slay_all()
 {
-
 	// program unload
 
 	unload_all();
@@ -1411,6 +1382,7 @@ void Interface::slay_all()
 	}
 	printf("slay_all end\n");
 	manage_interface();
+	ui_msg->message(lib::NON_FATAL_ERROR, "slay_all executed and finished");
 }
 
 }
