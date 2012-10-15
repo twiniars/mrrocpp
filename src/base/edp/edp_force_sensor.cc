@@ -125,6 +125,7 @@ void force::operator()()
 } //!< end MAIN
 
 force::force(common::manip_effector &_master) :
+		imu_sensor_test_mode(true),
 		force_sensor_test_mode(true),
 		is_reading_ready(false), //!< nie ma zadnego gotowego odczytu
 		is_right_turn_frame(true),
@@ -140,6 +141,10 @@ force::force(common::manip_effector &_master) :
 			boost::shared_ptr <lib::sr_vsp>(new lib::sr_vsp(lib::EDP, "f_" + master.config.robot_name, master.config.get_sr_attach_point()));
 
 	sr_msg->message("force");
+
+	if (master.config.exists(lib::IMU_SENSOR_TEST_MODE)) {
+		imu_sensor_test_mode = master.config.exists_and_true(lib::IMU_SENSOR_TEST_MODE);
+	}
 
 	if (master.config.exists(lib::FORCE_SENSOR_TEST_MODE)) {
 		force_sensor_test_mode = master.config.exists_and_true(lib::FORCE_SENSOR_TEST_MODE);
@@ -160,7 +165,7 @@ force::force(common::manip_effector &_master) :
 	clear_cb();
 
 	// przypsieszenie ziemskie w ukladzie o orientacji ukaldu bazowego
-	gravitational_acceleration = lib::Xyz_Angle_Axis_vector(0, 0, -1, 0, 0, 0);
+	gravitational_acceleration = lib::Xyz_Angle_Axis_vector(0, 0, -lib::G_ACC, 0, 0, 0);
 
 }
 
@@ -221,16 +226,29 @@ void force::get_reading(void)
 	for (int i = 0; i < 6; i++) {
 		if ((fabs(ft_table[i]) > force_constraints[i]) || (!(std::isfinite(ft_table[i])))) {
 			overforce = true;
-
 		}
 	}
 
+	lib::Xyz_Angle_Axis_vector imu_acc;
+	lib::Ft_vector adjusted_force;
+	lib::Ft_vector inertial_force;
+
 	if (!overforce) {
+
+		inertial_force = compute_inertial_force(imu_acc, current_frame);
+
 		//sily przechowujemy w zerowej orientacji bazowej w ukladzie nadgarstka
-		lib::Ft_vector base_force = gravity_transformation->getForce(ft_table, current_frame);
+		lib::Ft_vector computed_force = gravity_transformation->getForce(ft_table, current_frame);
+		adjusted_force = computed_force;
+		computed_force = lib::Xi_star(!current_frame) * computed_force;
+		computed_force = computed_force + inertial_force;
+		//base_force = inertial_force;
+
+		computed_force = lib::Xi_star(current_frame) * computed_force;
+		inertial_force = lib::Xi_star(current_frame) * inertial_force;
 
 		// dodanie nowej sily do bufora dla celow usredniania (filtracji dolnoprzepustowej)
-		cb.push_back(base_force);
+		cb.push_back(computed_force);
 
 		// usredniamy za FORCE_BUFFER_LENGHT pomiarow
 		for (int j = 0; j < 6; j++) {
@@ -245,6 +263,7 @@ void force::get_reading(void)
 
 		}
 		//zapis do bufora wymiany z watkiem transformation
+
 		master.force_dp.write(force_output);
 
 	} else {
@@ -258,9 +277,6 @@ void force::get_reading(void)
 		sr_msg->message(lib::NON_FATAL_ERROR, buffer.str());
 	}
 
-	lib::Xyz_Angle_Axis_vector imu_acc;
-	compute_inertial_force(imu_acc, current_frame);
-
 	// przygotowanie odczytu dla readera przetransformowanego do ukladu narzedzia
 
 	lib::Xi_star ft_tr_inv_current_rotation_matrix(!current_frame);
@@ -268,16 +284,18 @@ void force::get_reading(void)
 	lib::Homog_matrix current_tool(((mrrocpp::kinematics::common::kinematic_model_with_tool*) master.get_current_kinematic_model())->tool);
 	lib::Xi_f ft_tr_inv_tool_matrix(!current_tool);
 
-	lib::Ft_vector current_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix * force_output);
-
-	// Transformacja przyspieszeń
+	lib::Ft_vector computed_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix * force_output);
+	lib::Ft_vector adjusted_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix * adjusted_force);
+	lib::Ft_vector inertial_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix * inertial_force);
 
 	// scope-locked reader data update
 	{
 		if (master.rb_obj) {
 			boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
 
-			current_force_in_tool.to_table(master.rb_obj->step_data.force);
+			computed_force_in_tool.to_table(master.rb_obj->step_data.computed_force);
+			adjusted_force_in_tool.to_table(master.rb_obj->step_data.adjusted_force);
+			inertial_force_in_tool.to_table(master.rb_obj->step_data.inertial_force);
 			imu_acc.to_table(master.rb_obj->step_data.real_cartesian_acc);
 		} else {
 			//	std::cerr << " " << std::endl;
@@ -342,6 +360,8 @@ void force::configure_sensor(void)
 		// zczytanie ciezaru narzedzia
 		double weight = master.config.value <double>("weight");
 
+		next_force_tool_weight = weight;
+
 		// polzoenie sredka ciezkosci narzedzia wzgledem nadgarstka
 		double point[3];
 		char *tmp = strdup(master.config.value <std::string>("default_mass_center_in_wrist").c_str());
@@ -392,13 +412,33 @@ lib::Ft_vector force::compute_inertial_force(lib::Xyz_Angle_Axis_vector & output
 
 	lib::Xyz_Angle_Axis_vector msr_acc = master.imu_acc_dp.read();
 
-	lib::Xyz_Angle_Axis_vector ga_in_current_orientation = lib::Xi_star(curr_frame) * gravitational_acceleration;
+	lib::Xyz_Angle_Axis_vector ga_in_current_orientation = lib::Xi_star(!curr_frame) * gravitational_acceleration;
+	/*
+	 msr_acc[3] = 0.0;
+	 msr_acc[4] = 0.0;
+	 msr_acc[5] = 0.0;
+	 */
+	msr_acc = lib::Xi_v(!tool_mass_center_translation) * lib::Xi_v(imu_frame) * msr_acc;
 
-	msr_acc = lib::Xi_v(tool_mass_center_translation) * lib::Xi_v(imu_frame) * msr_acc;
+//	msr_acc = lib::Xi_v(imu_frame) * msr_acc;
 
 	output_acc = msr_acc - ga_in_current_orientation;
+//	output_acc = msr_acc;
+//	output_acc = ga_in_current_orientation;
+	// zamieniamy ciężar na masę
+	output_force[0] = output_acc[0] * next_force_tool_weight / lib::G_ACC;
+	output_force[1] = output_acc[1] * next_force_tool_weight / lib::G_ACC;
+	output_force[2] = output_acc[2] * next_force_tool_weight / lib::G_ACC;
+
+	output_force = lib::Xi_f(tool_mass_center_translation) * output_force;
+
+	// wtrybie testowym zerujemy wyjscie
+	if (imu_sensor_test_mode) {
+		output_force = lib::Ft_vector();
+	}
 
 	return output_force;
+
 }
 
 } // namespace sensor

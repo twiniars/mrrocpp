@@ -58,11 +58,11 @@ void catch_signal(int sig)
 			exit(EXIT_SUCCESS);
 			break;
 		case SIGUSR2:
-				if (edp_shell) {
-					edp_shell->msg->message(lib::SYSTEM_ERROR, "edp terminated unexpectecly");
-				}
-				exit(EXIT_SUCCESS);
-				break;
+			if (edp_shell) {
+				edp_shell->msg->message(lib::SYSTEM_ERROR, "edp terminated unexpectecly");
+			}
+			exit(EXIT_SUCCESS);
+			break;
 		case SIGSEGV:
 			fprintf(stderr, "Segmentation fault in EDP process\n");
 			signal(SIGSEGV, SIG_DFL);

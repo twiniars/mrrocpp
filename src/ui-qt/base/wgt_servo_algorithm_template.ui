@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>wgt_absolute_template</class>
- <widget class="QWidget" name="wgt_absolute_template">
+ <class>wgt_servo_algorithm_templateClass</class>
+ <widget class="QWidget" name="wgt_servo_algorithm_templateClass">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>506</width>
+    <width>828</width>
     <height>356</height>
    </rect>
   </property>
@@ -32,26 +32,7 @@
      <item row="0" column="1">
       <widget class="QLabel" name="label_7">
        <property name="text">
-        <string>current position</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="5">
-      <widget class="QLabel" name="label_16">
-       <property name="maximumSize">
-        <size>
-         <width>140</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>desired position</string>
+        <string>current servo algorithm no.</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignBottom|Qt::AlignHCenter</set>
@@ -62,6 +43,19 @@
       </widget>
      </item>
      <item row="0" column="2">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>current  servo parameters no.</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -75,19 +69,6 @@
       </spacer>
      </item>
      <item row="0" column="4">
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="0" column="3">
       <widget class="QLabel" name="label_15">
        <property name="text">
         <string>copy</string>
@@ -100,33 +81,8 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="7">
-      <widget class="QLabel" name="label_9">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>40</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>120</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>incremental move</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="6">
-      <spacer name="horizontalSpacer_3">
+     <item row="0" column="5">
+      <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -137,6 +93,38 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item row="0" column="6">
+      <widget class="QLabel" name="label_16">
+       <property name="maximumSize">
+        <size>
+         <width>140</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>desired servo algorithm no.</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="7">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>desired servo parameters no.</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -150,38 +138,11 @@
       </widget>
      </item>
      <item row="1" column="1" colspan="2">
-      <widget class="QPushButton" name="pushButton_execute">
+      <widget class="QPushButton" name="pushButton_set">
        <property name="text">
-        <string>Move</string>
+        <string>Set</string>
        </property>
       </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QPushButton" name="pushButton_import">
-       <property name="text">
-        <string>Import</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QPushButton" name="pushButton_export">
-       <property name="text">
-        <string>Export</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="3">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>step</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="3">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_step"/>
      </item>
     </layout>
    </item>
