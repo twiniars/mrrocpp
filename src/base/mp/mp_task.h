@@ -9,40 +9,17 @@
 #ifndef MP_TASK_H_
 #define MP_TASK_H_
 
-#include "base/mp/mp_typedefs.h"
-#include "base/ecp_mp/ecp_mp_task.h"
+#include <boost/foreach.hpp>
 
-#include "base/lib/agent/DataBuffer.h"
-#include "base/lib/messip/messip.h"
+#include "base/mp/mp_task_base.h"
+
+#include "generator/mp_g_set_next_ecps_state.h"
+#include "generator/mp_g_wait_for_task_termination.h"
+#include "generator/mp_g_send_end_motion_to_ecps.h"
 
 namespace mrrocpp {
 namespace mp {
-
-// forward delcaration
-namespace generator {
-class generator;
-}
-
 namespace task {
-
-/*
- * Two usefull mp robot addition macros
- * this is necessary to first create robot and then assign it to robot_m
- * the robot constructor can not be directly called with them associated robot_m field creation\n
- * because it uses robot_m
- */
-
-#define ACTIVATE_MP_ROBOT(__robot_name) \
-		if (config.exists_and_true ("is_active", "[edp_" #__robot_name "]")) {\
-			robot::robot* created_robot = new robot::__robot_name(*this);\
-			robot_m[lib::__robot_name::ROBOT_NAME] = created_robot;\
-		}
-
-#define ACTIVATE_MP_DEFAULT_ROBOT(__robot_name) \
-		if (config.exists_and_true ("is_active", "[edp_" #__robot_name "]")) {\
-			robot::robot* created_robot = new robot::robot(lib::__robot_name::ROBOT_NAME, *this, 0);\
-			robot_m[lib::__robot_name::ROBOT_NAME] = created_robot;\
-		}
 
 /*!
  * @brief Base class of all mp tasks
@@ -50,65 +27,80 @@ namespace task {
  * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
  * @ingroup mp
  */
-class task : public ecp_mp::task::task
+class task : public task_base
 {
-private:
-	/**
-	 * @brief Initializes communication channels
-	 */
-	void initialize_communication(void);
-
 public:
 	/**
-	 * @brief communication channels descriptors
-	 */
-	static lib::fd_server_t mp_pulse_attach;
-
-	/**
-	 * @brief Constructor
-	 * @param _config configurator object reference.
+	 * Constructor.
+	 * @param _configurator configurator object
 	 */
 	task(lib::configurator &_config);
 
+protected:
 	/**
-	 * @brief Destructor
+	 * @brief executes delay
+	 * it calls dedicated generator and then sends command in generator Move instruction
+	 * @param _ms_delay delay time
 	 */
-	virtual ~task(void);
+	void wait_ms(unsigned int _ms_delay);
 
 	/**
-	 * @brief pure virtual method to create robots
-	 * it have to be reimplemented in inherited classes
+	 * @brief Insert robot names into generator's map (recursive variadic template).
+	 * @param gen generator
+	 * @param robot_name first robot name
+	 * @param robot_names rest of robot names
 	 */
-	virtual void create_robots(void) = 0;
-
-	/**
-	 * @brief Waits for stop pulse from UI and terminated all ECP's
-	 */
-	void stop_and_terminate(void);
-
-	/**
-	 * @brief Enum of two possible pulse receive variants (BLOCK/NONBLOCK)
-	 * @note it is assumend, that values of this enum equals to "block?" predicate.
-	 */
-	typedef enum _MP_RECEIVE_PULSE_ENUM
+	template<typename... Args>
+	void insert_robots(generator::generator & gen, const lib::robot_name_t & robot_name, const Args&... robot_names)
 	{
-		NONBLOCK = 0, BLOCK = 1
-	} RECEIVE_PULSE_MODE;
+		// Insert head of the argument lists.
+		gen.robot_m[robot_name] = this->robot_m[robot_name];
+
+		// If there are more arguments...
+		if(sizeof...(Args)) {
+			// ...then handle them recursively.
+			insert_robots(gen, robot_names...);
+		}
+	}
 
 	/**
-	 * @brief Enum of three possible variants of pulse origin processes
+	 * @brief sends end motion command to ECP's
+	 * it calls dedicated generator and then sends command in generator Move instruction
+	 * @param ... robots labels
 	 */
-	typedef enum _WAIT_FOR_NEW_PULSE_ENUM
+	template<typename... Args>
+	void send_end_motion_to_ecps(const lib::robot_name_t & robot_name, const Args&... robot_names)
 	{
-		NEW_ECP_PULSE, NEW_UI_PULSE, NEW_UI_OR_ECP_PULSE
-	} WAIT_FOR_NEW_PULSE_MODE;
+		generator::send_end_motion_to_ecps mp_semte_gen(*this);
+
+		insert_robots(mp_semte_gen, robot_name, robot_names...);
+
+		mp_semte_gen.Move();
+	}
 
 	/**
-	 * @brief sets the goal pf player controlled robot
-	 * @param robot_l robot label
-	 * @param goal motion goal
+	 * @brief waits for task termination reply from set of robots ECP's
+	 * it calls dedicated generator and then sends command in generator Move instruction
 	 */
-	void set_next_playerpos_goal(lib::robot_name_t robot_l, const lib::playerpos_goal_t &goal);
+	void wait_for_task_termination(bool activate_trigger, const std::vector <lib::robot_name_t> & robotSet);
+
+	/**
+	 * @brief Wait for task termination with variadic list of robot names.
+	 * @param activate_trigger
+	 * @param robot_name
+	 * @param robot_names
+	 */
+	template<typename... Args>
+	void wait_for_task_termination(bool activate_trigger, const lib::robot_name_t & robot_name, const Args&... robot_names)
+	{
+		generator::wait_for_task_termination wtf_gen(*this);
+
+		insert_robots(wtf_gen, robot_name, robot_names...);
+
+		wtf_gen.configure(activate_trigger);
+
+		wtf_gen.Move();
+	}
 
 	/**
 	 * @brief sets the next state of ECP
@@ -119,103 +111,30 @@ public:
 	 * @param str_len string length
 	 * @param robot_name robot to receive a command
 	 */
-	void set_next_ecp_state(const std::string & l_state, int l_variant, const char* l_string, int str_len, const lib::robot_name_t & robot_name);
+	template <typename BUFFER_TYPE>
+	void set_next_ecp_state(const std::string & l_state, int l_variant, const BUFFER_TYPE & l_data, const lib::robot_name_t & robot_name)
+	{
+		// setting the next ecps state
+		generator::set_next_ecps_state mp_snes_gen(*this);
 
-	/**
-	 * @brief sends end motion command to ECP's
-	 * it calls dedicated generator and then sends command in generator Move instruction
-	 * @param number_of_robots number of robots to receive command
-	 * @param ... robots labels
-	 */
-	void send_end_motion_to_ecps(int number_of_robots, ...);
+		// Copy given robots to the map container
+		mp_snes_gen.robot_m[robot_name] = robot_m[robot_name];
 
-	/**
-	 * @brief waits for task termination reply from set of robots ECP's
-	 * it calls dedicated generator and then sends command in generator Move instruction
-	 * @param number_of_robots number of robots to receive command
-	 * @param ... robots labels
-	 */
-	void wait_for_task_termination(bool activate_trigger, int number_of_robots, ...);
-
-	void wait_for_task_termination(bool activate_trigger, int number_of_robots, const std::vector<lib::robot_name_t> & robotSet);
-
-	/**
-	 * @brief sends end motion command to ECP's - mkisiel xml task version
-	 * it calls dedicated generator and then sends command in generator Move instruction
-	 * @param number_of_robots number of robots to receive command
-	 * @param properRobotsSet pointer to robot list
-	 */
-	void send_end_motion_to_ecps(int number_of_robots, lib::robot_name_t *properRobotsSet);
-
-	/**
-	 * @brief executes delay
-	 * it calls dedicated generator and then sends command in generator Move instruction
-	 * @param _ms_delay delay time
-	 */
-	void wait_ms(int _ms_delay); // zamiast delay
-
-	/**
-	 * @brief waits for START pulse from UI
-	 */
-	void wait_for_start(void);// by Y&W
-
-	/**
-	 * @brief waits for STOP pulse from UI
-	 */
-	void wait_for_stop(void);// by Y&W dodany tryb
-
-	/**
-	 * @brief starts all ECP's
-	 * it sends special MP command
-	 */
-	void start_all();
-
-	/**
-	 * @brief pause all ECP's
-	 * it sends special MP command
-	 */
-	void pause_all();
-
-	/**
-	 * @brief resume all ECP's
-	 * it sends special MP command
-	 */
-	void resume_all();
-
-	/**
-	 * @brief termianted all ECP's
-	 * it sends special MP command
-	 */
-	void terminate_all();
-
-	/**
-	 * @brief waits for acknowledge reply from all robots
-	 */
-	void wait_for_all_robots_acknowledge();
-
-	/**
-	 * @brief main task algorithm
-	 * to implement ni inherited classes
-	 */
-	virtual void main_task_algorithm(void) = 0;
-
-	/**
-	 * @brief map of all robots used in the task
-	 */
-	common::robots_t robot_m;
-
-	/**
-	 * @brief receives pulse from UI or ECP
-	 */
-	void receive_ui_or_ecp_message(generator::generator& the_generator);
+		mp_snes_gen.configure(l_state, l_variant, l_data);
+		mp_snes_gen.Move();
+	}
 
 private:
-	friend class robot::robot;
-
 	/**
-	 * @brief pulse from UI
+	 * @brief Insert robot names into generator's map (recursive variadic template end-call).
+	 * @param gen generator
+	 * @param robot_name first robot name
 	 */
-	InputBuffer<char> ui_pulse;
+	void insert_robots(generator::generator & gen, const lib::robot_name_t & robot_name)
+	{
+		// Insert head of the argument lists.
+		gen.robot_m[robot_name] = this->robot_m[robot_name];
+	}
 };
 
 /**
@@ -223,10 +142,10 @@ private:
  * @param _config configurator object reference
  * @return inherited task pointer
  */
-task* return_created_mp_task(lib::configurator &_config);
+task * return_created_mp_task(lib::configurator &_config);
 
 } // namespace task
 } // namespace mp
 } // namespace mrrocpp
 
-#endif /*MP_TASK_H_*/
+#endif /* MP_TASK_H_ */

@@ -1,6 +1,5 @@
 /* --------------------------------------------------------------------- */
 /*                          SERVO_GROUP Process                          */
-// ostatnia modyfikacja - styczen 2005
 /* --------------------------------------------------------------------- */
 
 #include <cstdio>
@@ -35,13 +34,29 @@ namespace common {
 
 void servo_buffer::load_hardware_interface(void)
 {
+
+	for (int j = 0; j < master.number_of_servos; j++) {
+		switch (regulator_ptr[j]->reg_output)
+		{
+			case common::REG_OUTPUT::PWM_OUTPUT:
+				hi->set_pwm_mode(j);
+				break;
+			case common::REG_OUTPUT::CURRENT_OUTPUT:
+				hi->set_current_mode(j);
+				break;
+		}
+	}
+
 	send_after_last_step = false;
 	clear_reply_status();
 	clear_reply_status_tmp();
 
 	for (int j = 0; j < master.number_of_servos; j++) {
-		command.parameters.move.abs_position[j] = 0.0;
+		command.parameters.move.servo_desired_motor_pos_new[j] = 0.0;
+		command.parameters.move.servo_desired_motor_pos_old[j] = 0.0;
 	}
+	//zeby odczytac na pewno stan synchronizacji robota
+	hi->read_write_hardware();
 }
 
 // obliczenie statystyk pradu
@@ -50,9 +65,30 @@ void servo_buffer::compute_current_measurement_statistics()
 	uint16_t step_number = step_number_in_macrostep + 1;
 	//		printf("\n---------------measurements statistics for: %d------------------\n", step_number);
 	// dla  kazdej z osi
+
+	// wyznaczenie napiecia chwilowego na podstawie pomiary mocy i napiecia referencyjnego
+
+	float total_power = 0.0;
+
 	for (int k = 0; k < master.number_of_servos; k++) {
 		// pomiar pradu dla osi
-		int measured_current = hi->get_current(k);
+		int measured_current = regulator_ptr[k]->get_measured_current();
+		float axis_power = ((float) abs(measured_current)) / 1000.0 * fabs(regulator_ptr[k]->get_previous_pwm() / 255.0)
+				* hi->get_voltage(k);
+		total_power += axis_power;
+	}
+
+	//printf("total power: %f\n", total_power);
+	// zakladam spadek napiecia 1V na 40W mocy
+
+	for (int k = 0; k < master.number_of_servos; k++) {
+		//============ pomiar pradu dla osi
+		int measured_current = regulator_ptr[k]->get_measured_current();
+
+		//===========energia dla osi
+		float step_energy = ((float) abs(measured_current)) / 1000.0
+				* fabs(regulator_ptr[k]->get_previous_pwm() / 255.0) * (hi->get_voltage(k) - (total_power / 40.0))
+				* ((float) lib::EDP_STEP);
 
 		// dla pierwszego kroku
 		if (step_number == 1) {
@@ -61,6 +97,10 @@ void servo_buffer::compute_current_measurement_statistics()
 			master.reply.arm.measured_current.average_square[k] = pow(measured_current, 2);
 			master.reply.arm.measured_current.maximum_module[k] = abs(measured_current);
 			master.reply.arm.measured_current.minimum_module[k] = abs(measured_current);
+
+			//======== RAFAL TULWIN
+			master.reply.arm.measured_current.energy[k] = step_energy;
+
 			// dla pozostalych krokow
 		} else {
 			//			printf(">>>>current for %d : %d\n", k, measured_current);
@@ -87,6 +127,9 @@ void servo_buffer::compute_current_measurement_statistics()
 			master.reply.arm.measured_current.average_square[k] = average_square;
 			master.reply.arm.measured_current.maximum_module[k] = maximum_module;
 			master.reply.arm.measured_current.minimum_module[k] = minimum_module;
+
+			//========== RAFAL TULWIN
+			master.reply.arm.measured_current.energy[k] += step_energy;
 		}
 	}
 }
@@ -99,16 +142,20 @@ uint8_t servo_buffer::Move_a_step(void)
 	// wykonac ruch o krok nie reagujac na SYNCHRO_SWITCH oraz SYNCHRO_ZERO
 
 	Move_1_step();
-	if (master.is_synchronised()) {// by Y aktualizacja transformera am jedynie sens po synchronizacji (kiedy robot zna swoja pozycje)
-		// by Y - do dokonczenia
-		for (int i = 0; i < master.number_of_servos; i++) {
-			if (!(master.robot_test_mode)) {
-				master.update_servo_current_motor_pos_abs(hi->get_position(i) * (2 * M_PI) / axe_inc_per_revolution[i], i);
-			}
-		}
 
-		master.compute_servo_joints_and_frame();// by Y - aktualizacja trasformatora
+	if (!(master.robot_test_mode)) {
+		for (int i = 0; i < master.number_of_servos; i++) {
+			double abs_pos = hi->get_position(i) * (2 * M_PI) / axe_inc_per_revolution[i];
+			master.update_servo_current_motor_pos_abs(abs_pos, i);
+			regulator_ptr[i]->reg_abs_current_motor_pos = abs_pos;
+		}
 	}
+
+	if (master.is_synchronised()) { // by Y aktualizacja transformera ma jedynie sens po synchronizacji (kiedy robot zna swoja pozycje)
+
+		master.compute_servo_joints_and_frame(); // by Y - aktualizacja trasformatora
+	}
+
 	return convert_error();
 }
 /*-----------------------------------------------------------------------*/
@@ -121,10 +168,10 @@ void servo_buffer::set_robot_model_servo_algorithm(const lib::c_buffer &instruct
 	/* Uformowanie rozkazu zmiany algorytmw serworegulacji oraz ich parametrow dla procesu SERVO_GROUP */
 	servo_command.instruction_code = SERVO_ALGORITHM_AND_PARAMETERS;
 	for (int i = 0; i < master.number_of_servos; i++) {
-		servo_command.parameters.servo_alg_par.servo_algorithm_no[i]
-				= instruction.robot_model.servo_algorithm.servo_algorithm_no[i];
-		servo_command.parameters.servo_alg_par.servo_parameters_no[i]
-				= instruction.robot_model.servo_algorithm.servo_parameters_no[i];
+		servo_command.parameters.servo_alg_par.servo_algorithm_no[i] =
+				instruction.robot_model.servo_algorithm.servo_algorithm_no[i];
+		servo_command.parameters.servo_alg_par.servo_parameters_no[i] =
+				instruction.robot_model.servo_algorithm.servo_parameters_no[i];
 	}
 	/* Wyslanie rozkazu zmiany algorytmw serworegulacji oraz ich parametrow procesowi SERVO_GROUP */
 	send_to_SERVO_GROUP(); //
@@ -151,7 +198,7 @@ void servo_buffer::send_to_SERVO_GROUP()
 	 case lib::SERVO_ALGORITHM_AND_PARAMETERS:
 	 command_size = (int) (((uint8_t*) (&servo_command.parameters.servo_alg_par.address_byte)) - ((uint8_t*) (&servo_command.instruction_code)));
 	 break;
-	 }; // end: switch
+	 } // end: switch
 	 // if (Send(&servo_command, &sg_reply, command_size, sizeof(lib::servo_group_reply)) < 0) {
 	 */
 
@@ -178,7 +225,7 @@ void servo_buffer::send_to_SERVO_GROUP()
 
 	if ((sg_reply.error.error0 != OK) || (sg_reply.error.error1 != OK)) {
 		printf("a: %llx, :%llx\n", sg_reply.error.error0, sg_reply.error.error1);
-		throw Fatal_error(sg_reply.error.error0, sg_reply.error.error1);
+		BOOST_THROW_EXCEPTION(fe() << mrrocpp_error0(sg_reply.error.error0) << mrrocpp_error1( sg_reply.error.error1));
 	} // end: if((sg_reply.error.error0 != OK) || (sg_reply.error.error1 != OK))
 
 	// skopiowanie odczytow do transformera
@@ -217,18 +264,18 @@ void servo_buffer::operator()()
 	//	std::auto_ptr<servo_buffer> sb(return_created_servo_buffer()); // bufor do komunikacji z EDP_MASTER
 
 	try {
-
 		load_hardware_interface();
-	}
-
-	catch (std::runtime_error & e) {
-		printf("servo group runtime error: %s \n", e.what());
+	} catch (std::exception & e) {
+		printf("servo group exception: %s\n", e.what());
 		master.msg->message(lib::FATAL_ERROR, e.what());
-		master.edp_shell.close_hardware_busy_file();
-		_exit(EXIT_SUCCESS);
+		// signal master thread to continue executing
+		thread_started.command();
+		raise(SIGUSR2);
 	}
 
-	lib::set_thread_priority(pthread_self(), 79);
+	if (!master.robot_test_mode) {
+		lib::set_thread_priority(lib::PTHREAD_MAX_PRIORITY + 10);
+	}
 
 	// signal master thread to continue executing
 	thread_started.command();
@@ -236,14 +283,14 @@ void servo_buffer::operator()()
 	master.sb_loaded.wait();
 	/* BEGIN SERVO_GROUP */
 
-	for (;;) {
+	while (!boost::this_thread::interruption_requested()) {
 		// komunikacja z transformation
 		if (!get_command()) {
 			// scoped-locked reader data update
 			{
 				boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
 
-				master.rb_obj->step_data.servo_mode = false; // tryb bierny
+				master.servo_mode = master.rb_obj->step_data.servo_mode = false; // tryb bierny
 			}
 
 			/* Nie otrzymano nowego polecenia */
@@ -255,13 +302,16 @@ void servo_buffer::operator()()
 			{
 				boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
 
-				master.rb_obj->step_data.servo_mode = true; // tryb czynny
+				master.servo_mode = master.rb_obj->step_data.servo_mode = true; // tryb czynny
 			}
 
 			switch (command_type())
 			{
 				case SYNCHRONISE:
 					synchronise(); // synchronizacja
+					break;
+				case UNSYNCHRONISE:
+					unsynchronise(); // desynchronizacja
 					break;
 				case MOVE:
 					Move(); // realizacja makrokroku ruchu
@@ -280,7 +330,6 @@ void servo_buffer::operator()()
 		} // end: else
 	}
 } // end: main() SERVO_GROUP
-
 
 /*-----------------------------------------------------------------------*/
 void servo_buffer::get_all_positions(void)
@@ -321,8 +370,8 @@ SERVO_COMMAND servo_buffer::command_type() const
 	return command.instruction_code;
 }
 
-servo_buffer::servo_buffer(motor_driven_effector &_master) :
-	servo_command_rdy(false), sg_reply_rdy(false), step_number_in_macrostep(0), thread_started(), master(_master)
+servo_buffer::servo_buffer(motor_driven_effector & _master) :
+		servo_command_rdy(false), sg_reply_rdy(false), step_number_in_macrostep(0), thread_started(), master(_master)
 {
 
 }
@@ -358,6 +407,8 @@ bool servo_buffer::get_command(void)
 		switch (command_type())
 		{
 			case SYNCHRONISE:
+				return true; // wyjscie bez kontaktu z EDP_MASTER
+			case UNSYNCHRONISE:
 				return true; // wyjscie bez kontaktu z EDP_MASTER
 			case MOVE:
 				return true; // wyjscie bez kontaktu z EDP_MASTER
@@ -448,7 +499,7 @@ uint8_t servo_buffer::convert_error(void)
 /*-----------------------------------------------------------------------*/
 void servo_buffer::Move_passive(void)
 { //
-	// stanie w miejscu - krok bierny
+// stanie w miejscu - krok bierny
 	step_number_in_macrostep = 0;
 	for (int j = 0; j < master.number_of_servos; j++) {
 		regulator_ptr[j]->insert_new_step(0.0); // zerowy przyrost polozenia dla wszystkich napedow
@@ -485,16 +536,18 @@ void servo_buffer::Move(void)
 		send_after_last_step = false;
 
 	for (int k = 0; k < master.number_of_servos; k++) {
-		new_increment[k] = command.parameters.move.macro_step[k] / command.parameters.move.number_of_steps;
+		new_increment[k] = (command.parameters.move.servo_desired_motor_pos_new[k]
+				- command.parameters.move.servo_desired_motor_pos_old[k]) / command.parameters.move.number_of_steps;
 		regulator_ptr[k]->new_desired_velocity_error = true;
 	}
 
 	// realizacja makrokroku przez wszystkie napedy;  i - licznik krokow ruchu
-	for (step_number_in_macrostep = 0; step_number_in_macrostep < command.parameters.move.number_of_steps; step_number_in_macrostep++) {
+	for (step_number_in_macrostep = 0; step_number_in_macrostep < command.parameters.move.number_of_steps;
+			step_number_in_macrostep++) {
 		// by Y
 		// XXX by ptroja
-		if ((command.parameters.move.return_value_in_step_no == 0) && (step_number_in_macrostep
-				== command.parameters.move.return_value_in_step_no)) {
+		if ((command.parameters.move.return_value_in_step_no == 0)
+				&& (step_number_in_macrostep == command.parameters.move.return_value_in_step_no)) {
 			// czy juz wyslac info do EDP_MASTER?
 			// 	     std::cout<<"fsD\n";
 			if (reply_status.error0 || reply_status.error1) {
@@ -509,16 +562,23 @@ void servo_buffer::Move(void)
 
 		for (int k = 0; k < master.number_of_servos; k++) {
 			regulator_ptr[k]->insert_new_step(new_increment[k]);
+
+			regulator_ptr[k]->reg_abs_desired_motor_pos = command.parameters.move.servo_desired_motor_pos_old[k]
+					+ step_number_in_macrostep
+							* (command.parameters.move.servo_desired_motor_pos_new[k]
+									- command.parameters.move.servo_desired_motor_pos_old[k])
+							/ command.parameters.move.number_of_steps;
+
 			if (master.robot_test_mode) {
-				master.update_servo_current_motor_pos_abs(regulator_ptr[k]->previous_abs_position + new_increment[k]
-						* step_number_in_macrostep, k);
+				master.update_servo_current_motor_pos_abs(regulator_ptr[k]->previous_abs_position
+						+ new_increment[k] * step_number_in_macrostep, k);
 			}
 		}
 
 		if (Move_a_step() == NO_ERROR_DETECTED) { // NO_ERROR_DETECTED
 			//  std::cout<<"NO_ERROR_DETECTED\n";
-			if ((command.parameters.move.return_value_in_step_no > 0) && (step_number_in_macrostep
-					== command.parameters.move.return_value_in_step_no - 1)) {
+			if ((command.parameters.move.return_value_in_step_no > 0)
+					&& (step_number_in_macrostep == command.parameters.move.return_value_in_step_no - 1)) {
 				// czy juz wyslac info do EDP_MASTER?
 				if (reply_status.error0 || reply_status.error1) {
 					std::cout << "w drugim reply error\n";
@@ -543,7 +603,7 @@ void servo_buffer::Move(void)
 	}
 
 	for (int i = 0; i < master.number_of_servos; i++) {
-		regulator_ptr[i]->previous_abs_position = command.parameters.move.abs_position[i];
+		regulator_ptr[i]->previous_abs_position = command.parameters.move.servo_desired_motor_pos_new[i];
 	}
 }
 /*-----------------------------------------------------------------------*/
@@ -581,7 +641,9 @@ void servo_buffer::reply_to_EDP_MASTER(void)
 void servo_buffer::ppp(void) const
 {
 	// wydruk kontrolny polecenia przysylanego z EDP_MASTER
-	std::cout << " macro_step= " << command.parameters.move.macro_step << "\n";
+	std::cout << " macro_step= "
+			<< command.parameters.move.servo_desired_motor_pos_new - command.parameters.move.servo_desired_motor_pos_old
+			<< "\n";
 	std::cout << " number_of_steps= " << command.parameters.move.number_of_steps << "\n";
 	std::cout << " return_value_in_step_no= " << command.parameters.move.return_value_in_step_no << "\n";
 }
@@ -590,6 +652,8 @@ void servo_buffer::ppp(void) const
 /*-----------------------------------------------------------------------*/
 servo_buffer::~servo_buffer(void)
 {
+	thread_id.interrupt();
+	thread_id.join();
 
 	// Destruktor grupy regulatorow
 	// Zniszcyc regulatory
@@ -597,8 +661,6 @@ servo_buffer::~servo_buffer(void)
 		delete regulator_ptr[j];
 
 	delete hi;
-
-	delete thread_id;
 }
 /*-----------------------------------------------------------------------*/
 
@@ -629,7 +691,6 @@ uint64_t servo_buffer::compute_all_set_values(void)
 	// obliczenie nastepnej wartosci zadanej dla wszystkich napedow
 	uint64_t status = OK; // kumuluje numer bledu
 
-
 	for (int j = 0; j < master.number_of_servos; j++) {
 		if (master.robot_test_mode) {
 			regulator_ptr[j]->insert_new_pos_increment(regulator_ptr[j]->return_new_step() * axe_inc_per_revolution[j]
@@ -641,7 +702,15 @@ uint64_t servo_buffer::compute_all_set_values(void)
 		// obliczenie nowej wartosci zadanej dla napedu
 		status |= ((uint64_t) regulator_ptr[j]->compute_set_value()) << 2 * j;
 		// przepisanie obliczonej wartosci zadanej do hardware interface
-		hi->insert_set_value(j, regulator_ptr[j]->get_set_value());
+		switch (regulator_ptr[j]->reg_output)
+		{
+			case common::REG_OUTPUT::PWM_OUTPUT:
+				hi->set_pwm(j, regulator_ptr[j]->get_set_value());
+				break;
+			case common::REG_OUTPUT::CURRENT_OUTPUT:
+				hi->set_current(j, regulator_ptr[j]->get_set_value());
+				break;
+		}
 	}
 	return status;
 }
@@ -669,8 +738,9 @@ void servo_buffer::synchronise(void)
 
 	for (int j = 0; j < (master.number_of_servos); j++) {
 
-		command.parameters.move.abs_position[j] = 0.0;
-	}; // end: for
+		command.parameters.move.servo_desired_motor_pos_new[j] = 0.0;
+		command.parameters.move.servo_desired_motor_pos_old[j] = 0.0;
+	} // end: for
 
 	// szeregowa synchronizacja serwomechanizmow
 	for (int k = 0; k < (master.number_of_servos); k++) {
@@ -680,8 +750,10 @@ void servo_buffer::synchronise(void)
 		common::regulator* crp = regulator_ptr[j];
 
 		synchro_choose_axis_to_move(crp, j);
+
 		if (!move_to_synchro_area(crp, j))
 			return;
+
 		if (!synchro_stop_for_a_while(crp, j))
 			return;
 
@@ -701,7 +773,8 @@ void servo_buffer::synchronise(void)
 	// zatrzymanie na chwile robota
 	for (int k = 0; k < (master.number_of_servos); k++) {
 		regulator_ptr[k]->insert_new_step(0.0);
-	};
+	}
+
 	for (int i = 0; i < SYNCHRO_FINAL_STOP_STEP_NUMBER; i++) {
 		Move_1_step();
 	}
@@ -710,8 +783,27 @@ void servo_buffer::synchronise(void)
 
 	// printf("koniec synchro\n");
 	reply_to_EDP_MASTER();
-	return;
+}
 
+void servo_buffer::unsynchronise(void)
+{
+
+	//	master.msg->message("synchro start");
+	//printf("synchro \n");
+	if (master.robot_test_mode) {
+		// W.S. Tylko przy testowaniu
+		clear_reply_status();
+		clear_reply_status_tmp();
+		reply_to_EDP_MASTER();
+		return;
+	}
+
+	for (int j = 0; j < (master.number_of_servos); j++) {
+// desynchronizacja
+		hi->unsynchro(j);
+
+	} // end: for
+	reply_to_EDP_MASTER();
 }
 
 void servo_buffer::synchro_choose_axis_to_move(common::regulator* &crp, int j)
@@ -738,7 +830,6 @@ int servo_buffer::move_to_synchro_area(common::regulator* &crp, int j)
 {
 
 	double synchro_step = 0.0; // zadany przyrost polozenia
-
 
 	// ruch do wykrycia wylacznika synchronizacji
 	for (;;) {
@@ -815,7 +906,7 @@ int servo_buffer::synchro_stop_for_a_while(common::regulator* &crp, int j)
 				return 0;
 		} // end: switch
 	} // end: for (i...)
-	// cprintf("C=%lx\n", reply_status_tmp.error0);
+	  // cprintf("C=%lx\n", reply_status_tmp.error0);
 
 	clear_reply_status();
 	clear_reply_status_tmp();
@@ -863,7 +954,7 @@ void servo_buffer::move_from_synchro_area(common::regulator* &crp, int j)
 		} // end: switch
 		break;
 	} // end: while
-	//	 printf("D\n ");
+	  //	 printf("D\n ");
 }
 
 int servo_buffer::synchro_move_to_encoder_zero(common::regulator* &crp, int j)
@@ -933,7 +1024,6 @@ int servo_buffer::synchro_move_to_encoder_zero(common::regulator* &crp, int j)
 	return 2;
 
 	// zakonczenie synchronizacji danej osi i przejscie do trybu normalnego
-
 
 }
 

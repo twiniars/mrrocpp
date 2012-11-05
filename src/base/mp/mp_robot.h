@@ -14,12 +14,14 @@
 #include "base/lib/sr/sr_ecp.h"
 #include "base/ecp_mp/ecp_mp_robot.h"
 #include "base/lib/agent/RemoteAgent.h"
-#include "base/lib/agent/DataBuffer.h"
+#include "base/lib/agent/InputBuffer.h"
+#include "base/lib/agent/OutputBuffer.h"
 
 namespace mrrocpp {
 namespace mp {
 
 namespace task {
+class task_base;
 class task;
 } // namespace task
 namespace generator {
@@ -38,7 +40,7 @@ class robot : public ecp_mp::robot
 {
 	// Both the generator and task have access to private methods
 	friend class mrrocpp::mp::generator::generator;
-	friend class mrrocpp::mp::task::task;
+	friend class mrrocpp::mp::task::task_base;
 
 private:
 	/**
@@ -51,16 +53,18 @@ private:
 	 */
 	lib::child ECP_pid;
 
-	//! Pointer to the remote agent proxy
-	RemoteAgent ecp;
+public:
+	//! Remote agent proxy
+	lib::agent::RemoteAgent ecp;
 
+private:
 	//! Remote agent's data buffer
-	OutputBuffer <lib::MP_COMMAND_PACKAGE> command;
+	lib::agent::OutputBuffer <lib::MP_COMMAND_PACKAGE> command;
 
 	/**
 	 * @brief reference to sr_ecp object for sending messages to UI_SR console
 	 */
-	lib::sr_ecp &sr_ecp_msg; // obiekt do komunikacji z SR
+	lib::sr_ecp & sr_ecp_msg; // obiekt do komunikacji z SR
 
 	/**
 	 * @brief send a single command to the ECP
@@ -95,7 +99,7 @@ private:
 	void resume_ecp(void);
 
 	/**
-	 * @brief ecp_errorrs_handler and detector
+	 * @brief ECP errors handler
 	 */
 	void ecp_errors_handler();
 
@@ -109,7 +113,7 @@ public:
 
 	//! Data buffer with messages from the ECP
 	//! TODO: users should not use this data directly, only the 'const ecp_reply_package'.
-	InputBuffer <lib::ECP_REPLY_PACKAGE> reply;
+	lib::agent::InputBuffer <lib::ECP_REPLY_PACKAGE> reply;
 
 	/**
 	 * @brief reply buffer from ecp
@@ -121,9 +125,9 @@ public:
 	/**
 	 * @brief the communication with EDP flag
 	 *
-	 * if the flag is set (default) the MP communicates with ECP in Move method of generator\n
-	 * Sometimes it is needed to disable communication e.g. when there is a need to communicate only With MP or VSP\n
-	 * in the following iterations of Move
+	 * if the flag is set (default) the MP communicates with ECP in Move method of generator.
+	 * Sometimes it is needed to disable communication, e.g. when there is a need to communicate only with MP or VSP.
+	 * in the following iterations of Move.
 	 */
 	bool communicate_with_ecp;
 
@@ -141,34 +145,6 @@ public:
 	 * it closes communication channels and kills ECP process
 	 */
 	virtual ~robot();
-};
-
-/*!
- * @brief MP robot error handling class
- *
- * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
- * @ingroup mp
- */
-class MP_error
-{
-public:
-
-	/**
-	 * @brief error class (type)
-	 */
-	const lib::error_class_t error_class;
-
-	/**
-	 * @brief error number
-	 */
-	const uint64_t error_no;
-
-	/**
-	 * @brief constructor
-	 * @param err0 error class
-	 * @param err1 error number
-	 */
-	MP_error(lib::error_class_t err0, uint64_t err1);
 };
 
 } // namespace robot

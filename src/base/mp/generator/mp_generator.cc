@@ -16,8 +16,8 @@ namespace mrrocpp {
 namespace mp {
 namespace generator {
 
-generator::generator(task::task& _mp_task) :
-	ecp_mp::generator::generator(*_mp_task.sr_ecp_msg), mp_t(_mp_task), wait_for_ECP_pulse(false)
+generator::generator(task::task_base & _mp_task) :
+	ecp_mp::generator::generator(*_mp_task.sr_ecp_msg), mp_t(_mp_task), wait_for_ECP_message(false)
 {
 }
 
@@ -32,15 +32,14 @@ void generator::Move()
 		return;
 
 	do { // realizacja ruchu
-
 		// zadanie przygotowania danych od czujnikow
-		mp_t.all_sensors_initiate_reading(sensor_m);
+		initiate_sensors_readings();
 
 		// wykonanie kroku ruchu przez wybrane roboty (z flaga 'communicate_with_ecp')
 		execute_all();
 
 		// odczytanie danych z wszystkich czujnikow
-		mp_t.all_sensors_get_reading(sensor_m);
+		get_sensors_readings();
 
 		// oczekiwanie na puls z ECP lub UI
 		mp_t.receive_ui_or_ecp_message(*this);
@@ -61,16 +60,11 @@ void generator::Move()
 void generator::execute_all()
 {
 	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m)
-	{
-		if (robot_node.second->communicate_with_ecp) {
-			robot_node.second->execute_motion();
-		}
-	}
-}
-
-MP_error::MP_error(lib::error_class_t err0, uint64_t err1) :
-	error_class(err0), error_no(err1)
-{
+			{
+				if (robot_node.second->communicate_with_ecp) {
+					robot_node.second->execute_motion();
+				}
+			}
 }
 
 } // namespace generator

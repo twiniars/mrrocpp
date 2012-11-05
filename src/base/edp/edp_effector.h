@@ -3,12 +3,13 @@
  * \brief File containing the declaration of edp::common::effector class.
  *
  * \author yoyek
- * \date 2009
  *
  */
 
 #ifndef __EDP_EFFECTOR_H
 #define __EDP_EFFECTOR_H
+
+#include <boost/utility.hpp>
 
 #include "edp_shell.h"
 
@@ -26,7 +27,7 @@ namespace common {
  *
  * \author yoyek
  */
-class effector
+class effector : private boost::noncopyable
 {
 protected:
 	/*!
@@ -35,13 +36,6 @@ protected:
 	 * It is used because reply_type can be temporarily changed while ECP command is interpreted
 	 */
 	lib::REPLY_TYPE real_reply_type;
-
-	/*!
-	 * \brief structure of reply of EDP process send to ECP process.
-	 *
-	 * It is used a union of structures for all EDP's
-	 */
-	//lib::r_buffer reply;
 
 	/*!
 	 * \brief id of ECP process sending a command.
@@ -63,8 +57,10 @@ protected:
 	 * IT also makes initial ECP command interpretation.
 	 */
 	template <typename ROBOT_COMMAND_T>
-	lib::INSTRUCTION_TYPE receive_instruction(ROBOT_COMMAND_T & instruction)
+	lib::INSTRUCTION_TYPE receive_instruction(ROBOT_COMMAND_T & instruction_)
 	{
+
+	//	printf("receive_instruction 3a\n");
 		// oczekuje na polecenie od ECP, wczytuje je oraz zwraca jego typ
 		int rcvid;
 		/* Oczekiwanie na polecenie od ECP */
@@ -79,7 +75,7 @@ protected:
 
 			int32_t type, subtype;
 			rcvid = messip::port_receive(server_attach, type, subtype, new_ecp_command);
-
+		//	printf("receive_instruction 3b\n");
 			if (rcvid == -1) {/* Error condition, exit */
 				perror("messip::port_receive()");
 				break;
@@ -87,22 +83,20 @@ protected:
 				fprintf(stderr, "ie. MESSIP_MSG_DISCONNECT\n");
 				continue;
 			}
-
+		//	printf("receive_instruction 3c\n");
 			/* A message (presumable ours) received, handle */
 			break;
 		}
 
 		caller = rcvid;
 
-		instruction = new_ecp_command;
-		if ((instruction.instruction_type == lib::SET) || (instruction.instruction_type == lib::SET_GET)) {
+		instruction_ = new_ecp_command;
 
-			//	std::cout << "edp effector: " << instruction.instruction_type << "\n";
-
-			instruction_deserialization();
-		}
-
-		return instruction.instruction_type;
+		//	if ((instruction.instruction_type == lib::SET) || (instruction.instruction_type == lib::SET_GET)) {
+		//	std::cout << "edp effector: " << instruction.instruction_type << "\n";
+		//	}
+	//	printf("receive_instruction end\n");
+		return instruction_.instruction_type;
 	}
 
 	/*!
@@ -118,8 +112,6 @@ protected:
 		// informacji o tym, ze przyslane polecenie nie moze byc przyjte
 		// do wykonania w aktualnym stanie EDP
 
-		reply_serialization();
-
 		if (!((reply.reply_type == lib::ERROR) || (reply.reply_type == lib::SYNCHRO_OK)))
 			reply.reply_type = real_reply_type;
 
@@ -128,24 +120,10 @@ protected:
 			uint64_t e = errno;
 			perror("Reply() to ECP failed");
 			msg->message(lib::SYSTEM_ERROR, e, "Reply() to ECP failed");
-			throw System_error();
+			throw exception::se();
 		}
 		real_reply_type = lib::ACKNOWLEDGE;
 	}
-
-	/*!
-	 * \brief method to deserialize part of the reply
-	 *
-	 * Currently simple memcpy implementation in derrived classes
-	 */
-	virtual void instruction_deserialization();
-
-	/*!
-	 * \brief method to serialize part of the reply
-	 *
-	 * Currently simple memcpy implementation in derrived classes
-	 */
-	virtual void reply_serialization();
 
 	/*!
 	 * \brief method to establish error sent to ECP.
@@ -225,12 +203,6 @@ public:
 	 */
 	virtual void create_threads() = 0;
 
-	/*!
-	 * \brief ECP command union.
-	 *
-	 * Command sent by ECP.
-	 */
-	//lib::c_buffer instruction;
 };
 /************************ EDP_EFFECTOR ****************************/
 

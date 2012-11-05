@@ -1,7 +1,5 @@
 /*!
  * \file edp_shell.h
- * \brief File containing the declaration of edp::common::effector class.
- *
  * \author yoyek
  * \date 2011
  *
@@ -16,12 +14,12 @@
 #include "base/lib/impconst.h"
 #include "base/lib/com_buf.h"
 
-#include "base/edp/edp_typedefs.h"
+#include "edp_typedefs.h"
 
 #include "base/lib/sr/sr_edp.h"
 #include "base/lib/configurator.h"
 
-#include "base/lib/exception.h"
+#include "edp_exceptions.h"
 
 namespace mrrocpp {
 namespace edp {
@@ -59,10 +57,15 @@ private:
 	 * \brief EDP pid
 	 *
 	 */
-	pid_t my_pid;
+	const pid_t my_pid;
+
+	/*!
+	 * \brief Method to close hardware busy notification file
+	 *
+	 */
+	void close_hardware_busy_file(void);
 
 public:
-
 	/*!
 	 * \brief Pointer to object to communicate with UI SR thread outside the signal handlers.
 	 *
@@ -71,14 +74,17 @@ public:
 	boost::shared_ptr <lib::sr_edp> msg;
 
 	shell(lib::configurator &_config);
+
+	//! Destructor
 	~shell();
 	bool detect_hardware_busy(void);
 
 	/*!
-	 * \brief Method to close hardware busy notification file
+	 * \brief Method to create hardware busy notification file
+	 * it writes process pid into the file
 	 *
 	 */
-	bool close_hardware_busy_file(void);
+	bool create_hardware_busy_file();
 
 };
 

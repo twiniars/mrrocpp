@@ -67,7 +67,11 @@ public:
   /**
    * Matrix used in the angle axis relative vector calculations.
    */
-  lib::Ft_tr xsi_star_matrix;
+  lib::Xi_f xsi_star_matrix;
+  /**
+   * Initial position for the pose.
+   */
+  std::vector<double> start_position;
 
   /**
    * Empty constructor.

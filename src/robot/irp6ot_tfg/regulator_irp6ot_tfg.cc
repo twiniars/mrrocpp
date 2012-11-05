@@ -24,8 +24,8 @@ namespace edp {
 namespace irp6ot_tfg {
 
 /*-----------------------------------------------------------------------*/
-NL_regulator_8_irp6ot::NL_regulator_8_irp6ot(uint8_t _axis_number, uint8_t reg_no, uint8_t reg_par_no, double aa, double bb0, double bb1, double k_ff, common::motor_driven_effector &_master) :
-		NL_regulator(_axis_number, reg_no, reg_par_no, aa, bb0, bb1, k_ff, _master)
+NL_regulator_8_irp6ot::NL_regulator_8_irp6ot(uint8_t _axis_number, uint8_t reg_no, uint8_t reg_par_no, double aa, double bb0, double bb1, double k_ff, common::motor_driven_effector &_master, common::REG_OUTPUT _reg_output) :
+		NL_regulator(_axis_number, reg_no, reg_par_no, aa, bb0, bb1, k_ff, _master, _reg_output)
 {
 	desired_velocity_limit = 20.0;
 	reg_state = next_reg_state = prev_reg_state = lib::GRIPPER_START_STATE;
@@ -63,11 +63,16 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 	// set_value_very_old     - wielkosc kroku do realizacji przez HIP
 	//                         (wypelnienie PWM -- u[k-2]): czas trwania jedynki
 
-	double step_new_pulse; // nastepna wartosc zadana dla jednego kroku regulacji
+	//double step_new_pulse; // nastepna wartosc zadana dla jednego kroku regulacji
 	// (przyrost wartosci zadanej polozenia --
 	// delta r[k-1] -- mierzone w impulsach)
 	uint8_t alg_par_status; // okresla prawidlowosc numeru algorytmu regulacji
 	// i zestawu jego parametrow
+
+	double current_error;
+	double current_desired;
+	double current_measured;
+//	static int low_measure_counter;
 
 	alg_par_status = common::ALGORITHM_AND_PARAMETERS_OK;
 
@@ -77,8 +82,6 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 	// step_new_pulse = step_new*IRP6_POSTUMENT_INC_PER_REVOLUTION/(2*M_PI); // ORIGINAL
 	step_new_pulse = step_new * AXIS_7_INC_PER_REVOLUTION / (2 * M_PI); //*AXE_7_POSTUMENT_TO_TRACK_RATIO);
 	//position_increment_new= position_increment_new/AXE_7_POSTUMENT_TO_TRACK_RATIO;
-
-	// printf("bbb: %d\n",  measured_current);
 
 	// if (step_new!=0.0) printf(" 8 reg:%f\n", step_new);
 
@@ -95,7 +98,6 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 	//  fff++;
 	//  if (fff == 9) fff=0;
 	// }
-
 	/* // by Y - bez sensu
 	 // Jesli rzeczywisty przyrost jest wiekszy od dopuszczalnego
 	 if (fabs(position_increment_new) > common::MAX_INC)
@@ -118,7 +120,6 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 		switch (algorithm_no)
 		{
 			case 0: // algorytm nr 0
-
 				switch (algorithm_parameters_no)
 				{
 					case 0: // zestaw parametrow nr 0
@@ -143,9 +144,9 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 						alg_par_status = common::UNIDENTIFIED_ALGORITHM_PARAMETERS_NO;
 						break;
 				}
+				; // end: switch (algorithm_parameters_no)
 				break;
 			case 1: // algorytm nr 1
-
 				switch (algorithm_parameters_no)
 				{
 					case 0: // zestaw parametrow nr 0
@@ -173,6 +174,10 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 				}
 				; // end: switch (algorithm_parameters_no)
 				break;
+			case 2: // algorytm nr 2 - sterowanie pradowe
+				current_algorithm_parameters_no = algorithm_parameters_no;
+				current_algorithm_no = algorithm_no;
+				break;
 			default: // blad - nie ma takiego algorytmu
 				// => przywrocic stary algorytm i j stary zestaw parametrow
 				algorithm_no = current_algorithm_no;
@@ -188,45 +193,165 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 	 */
 
 	a = 0.2; //0.3
-	b0 = 15.984375 * POSTUMENT_TO_TRACK_VOLTAGE_RATIO; //15.984375; //3
-	b1 = 15.784375 * POSTUMENT_TO_TRACK_VOLTAGE_RATIO; //15.984375; //3
-
+	b0 = 15.984375; //15.984375; //3
+	b1 = 15.784375; //15.984375; //3
 	//14.4
 	//a=0.2;
 	//b0=15.984375;
 	//b1=15.984375;
 
+#define PROP_I_REG 0.0
+#define INT_I_REG 0.04
+
+	max_output_current = 80.0;
+	current_reg_kp = 3.0;
+
 	switch (algorithm_no)
 	{
 		case 0: // algorytm nr 0
-
 			//	if (measured_current != 0) fprintf(stdout,"alg 0: %d\n", measured_current);
-			/*
-			 display++;
-			 if (display >= 500)
-			 {
-			 display = 0;
-			 fprintf(stdout,"alg 0: %d\n", measured_current);
-			 }
-			 */
 
-			// obliczenie nowej wartosci wypelnienia PWM algorytm PD + I
-			set_value_new = ((1 + a) * set_value_old - a * set_value_very_old + b0 * delta_eint - b1 * delta_eint_old);
+			set_value_new = (1 + a) * set_value_old - a * set_value_very_old + b0 * delta_eint - b1 * delta_eint_old;
+
+			if (set_value_new > MAX_PWM)
+				set_value_new = MAX_PWM;
+			if (set_value_new < -MAX_PWM)
+				set_value_new = -MAX_PWM;
+
+			set_value_old = set_value_new;
+			//	std::cout << "zeus\n";
+			// wyznaczenie wartosci zadanej pradu
+			current_desired = set_value_new / current_reg_kp;
+
+			// ustalenie znaku pradu zmierzonego na podstawie znaku pwm
+			//			if (set_value_new > 0)
+			//				current_measured = (float) measured_current;
+			//			else
+			//				current_measured = (float) (-measured_current);
+
+			// HI_MOXA zwraca prad w mA, ze znakiem odpowiadajacym kierunkowi przeplywu
+			current_measured = ((float) measured_current);
+
+			// wyznaczenie uchybu
+			current_error = current_desired - current_measured;
+
+			switch (reg_output)
+			{
+				case common::REG_OUTPUT::PWM_OUTPUT: {
+
+					// wyznaczenie calki uchybu
+					int_current_error = int_current_error + INT_I_REG * current_error; // 500Hz => 0.02s
+
+					// przycinanie calki uchybu
+
+					if (int_current_error > MAX_PWM)
+						int_current_error = MAX_PWM;
+					if (int_current_error < -MAX_PWM)
+						int_current_error = -MAX_PWM;
+
+					//	 fprintf(stdout,"alg 0: %f, %f, %f\n", current_measured, current_desired, int_current_error);
+
+					/*
+					 if (current_desired >= 1) {
+					 low_measure_counter = 0;
+					 // 	if (int_current_error<0) int_current_error = 0;
+					 } else if ((current_desired < 1) && (current_desired > -1)) {
+					 if ((++low_measure_counter) >= 10) {
+					 int_current_error = 0;
+					 }
+					 } else if (current_desired <= -1) {
+					 low_measure_counter = 0;
+					 //	if (int_current_error>0) int_current_error = 0;
+					 }
+					 */
+					// wyznaczenie nowego sterowania
+					set_value_new = PROP_I_REG * current_error + int_current_error;
+
+					display++;
+					if ((display % 100) == 0) {
+						//				 		std::cout << "[info]";
+						//				 		std::cout << " current_desired = " << current_desired << ",";
+						//				 		std::cout << " current_measured = " << current_measured << ",";
+						//				 		std::cout << " int_current_error = " << int_current_error << ",";
+						//				 		std::cout << " set_value_new = " << set_value_new << ",";
+						//				 		std::cout << std::endl;
+
+						//  display = 0;
+						//printf("khm... joint 7:  current_desired = %f,  measured_current = %f, int_current_error = %f,  set_value_new = %f \n",	 current_desired,   current_measured, int_current_error, set_value_new);
+					}
+
+				}
+					break;
+				case common::REG_OUTPUT::CURRENT_OUTPUT: {
+					set_value_new = current_desired;
+				}
+					break;
+			}
+
 			break;
-		case 1: // algorytm nr 1
-			if (measured_current != 0)
-				fprintf(stdout, "alg 1: %d\n", measured_current);
-			/*
-			 display++;
-			 if (display >= 500)
-			 {
-			 display = 0;
-			 fprintf(stdout,"alg 1: %d\n", measured_current);
-			 }
-			 */
 
+		case 1: // algorytm nr 1
+			//	if (measured_current != 0) fprintf(stdout,"alg 0: %d\n", measured_current);
 			// obliczenie nowej wartosci wypelnienia PWM algorytm PD + I
-			set_value_new = 50;
+			set_value_new = (1 + a) * set_value_old - a * set_value_very_old + b0 * delta_eint - b1 * delta_eint_old;
+
+			if (set_value_new > MAX_PWM)
+				set_value_new = MAX_PWM;
+			if (set_value_new < -MAX_PWM)
+				set_value_new = -MAX_PWM;
+
+			set_value_old = set_value_new;
+
+			break;
+		case 2: // algorytm nr 2 - sterowanie pradowe
+			// DUNG START
+
+			// ustalenie wartosci zadanej
+			if (display < 1000)
+				current_desired = 15;
+			else if (display < 2000)
+				current_desired = -15;
+			else
+				current_desired = 0;
+
+			// ustalenie znaku pradu zmierzonego na podstawie znaku pwm
+			//			if (set_value_new > 0)
+			current_measured = (float) measured_current;
+			//			else
+			//				current_measured = (float) (-measured_current);
+
+			// wyznaczenie uchybu
+			current_error = current_desired - current_measured;
+
+			// wyznaczenie calki uchybu
+			int_current_error = int_current_error + INT_I_REG * current_error; // 500Hz => 0.02s
+
+			// przycinanie calki uchybu
+
+			if (int_current_error > MAX_PWM)
+				int_current_error = MAX_PWM;
+			if (int_current_error < -MAX_PWM)
+				int_current_error = -MAX_PWM;
+
+			if (current_desired >= 1) {
+				if (int_current_error < 0)
+					int_current_error = 0;
+			} else if ((current_desired < 1) && (current_desired > -1)) {
+				int_current_error = 0;
+			} else if (current_desired <= -1) {
+				if (int_current_error > 0)
+					int_current_error = 0;
+			}
+
+			// wyznaczenie nowego sterowania
+			set_value_new = PROP_I_REG * current_error + int_current_error;
+
+			display++;
+			//			if (display == 100) {
+			//				display = 0;
+			//				printf("joint 7:   measured_current = %f,    int_current_error = %f,     set_value_new = %f \n", current_measured, int_current_error, set_value_new);
+			//			}
+			// DUNG END
 			break;
 		default: // w tym miejscu nie powinien wystapic blad zwiazany z
 			// nieistniejacym numerem algorytmu
@@ -234,24 +359,29 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 			break;
 	}
 
-	// ograniczenie na sterowanie
-	if (set_value_new > MAX_PWM)
-		set_value_new = MAX_PWM;
-	if (set_value_new < -MAX_PWM)
-		set_value_new = -MAX_PWM;
+	switch (reg_output)
+	{
+		case common::REG_OUTPUT::PWM_OUTPUT: {
 
-	/*
-	 #define MAXX_PWM 250
-	 // ograniczenie na sterowanie
-	 if (set_value_new > MAXX_PWM)
-	 set_value_new = MAXX_PWM;
-	 if (set_value_new < -MAXX_PWM)
-	 set_value_new = -MAXX_PWM;
+			// ograniczenie na sterowanie
+			if (set_value_new > MAX_PWM)
+				set_value_new = MAX_PWM;
+			if (set_value_new < -MAX_PWM)
+				set_value_new = -MAX_PWM;
 
-	 */
+		}
+			break;
+		case common::REG_OUTPUT::CURRENT_OUTPUT: {
+			// ograniczenie na sterowanie
+			if (set_value_new > max_output_current)
+				set_value_new = max_output_current;
+			if (set_value_new < -max_output_current)
+				set_value_new = -max_output_current;
+		}
+			break;
+	}
 
 	//   if (set_value_new!=0.0) printf ("aa: %f\n", set_value_new);
-
 	// scope-locked reader data update
 	{
 		boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
@@ -272,67 +402,73 @@ uint8_t NL_regulator_8_irp6ot::compute_set_value(void)
 	delta_eint_old = delta_eint;
 	step_old_pulse = step_new_pulse;
 	set_value_very_old = set_value_old;
-	set_value_old = set_value_new;
-	PWM_value = (int) set_value_new;
 
-	//	printf("CC: PWM: %d, %d, %d, %d\n", PWM_value, measured_current, reg_state, kk);
+	PWM_value = (int) set_value_new;
+	// DEBUGOWE WYPISUYWAIE PWM I ZMIERZONEGO PZYROSTU POOLOZENIA
+	// printf("position_increment_new: set_value_new: %f, %f\n", position_increment_new, set_value_new);
 
 	// AUTOMAT ZABEZPIECZAJACY SILNIK CHWYTAKA PRZED PRZEGRZANIEM
+	/*
+	 // wyznaczenie pradu na zalozonych horyzoncie wstecz
+	 if (master.step_counter > IRP6_POSTUMENT_GRIPPER_SUM_OF_CURRENTS_NR_OF_ELEMENTS) {
+	 sum_of_currents -= currents[current_index];
+	 }
+	 if (measured_current > 0) {
+	 sum_of_currents += measured_current;
+	 } else {
+	 sum_of_currents -= measured_current;
+	 }
 
-	// wyznaczenie pradu na zalozonych horyzoncie wstecz
-	if (master.step_counter > GRIPPER_SUM_OF_CURRENTS_NR_OF_ELEMENTS) {
-		sum_of_currents -= currents[current_index];
-	}
+	 currents[current_index] = measured_current;
 
-	sum_of_currents += measured_current;
+	 current_index = ((++current_index) % IRP6_POSTUMENT_GRIPPER_SUM_OF_CURRENTS_NR_OF_ELEMENTS);
 
-	currents[current_index] = measured_current;
+	 //	printf("aa: %d, %d, %d\n",  sum_of_currents, measured_current, kk);
+	 //	printf("aa: %d\n", sum_of_currents);
 
-	current_index = ((++current_index) % GRIPPER_SUM_OF_CURRENTS_NR_OF_ELEMENTS);
 
-	reg_state = next_reg_state;
+	 reg_state = next_reg_state;
 
-	//	printf("aa: %d, %d, %d\n",  sum_of_currents, measured_current, kk);
-	//printf("aa: %d\n", sum_of_currents);
+	 switch (reg_state)
+	 {
+	 case lib::GRIPPER_START_STATE:
 
-	switch (reg_state)
-	{
-		case lib::GRIPPER_START_STATE:
+	 if (sum_of_currents > IRP6_POSTUMENT_GRIPPER_SUM_OF_CURRENTS_MAX_VALUE) {
+	 next_reg_state = lib::GRIPPER_BLOCKED_STATE;
+	 gripper_blocked_start_time = master.step_counter;
+	 // 				printf("gripper GRIPPER_BLOCKED_STATE state\n");
+	 }
+	 break;
 
-			if (sum_of_currents > GRIPPER_SUM_OF_CURRENTS_MAX_VALUE) {
-				next_reg_state = lib::GRIPPER_BLOCKED_STATE;
-				gripper_blocked_start_time = master.step_counter;
-				//		printf("gripper GRIPPER_BLOCKED_STATE state\n");
-			}
-			break;
+	 case lib::GRIPPER_BLOCKED_STATE:
 
-		case lib::GRIPPER_BLOCKED_STATE:
-			//	fprintf(stdout,"GRIPPER_BLOCKED_STATE %d\n", measured_current);
-			if (((master.step_counter - gripper_blocked_start_time) > GRIPPER_BLOCKED_TIME_PERIOD)
-					&& (!(sum_of_currents > GRIPPER_SUM_OF_CURRENTS_MAX_VALUE))) {
-				//			printf("gripper GRIPPER_START_STATE state\n");
-				next_reg_state = lib::GRIPPER_START_STATE;
-			} else {
-				position_increment_old = 0;
-				position_increment_new = 0;
-				delta_eint_old = 0;
-				delta_eint = 0;
-				step_old_pulse = 0;
-				step_new_pulse = 0;
-				set_value_very_old = 0;
-				set_value_old = 0;
-				set_value_old = 0;
-				set_value_new = 0;
-			}
-			break;
+	 if (((master.step_counter - gripper_blocked_start_time) > GRIPPER_BLOCKED_TIME_PERIOD)
+	 && (!(sum_of_currents > IRP6_POSTUMENT_GRIPPER_SUM_OF_CURRENTS_MAX_VALUE * 100))) {
+	 //			printf("gripper GRIPPER_START_STATE state\n");
+	 next_reg_state = lib::GRIPPER_START_STATE;
+	 } else {
+	 position_increment_old = 0;
+	 position_increment_new = 0;
+	 delta_eint_old = 0;
+	 delta_eint = 0;
+	 step_old_pulse = 0;
+	 step_new_pulse = 0;
+	 set_value_very_old = 0;
+	 set_value_old = 0;
+	 set_value_old = 0;
+	 set_value_new = 0;
+	 }
+	 break;
 
-		default:
-			break;
-	}
+	 default:
+	 break;
+	 }
 
-	prev_reg_state = reg_state;
-
+	 prev_reg_state = reg_state;
+	 */
+	output_value = set_value_new;
 	return alg_par_status;
+
 }
 /*-----------------------------------------------------------------------*/
 

@@ -10,9 +10,7 @@
 #include "ui_robot.h"
 #include "signal_dispatcher.h"
 #include "menu_bar.h"
-
-
-
+#include "ToolBar.h"
 
 namespace Ui {
 class MainWindow;
@@ -36,8 +34,6 @@ class UiRobot;
 }
 }
 
-
-
 class MainWindow : public QMainWindow
 {
 Q_OBJECT
@@ -46,14 +42,10 @@ public:
 	explicit MainWindow(mrrocpp::ui::common::Interface& _interface, QWidget *parent = 0);
 	~MainWindow();
 
-
 	void ui_notification();
-	//void enable_menu_item(bool _active, QWidget *_menu_item);
-	void enable_menu_item(bool _enable, int _num_of_menus, QMenu *_menu_item, ...);
-	void enable_menu_item(bool _enable, int _num_of_menus, QAction *_menu_item, ...);
 
-	void open_new_window(wgt_base *window, wgt_base::my_open_ptr func, bool set_on_top=false);
-	void open_new_window(wgt_base *window, bool set_on_top=false);
+	void open_new_window(wgt_base *window, wgt_base::my_open_ptr func, bool set_on_top = false);
+	void open_new_window(wgt_base *window, bool set_on_top = false);
 
 	void ui_robot_action(mrrocpp::ui::common::UiRobot* robot, mrrocpp::ui::common::UiRobot::uiRobotFunctionPointer pointer);
 	void ui_robot_action(mrrocpp::ui::common::UiRobot* robot, mrrocpp::ui::common::UiRobot::intUiRobotFunctionPointer pointer);
@@ -62,6 +54,7 @@ public:
 
 	void get_lineEdit_position(double* val, int number_of_servos);
 
+	QString get_lineEdit_qstring();
 
 	Ui::MainWindow * get_ui();
 
@@ -73,16 +66,19 @@ public:
 	Ui::MenuBar* getMenuBar();
 
 	mrrocpp::ui::common::Interface* getInterface();
-	void setMenu();
+	//void setMenu();
 	void clear_console();
+
+	void menuall_Preset_Positions_setEnabled(bool value);
 
 private:
 	Ui::MainWindow *ui;
 	Ui::MenuBar *menuBar;
+	Ui::ToolBar *toolBar;
 	mrrocpp::ui::common::Interface& interface;
 	Ui::SignalDispatcher *signalDispatcher;
 
-	pthread_t main_thread_id;
+	const pthread_t main_thread_id;
 
 	wgt_base::my_open_ptr openFunctionPointer;
 
@@ -96,9 +92,6 @@ private:
 signals:
 	void ui_notification_signal();
 	void clear_console_signal();
-	void enable_menu_item_signal(QMenu *_menu_item, bool _active);
-	void enable_menu_item_signal(QAction *_menu_item, bool _active);
-
 
 //	void open_new_window_signal(wgt_base *window, wgt_base::my_open_ptr func);
 	void open_new_window_signal(wgt_base *window, bool set_on_top);
@@ -111,14 +104,10 @@ signals:
 	void raise_process_control_window_signal();
 	void raise_ui_ecp_window_signal();
 
-
 private slots:
 	void ui_notification_slot();
 
 	void clear_console_slot();
-
-	void enable_menu_item_slot(QMenu *_menu_item, bool _active);
-	void enable_menu_item_slot(QAction *_menu_item, bool _active);
 
 	//void open_new_window_slot(wgt_base *window, wgt_base::my_open_ptr func);
 	void open_new_window_slot(wgt_base *window, bool set_on_top);
@@ -129,6 +118,5 @@ private slots:
 	void ui_robot_int_slot(mrrocpp::ui::common::UiRobot *robot);
 
 };
-
 
 #endif // MAINWINDOW_H

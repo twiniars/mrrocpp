@@ -11,6 +11,7 @@
 #include <boost/utility.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/circular_buffer.hpp>
 #include <Eigen/Core>
 
 #include "base/lib/mrmath/ForceTrans.h"
@@ -30,7 +31,10 @@ enum FORCE_ORDER
 };
 
 }
+
 namespace sensor {
+
+#define BIAS_VECTOR_LENGTH 10
 
 const long COMMCYCLE_TIME_NS = 2000000;
 
@@ -56,6 +60,21 @@ typedef struct _force_data
 class force : public lib::sensor::sensor_interface
 {
 protected:
+
+	/*!
+	 * \brief Info if the imu sensor test mode is active.
+	 *
+	 * It is taken from configuration data.
+	 */
+	bool imu_sensor_test_mode;
+
+	/*!
+	 * \brief Decides if gravitational acceleration should be removed from imu measures
+	 *
+	 * It is taken from configuration data.
+	 */
+	bool imu_gravity_compensation;
+
 	/*!
 	 * \brief Info if the force sensor test mode is active.
 	 *
@@ -70,8 +89,12 @@ protected:
 
 	// is sensor_frame right turn
 	bool is_right_turn_frame;
-	// sensor_frame related to wrist frame
-	lib::Homog_matrix sensor_frame;
+
+	// force_sensor_frame related to wrist frame
+	lib::Homog_matrix force_sensor_frame;
+
+	// imu_frame related to wrist frame
+	lib::Homog_matrix imu_frame;
 
 	lib::ForceTrans *gravity_transformation; // klasa likwidujaca wplyw grawitacji na czujnik
 
@@ -80,13 +103,15 @@ protected:
 	virtual void connect_to_hardware(void) = 0;
 	virtual void disconnect_from_hardware(void) = 0;
 
-	void configure_sensor(void);
-
 	// particular force sensor configuration
 	virtual void configure_particular_sensor(void) = 0;
 
 	// particular force sensor get reading
 	virtual void get_particular_reading(void) = 0;
+
+	virtual void wait_for_particular_event(void) = 0; // oczekiwanie na zdarzenie
+
+	void configure_sensor(void);
 
 	// ft_table used in get_reading and get_particualr_reading
 	lib::Ft_vector ft_table;
@@ -94,6 +119,9 @@ protected:
 	lib::Ft_vector force_constraints;
 
 	void get_reading(void);
+
+	// computes inertial force
+	lib::Ft_vector compute_inertial_force(lib::Xyz_Angle_Axis_vector & output_acc, const lib::Homog_matrix curr_frame);
 
 	struct _from_vsp
 	{
@@ -103,24 +131,28 @@ protected:
 
 	struct timespec wake_time;
 
+	static const int FORCE_BUFFER_LENGHT = 2;
+
+	void clear_cb();
+
+	lib::Xyz_Angle_Axis_vector gravitational_acceleration;
+
+	lib::Homog_matrix tool_mass_center_translation;
+
 public:
 	void operator()();
 	boost::mutex mtx;
 	lib::condition_synchroniser thread_started;
 
 	//! komunikacja z SR
-	boost::shared_ptr<lib::sr_vsp> sr_msg;
+	boost::shared_ptr <lib::sr_vsp> sr_msg;
 
-	//! dostep do nowej wiadomosci dla vsp
-	lib::condition_synchroniser edp_vsp_synchroniser;
+	lib::condition_synchroniser first_measure_synchroniser;
 
 	//! dostep do nowej wiadomosci dla vsp
 	lib::condition_synchroniser new_command_synchroniser;
 
 	common::FORCE_ORDER command;
-
-	//! zakonczenie obydwu watkow
-	bool TERMINATE;
 
 	//! czy czujnik skonfigurowany?
 	bool is_sensor_configured;
@@ -132,16 +164,16 @@ public:
 
 	bool new_edp_command;
 
+	boost::circular_buffer <lib::Ft_vector> cb;
 	force(common::manip_effector &_master);
 
 	virtual ~force();
 
 	void wait_for_event(void); // oczekiwanie na zdarzenie
-	virtual void wait_for_particular_event(void) = 0; // oczekiwanie na zdarzenie
 
 	void set_force_tool(void);
-}; // end: class edp_force_sensor
-
+};
+// end: class edp_force_sensor
 
 // Zwrocenie stworzonego obiektu - czujnika. Funkcja implementowana w plikach klas dziedziczacych.
 force* return_created_edp_force_sensor(common::manip_effector &_master);

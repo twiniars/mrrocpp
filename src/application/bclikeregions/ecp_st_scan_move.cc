@@ -15,11 +15,11 @@ namespace ecp {
 
 namespace common {
 
-namespace sub_task {
+namespace subtask {
 
 
 ecp_st_scan_move::ecp_st_scan_move(task::task & _ecp_t):
-	sub_task(_ecp_t),
+	subtask(_ecp_t),
 	bcl_ecp((task::bcl_t_switcher &)ecp_t){
 
 	std::cout << "ECP_ST_SMOOT_MOVE" << std::endl;
@@ -37,7 +37,7 @@ ecp_st_scan_move::~ecp_st_scan_move() {
 void ecp_st_scan_move::conditional_execution(){
 
 	std::vector<double>vec;
-	vec = msg.stringToRobotPosition(ecp_t.mp_command.ecp_next_state.data);
+	vec = msg.stringToRobotPosition(ecp_t.mp_command.ecp_next_state.sg_buf.data);
 
 	bcl_gen->reset();
 	bcl_gen->set_absolute();

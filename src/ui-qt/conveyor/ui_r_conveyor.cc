@@ -3,7 +3,7 @@
 /*                                         Version 2.01  */
 
 #include "ui_r_conveyor.h"
-#include "../base/ui_ecp_robot/ui_ecp_r_common.h"
+#include "ui_ecp_r_conveyor.h"
 #include "robot/conveyor/const_conveyor.h"
 #include "../base/interface.h"
 
@@ -23,44 +23,22 @@ namespace ui {
 namespace conveyor {
 const std::string WGT_CONVEYOR_MOVE = "WGT_CONVEYOR_MOVE";
 
-//
-//
-// KLASA UiRobotIrp6ot_m
-//
-//
-
-int UiRobot::ui_get_edp_pid()
-{
-	return ui_ecp_robot->ecp->get_EDP_pid();
-}
-
-void UiRobot::ui_get_controler_state(lib::controller_state_t & robot_controller_initial_state_l)
-{
-	ui_ecp_robot->get_controller_state(robot_controller_initial_state_l);
-
-}
-
 void UiRobot::create_ui_ecp_robot()
 {
-	ui_ecp_robot = new ui::common::EcpRobot(*this);
-//	return 1;
+	common::UiRobot::ui_ecp_robot = ui_ecp_robot = new ui::conveyor::EcpRobot(*this);
 }
 
-int UiRobot::edp_create_int_extra_operations()
+void UiRobot::edp_create_int_extra_operations()
 {
 	wgts[WGT_CONVEYOR_MOVE]->synchro_depended_init();
-	return 1;
 }
 
-int UiRobot::synchronise()
-
+void UiRobot::synchronise()
 {
-
 	eb.command(boost::bind(&ui::conveyor::UiRobot::synchronise_int, &(*this)));
-
-	return 1;
-
 }
+
+
 
 int UiRobot::synchronise_int()
 
@@ -72,7 +50,7 @@ int UiRobot::synchronise_int()
 	try {
 		// dla robota irp6_on_track
 
-		if ((state.edp.state > 0) && (state.edp.is_synchronised == false)) {
+		if ((is_edp_loaded()) && (state.edp.is_synchronised == false)) {
 			ui_ecp_robot->ecp->synchronise();
 			state.edp.is_synchronised = ui_ecp_robot->ecp->is_synchronised();
 		} else {
@@ -91,63 +69,62 @@ int UiRobot::synchronise_int()
 }
 
 UiRobot::UiRobot(common::Interface& _interface) :
-		single_motor::UiRobot(_interface, lib::conveyor::ROBOT_NAME, lib::conveyor::NUM_OF_SERVOS)
+		common_012::UiRobot(_interface, lib::conveyor::ROBOT_NAME, lib::conveyor::NUM_OF_SERVOS)
 {
 	add_wgt <wgt_single_motor_move>(WGT_CONVEYOR_MOVE, "Conveyor moves");
 
 }
 
-int UiRobot::manage_interface()
+void UiRobot::manage_interface()
 {
-	MainWindow *mw = interface.get_main_window();
 
-	single_motor::UiRobot::manage_interface();
+	common_012::UiRobot::manage_interface();
 
 	switch (state.edp.state)
 	{
-		case -1:
+		case common::UI_EDP_INACTIVE:
+
 			break;
-		case 0:
-			mw->enable_menu_item(false, 1, actionconveyor_Move);
+		case common::UI_EDP_OFF:
+			actionconveyor_Move->setEnabled(false);
 			break;
-		case 1:
-		case 2:
+		case common::UI_EDP_WAITING_TO_START_READER:
+		case common::UI_EDP_WAITING_TO_STOP_READER:
+
 			// jesli robot jest zsynchronizowany
 			if (state.edp.is_synchronised) {
 				switch (interface.mp->mp_state.state)
 				{
 					case common::UI_MP_NOT_PERMITED_TO_RUN:
 					case common::UI_MP_PERMITED_TO_RUN:
-						mw->enable_menu_item(true, 1, actionconveyor_Move);
-
-						break;
 					case common::UI_MP_WAITING_FOR_START_PULSE:
-						mw->enable_menu_item(true, 1, actionconveyor_Move);
+						actionconveyor_Move->setEnabled(true);
 
 						break;
 					case common::UI_MP_TASK_RUNNING:
 						break;
 					case common::UI_MP_TASK_PAUSED:
-						mw->enable_menu_item(true, 1, actionconveyor_Move);
+						actionconveyor_Move->setEnabled(false);
+
 						break;
 					default:
 						break;
 				}
 			} else // jesli robot jest niezsynchronizowany
 			{
-				mw->enable_menu_item(true, 1, actionconveyor_Move);
+				actionconveyor_Move->setEnabled(true);
+
 			}
 			break;
 		default:
 			break;
 	}
 
-	return 1;
 }
 
 void UiRobot::setup_menubar()
 {
-	single_motor::UiRobot::setup_menubar();
+	common_012::UiRobot::setup_menubar();
 	Ui::MenuBar *menuBar = interface.get_main_window()->getMenuBar();
 	Ui::SignalDispatcher *signalDispatcher = interface.get_main_window()->getSignalDispatcher();
 

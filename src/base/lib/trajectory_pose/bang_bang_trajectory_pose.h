@@ -8,8 +8,9 @@
 #if !defined(_ECP_BANG_BANG_TRAJECTORY_POSE_H)
 #define  _ECP_BANG_BANG_TRAJECTORY_POSE_H
 
-#include "base/lib/trajectory_pose/trajectory_pose.h"
 #include <vector>
+
+#include "base/lib/trajectory_pose/trajectory_pose.h"
 
 namespace mrrocpp {
 namespace ecp_mp {
@@ -71,10 +72,6 @@ public:
    */
   std::vector<double> s_dec;
   /**
-   * Initial position for the pose.
-   */
-  std::vector<double> start_position;
-  /**
    * Maximal acceleration for the given segment (pose) (calculated, can be smaller or equal to a).
    */
   std::vector<double> a_r;
@@ -91,6 +88,7 @@ public:
    * Empty constructor.
    */
   bang_bang_trajectory_pose (void);
+
   /**
    * Constructor which initiates some variables (those which can be found in the file containing trajectory).
    * @param arm_type representation used in the given pose
@@ -102,10 +100,6 @@ public:
 		  const std::vector<double> & coordinates,
 		  const std::vector<double> & v,
 		  const std::vector<double> & a);
-  /**
-   * Destructor.
-   */
-  ~bang_bang_trajectory_pose();
 
   /**
    * Copy constructor.
@@ -114,6 +108,16 @@ public:
   bang_bang_trajectory_pose(const bang_bang_trajectory_pose &trj);
 
 };
+
+/**
+ * Type for sequence of poses.
+ */
+typedef std::vector<bang_bang_trajectory_pose *> bang_bang_trajectory;
+
+/**
+ * Type for sequence of poses with motion type.
+ */
+typedef std::pair <ecp_mp::common::trajectory_pose::bang_bang_trajectory, lib::MOTION_TYPE> bang_bang_motion_trajectory;
 
 } // namespace trajectory_pose
 } // namespace common

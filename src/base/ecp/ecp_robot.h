@@ -11,6 +11,8 @@
 
 #include <cerrno>
 
+#include "ecp_exceptions.h"
+
 #include "base/lib/sr/sr_ecp.h"
 #include "base/ecp_mp/ecp_mp_robot.h"
 #include "base/lib/single_thread_port.h"
@@ -42,69 +44,6 @@ class task_base;
 namespace robot {
 
 /*!
- * @brief ECP robot error handling class
- *
- * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
- * @ingroup ecp
- */
-class ECP_error
-{
-public:
-
-	/**
-	 * @brief error class (type)
-	 */
-	const lib::error_class_t error_class;
-
-	/**
-	 * @brief error number
-	 */
-	const uint64_t error_no;
-
-	/**
-	 * @brief edp error structure
-	 */
-	lib::edp_error error;
-
-	/**
-	 * @brief constructor
-	 * @param err_cl error class
-	 * @param err_no error number
-	 * @param err0 EDP error0 number
-	 * @param err1 EDP error1 number
-	 */
-	ECP_error(lib::error_class_t err_cl, uint64_t err_no, uint64_t err0 = 0, uint64_t err1 = 0);
-};
-
-/*!
- * @brief ECP robot main error handling class
- *
- * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
- * @ingroup ecp
- */
-class ECP_main_error
-{
-public:
-
-	/**
-	 * @brief error class (type)
-	 */
-	const lib::error_class_t error_class;
-
-	/**
-	 * @brief error number
-	 */
-	const uint64_t error_no;
-
-	/**
-	 * @brief constructor
-	 * @param err_cl error class
-	 * @param err_no error number
-	 */
-	ECP_main_error(lib::error_class_t err_cl, uint64_t err_no);
-};
-
-/*!
  * @brief Base class of all ecp robots
  *
  * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
@@ -112,31 +51,6 @@ public:
  */
 class ecp_robot_base : public ecp_mp::robot
 {
-	// friend classes
-	friend class ui_common_robot;
-
-	/**
-	 * @brief method to spawn and connect to EDP
-	 *
-	 * when called from Ui it first spawns then connects to EDP,\n
-	 * when called from ECP it only connects to existing EDP
-	 * @param config configurator of communcation channels, edp binary file name etc.
-	 */
-	void connect_to_edp(lib::configurator &config);
-
-	/**
-	 * @brief pid of EDP process
-	 */
-	pid_t EDP_MASTER_Pid; // Identyfikator procesu driver'a edp_m
-
-	/**
-	 * @brief  the EDP spawn and kill flag
-	 *
-	 * if the flag is set the EDP is spawned with robot object creation then killed with destruction\n
-	 * it is set when UI calls robot constructor
-	 */
-	const bool is_created_by_ui;
-
 public:
 	/**
 	 * @brief to exchange data with generators
@@ -169,14 +83,14 @@ public:
 	virtual void query() = 0;
 
 	/**
-	 * @brief reference to sr_ecp object for sending messages to UI_SR console
+	 * @brief reference to object for sending messages to UI/SR console
 	 */
-	lib::sr_ecp & sr_ecp_msg; // obiekt do komunikacji z SR
+	lib::sr_ecp & sr_ecp_msg;
 
 	/**
 	 * @brief flag if the robot is synchronised or not
 	 */
-	bool synchronised; // Flaga synchronizacji robota (true - zsynchronizowany, false - nie)
+	bool synchronised;
 
 	/**
 	 * @brief nummber of servos (joints)
@@ -186,12 +100,22 @@ public:
 	/**
 	 * @brief the configuration file section name of associated EDP process
 	 */
-	std::string edp_section;
+	const std::string edp_section;
 
 	/**
-	 * @brief file descriptor of EDP communication channel
+	 * @brief states if any data_port is set
 	 */
-	lib::fd_client_t EDP_fd; // by Y&W
+	bool is_new_data;
+
+	/**
+	 * @brief states if any data_request_port is set
+	 */
+	bool is_new_request;
+
+	/**
+	 * @brief states if any data_ports_are_used
+	 */
+	bool data_ports_used;
 
 	/**
 	 * @brief executed the communication sequence with EDP: set and query with error handling
@@ -220,22 +144,11 @@ public:
 	ecp_robot_base(const lib::robot_name_t & _robot_name, int _number_of_servos, common::task::task_base& _ecp_object);
 
 	/**
-	 * @brief checks the flag
-	 * then sets the flag or throw exception. Called from create_command() method.
-	 */
-	void check_then_set_command_flag(bool& flag);
-
-	/**
-	 * @brief returns EDP_MASTER_Pid - EDP pid
-	 */
-	pid_t get_EDP_pid(void) const;
-
-	/**
 	 * @brief desctructor
 	 *
 	 * Closes communication channels and optionally kills EDP process
 	 */
-	virtual ~ecp_robot_base(void);
+	virtual ~ecp_robot_base();
 
 	/**
 	 * @brief send the synchronise command to EDP
@@ -245,13 +158,90 @@ public:
 	virtual void synchronise(void) = 0;
 
 	/**
+	 * @brief send the unsynchronise command to EDP
+	 *
+	 */
+	virtual void unsynchronise(void) = 0;
+
+	/**
 	 * @brief returns synchronised flag - synchronisation status
 	 */
 	bool is_synchronised(void) const;
+
+	/**
+	 * @brief returns EDP_MASTER_Pid - EDP pid
+	 */
+	pid_t get_EDP_pid(void) const;
+
+protected:
+	/**
+	 * @brief file descriptor of EDP communication channel
+	 */
+	lib::fd_client_t EDP_fd;
+
+private:
+	/**
+	 * @brief method to spawn and connect to EDP
+	 *
+	 * when called from Ui it first spawns then connects to EDP,\n
+	 * when called from ECP it only connects to existing EDP
+	 * @param config configurator of communcation channels, edp binary file name etc.
+	 */
+	void connect_to_edp(lib::configurator &config);
+
+	/**
+	 * @brief pid of EDP process
+	 */
+	pid_t EDP_pid;
+};
+
+class common_buffers_ecp_robot : public ecp_robot_base
+{
+
+public:
+	friend class ecp::common::generator::transparent;
+
+	/**
+	 * @brief constructor called from UI
+	 * @param _robot_name robot label
+	 * @param _number_of_servos number of robot servos (joints)
+	 * @param _edp_section associated EDP configuration file section
+	 * @param _config configuration object reference
+	 * @param _sr_ecp sr_ecp communication object reference
+	 */
+	common_buffers_ecp_robot(const lib::robot_name_t & _robot_name, int _number_of_servos, lib::configurator &_config, lib::sr_ecp &_sr_ecp, lib::c_buffer & c_buffer_ref, lib::r_buffer & r_buffer_ref);
+
+	/**
+	 * @brief constructor called from ECP
+	 * @param _robot_name robot label
+	 * @param _number_of_servos number of robot servos (joints)
+	 * @param _edp_section associated EDP configuration file section
+	 * @param _ecp_object ecp tak object reference
+	 */
+	common_buffers_ecp_robot(const lib::robot_name_t & _robot_name, int _number_of_servos, common::task::task_base& _ecp_object, lib::c_buffer & c_buffer_ref, lib::r_buffer & r_buffer_ref);
+
+	/**
+	 * @brief desctructor
+	 */
+	virtual ~common_buffers_ecp_robot();
+
+	/*!
+	 * \brief Reference to base types of instruction
+	 *
+	 * The particular type is the field of derived classes
+	 */
+	lib::c_buffer & ecp_command;
+
+	/*!
+	 * \brief Reference to base types of reply
+	 *
+	 * The particular type is the field of derived classes
+	 */
+	lib::r_buffer & reply_package;
 };
 
 template <typename ROBOT_COMMAND_T = lib::c_buffer, typename ROBOT_REPLY_T = lib::r_buffer>
-class _ecp_robot : public ecp_robot_base
+class _ecp_robot : public common_buffers_ecp_robot
 {
 public:
 	friend class ecp::common::generator::transparent;
@@ -289,7 +279,7 @@ public:
 	 * @param _sr_ecp sr_ecp communication object reference
 	 */
 	_ecp_robot(const lib::robot_name_t & _robot_name, int _number_of_servos, lib::configurator &_config, lib::sr_ecp &_sr_ecp) :
-			ecp_robot_base(_robot_name, _number_of_servos, _config, _sr_ecp)
+			common_buffers_ecp_robot(_robot_name, _number_of_servos, _config, _sr_ecp, ecp_command, reply_package)
 	{
 	}
 
@@ -301,7 +291,7 @@ public:
 	 * @param _ecp_object ecp tak object reference
 	 */
 	_ecp_robot(const lib::robot_name_t & _robot_name, int _number_of_servos, common::task::task_base& _ecp_object) :
-			ecp_robot_base(_robot_name, _number_of_servos, _ecp_object)
+			common_buffers_ecp_robot(_robot_name, _number_of_servos, _ecp_object, ecp_command, reply_package)
 	{
 	}
 
@@ -362,14 +352,14 @@ public:
 
 		if (reply_package.reply_type == lib::ERROR) {
 			query();
-			throw ECP_error(lib::NON_FATAL_ERROR, EDP_ERROR);
+			BOOST_THROW_EXCEPTION(exception::nfe_r() << lib::exception::mrrocpp_error0(EDP_ERROR));
 		}
 
 		query();
 
 		if (reply_package.reply_type == lib::ERROR) {
 
-			throw ECP_error(lib::NON_FATAL_ERROR, EDP_ERROR);
+			BOOST_THROW_EXCEPTION(exception::nfe_r() << lib::exception::mrrocpp_error0(EDP_ERROR));
 		}
 	}
 
@@ -390,13 +380,23 @@ public:
 		synchronised = (reply_package.reply_type == lib::SYNCHRO_OK);
 	}
 
+	void unsynchronise(void)
+	{
+		// komunikacja wlasciwa
+		ecp_command.instruction_type = lib::UNSYNCHRO;
+
+		send(); // Wyslanie zlecenia synchronizacji
+		query(); // Odebranie wyniku zlecenia
+
+	}
+
 	void send()
 	{
 		if (messip::port_send(EDP_fd, 0, 0, ecp_command, reply_package) == -1) {
 			int e = errno; // kod bledu systemowego
 			perror("ecp: Send to EDP_MASTER error");
 			sr_ecp_msg.message(lib::SYSTEM_ERROR, e, "ecp: Send to EDP_MASTER error");
-			throw ECP_error(lib::SYSTEM_ERROR, 0);
+			BOOST_THROW_EXCEPTION(exception::se_r());
 		}
 	}
 
@@ -412,6 +412,29 @@ public:
 			return false;
 		}
 	}
+
+	/**
+	 * @brief finalizes the robot command in data port variant
+	 */
+	void finalize_data_port_command()
+	{
+		communicate_with_edp = true;
+
+		if (is_new_data && is_new_request) {
+			ecp_command.instruction_type = lib::SET_GET;
+		} else if (is_new_data) {
+			ecp_command.instruction_type = lib::SET;
+		} else if (is_new_request) {
+			ecp_command.instruction_type = lib::GET;
+		} else {
+			communicate_with_edp = false;
+		}
+
+		if (is_new_request) {
+			ecp_command.get_type = ARM_DEFINITION;
+		}
+	}
+
 };
 
 typedef _ecp_robot <> ecp_robot;

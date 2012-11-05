@@ -16,6 +16,7 @@ namespace mrrocpp {
 namespace mp {
 
 namespace task {
+class task_base;
 class task;
 } // namespace task
 
@@ -34,7 +35,7 @@ private:
 	/**
 	 * @brief mp task object reference
 	 */
-	task::task& mp_t;
+	task::task_base & mp_t;
 
 	/**
 	 * @brief communicates with all ECP's that are set to communicate
@@ -45,11 +46,9 @@ protected:
 	/**
 	 * @brief the number of idle macrosteps without communication with ECP
 	 */
-
 	int idle_step_counter;
 
 public:
-
 	/**
 	 * @brief Main generator method to execute transition cycle
 	 */
@@ -58,7 +57,7 @@ public:
 	/*!
 	 * @brief decides if MP should wait for ECP_pulse
 	 */
-	bool wait_for_ECP_pulse;
+	bool wait_for_ECP_message;
 
 	/*!
 	 * @brief stl map of all mp robots
@@ -69,34 +68,7 @@ public:
 	 * @brief Constructor
 	 * @param _mp_task mp task object reference.
 	 */
-	generator(task::task& _mp_task);
-};
-
-/*!
- * @brief MP generator error handling class
- *
- * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
- * @ingroup mp
- */
-class MP_error
-{
-public:
-	/**
-	 * @brief error class (type)
-	 */
-	const lib::error_class_t error_class;
-
-	/**
-	 * @brief error number
-	 */
-	const uint64_t error_no;
-
-	/**
-	 * @brief constructor
-	 * @param err0 error class
-	 * @param err1 error number
-	 */
-	MP_error(lib::error_class_t err0, uint64_t err1);
+	generator(task::task_base& _mp_task);
 };
 
 } // namespace common

@@ -10,7 +10,6 @@
 #include <boost/utility.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
-#include <boost/circular_buffer.hpp>
 
 #include <ctime>
 
@@ -41,11 +40,13 @@ struct reader_config
 	bool uchyb[lib::MAX_SERVOS_NR]; // wypelnienie PWM
 	bool abs_pos[lib::MAX_SERVOS_NR];
 
-	bool force[6]; // pierwsze 3 z 6
+	bool computed_force[6]; // pierwsze 3 z 6
 	bool desired_force[6]; // pierwsze 3 z 6
-	bool filtered_force[6]; // sila po przefiltrowaniu
+	bool adjusted_force[6]; // sila po wyeliminowaniu grawitacji
+	bool inertial_force[6]; // sila bezwladnosci
 
 	bool current_joints[lib::MAX_SERVOS_NR];
+	bool desired_joints[lib::MAX_SERVOS_NR];
 	bool measured_current[lib::MAX_SERVOS_NR];
 
 	bool desired_cartesian_position[6]; // skaldowe liniowe polozenia zadanego
@@ -67,12 +68,14 @@ struct reader_data
 	float uchyb[lib::MAX_SERVOS_NR]; // wypelnienie PWM
 	double abs_pos[lib::MAX_SERVOS_NR];
 
-	double force[3]; // pierwsze 3 z 6
-	double desired_force[3]; // pierwsze 3 z 6
-	double filtered_force[6]; // sila po przefiltrowaniu
+	double computed_force[6]; // pierwsze 3 z 6
+	double desired_force[6]; // pierwsze 3 z 6
+	double adjusted_force[6]; // sila po wyeliminowaniu grawitacji
+	double inertial_force[6]; // sila bezwladnosci
 
 	double desired_cartesian_position[6]; // skaldowe liniowe polozenia zadanego
-	double current_joints[lib::MAX_SERVOS_NR]; // spolozenie w joints
+	double current_joints[lib::MAX_SERVOS_NR]; // polozenie w joints
+	double desired_joints[lib::MAX_SERVOS_NR]; // pozycja zadana w joints
 	int measured_current[lib::MAX_SERVOS_NR]; // prad w zalozeniu w [ma]
 
 	double real_cartesian_position[6]; // polozenie rzeczywiste

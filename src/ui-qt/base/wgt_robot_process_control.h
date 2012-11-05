@@ -7,8 +7,6 @@
 #include "ui_wgt_robot_process_control.h"
 #include "wgt_base.h"
 
-
-
 namespace mrrocpp {
 namespace ui {
 namespace common {
@@ -25,18 +23,23 @@ class wgt_robot_process_control : public wgt_base
 Q_OBJECT
 
 public:
-	wgt_robot_process_control(QString _widget_label, mrrocpp::ui::common::Interface& _interface, mrrocpp::ui::common::UiRobot *robo,  QWidget *parent = 0);
+	wgt_robot_process_control(QString _widget_label, mrrocpp::ui::common::Interface& _interface, mrrocpp::ui::common::UiRobot *robo, QWidget *parent =
+			0);
 	~wgt_robot_process_control();
 
-	void process_control_window_init();
+	void window_init();
 
-	void my_open(bool set_on_top=false);
+	void my_open(bool set_on_top = false);
 
 	Ui::wgt_robot_process_controlClass * get_ui();
-	int block_all_ecp_trigger_widgets();
-	int unblock_all_ecp_trigger_widgets();
-	virtual void add_button(QPushButton *button, int row, int space){};
-	virtual void setup_ui(){};
+	void block_ecp_trigger_widgets();
+	void unblock_ecp_trigger_widgets();
+	virtual void add_button(QPushButton *button, int row, int space)
+	{
+	}
+	virtual void setup_ui()
+	{
+	}
 
 private:
 	Ui::wgt_robot_process_controlClass* ui;
@@ -44,14 +47,13 @@ private:
 	mrrocpp::ui::common::UiRobot *robot;
 
 	// aktualizacja ustawien przyciskow
-	int init();
-
+	void init();
 
 signals:
-	void process_control_window_init_signal();
+	void window_init_signal();
 
 public slots:
-	void process_control_window_init_slot();
+	void window_init_slot();
 
 private slots:
 	// ECP

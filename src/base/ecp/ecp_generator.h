@@ -18,6 +18,7 @@
 namespace mrrocpp {
 namespace ecp {
 namespace common {
+const std::string EMPTY_SUBTASK_GENERATOR_NAME = "EMPTY_SUBTASK_GENERATOR_NAME";
 namespace generator {
 
 /*!
@@ -27,24 +28,14 @@ namespace generator {
  * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
  * @ingroup ecp
  */
-template <typename ECP_ROBOT_T>
-class _generator : public ecp_mp::generator::generator
+class generator_base : public ecp_mp::generator::generator
 {
+
 protected:
 	/**
 	 * @brief ECP task object type
 	 */
-	typedef ECP_ROBOT_T robot_t;
-
-	/**
-	 * @brief ECP task object type
-	 */
-	typedef common::task::_task <ECP_ROBOT_T> task_t;
-
-	/**
-	 * @brief ECP generator itself object type
-	 */
-	typedef _generator <ECP_ROBOT_T> generator_t;
+	typedef common::task::task_base task_t;
 
 	/**
 	 * @brief ECP task object reference
@@ -52,65 +43,47 @@ protected:
 	task_t & ecp_t;
 
 public:
+
 	/**
-	 * @brief Main generator method to execute transition cycle
+	 * @brief Unique class name
 	 */
-	void Move(void)
+	lib::generator_name_t generator_name;
+
+	generator_base(task_t & _ecp_task) :
+			ecp_mp::generator::generator(*(_ecp_task.sr_ecp_msg)),
+			ecp_t(_ecp_task),
+			generator_name(EMPTY_SUBTASK_GENERATOR_NAME)
 	{
-		// Funkcja ruchu dla ECP
+	}
 
-		move_init();
+	bool first_step(void)
+	{
+		return next_step();
+	}
 
-		if (!first_step()) {
-			return; // Warunek koncowy spelniony w pierwszym kroku
-		}
-
-		// realizacja ruchu
-		do {
-			if (ecp_t.peek_mp_message()) {
-				// END_MOTION received
-				break;
-			}
-
-			// zlecenie przygotowania danych przez czujniki
-			ecp_t.all_sensors_initiate_reading(sensor_m);
-
-			if (the_robot) {
-
-				// zlecenie ruchu SET oraz odczyt stanu robota GET
-				if (!(ecp_t.continuous_coordination)) {
-					the_robot->create_command();
-				}
-
-				// wykonanie kroku ruchu
-				if (the_robot->communicate_with_edp) {
-
-					execute_motion();
-
-					the_robot->get_reply();
-				}
-			}
-
-			// odczytanie danych z wszystkich czujnikow
-			ecp_t.all_sensors_get_reading(sensor_m);
-
-			node_counter++;
-			if (ecp_t.pulse_check()) {
-				trigger = true;
-			}
-
-		} while (next_step());
-		ecp_t.command.markAsUsed();
+	bool next_step(void)
+	{
+		return false;
 	}
 
 	/**
-	 * @brief communicates with EDP
+	 * @brief executed by dispatcher
 	 */
-	virtual void execute_motion(void)
-	{
-		the_robot->execute_motion();
-	}
+	virtual void conditional_execution() = 0;
 
+};
+
+/*!
+ * @brief Base class of all ecp generators (template)
+ * The generator both generates command and checks terminal condition
+ *
+ * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
+ * @ingroup ecp
+ */
+template <typename ECP_ROBOT_T>
+class _generator : public generator_base
+{
+private:
 	/**
 	 * @brief initiates Move method
 	 */
@@ -132,22 +105,106 @@ public:
 		ecp_t.set_ecp_reply(lib::ECP_ACKNOWLEDGE);
 	}
 
+protected:
+	/**
+	 * @brief ECP task object type
+	 */
+	typedef ECP_ROBOT_T robot_t;
+
+	/**
+	 * @brief ECP generator itself object type
+	 */
+	typedef _generator <ECP_ROBOT_T> generator_t;
+
+	/**
+	 * @brief communicates with EDP
+	 */
+	virtual void execute_motion(void)
+	{
+		the_robot->execute_motion();
+	}
+
+public:
+	/**
+	 * @brief executed by dispatcher
+	 */
+	virtual void conditional_execution()
+	{
+		Move();
+	}
+
+	/**
+	 * @brief Main generator method to execute transition cycle
+	 */
+	void Move(void)
+	{
+		// Funkcja ruchu dla ECP
+
+		move_init();
+
+		if (!first_step()) {
+			return; // Warunek koncowy spelniony w pierwszym kroku
+		}
+
+		// realizacja ruchu
+		do {
+			if (ecp_t.peek_mp_message()) {
+				// END_MOTION received
+				break;
+			}
+
+			// zlecenie przygotowania danych przez czujniki
+			initiate_sensors_readings();
+
+			if (the_robot) {
+
+				// zlecenie ruchu SET oraz odczyt stanu robota GET
+				if (!(ecp_t.continuous_coordination)) {
+					// for data ports purpose
+					the_robot->is_new_data = false;
+					the_robot->is_new_request = false;
+
+					the_robot->create_command();
+
+					if (the_robot->data_ports_used) {
+						the_robot->finalize_data_port_command();
+					}
+
+				}
+
+				// wykonanie kroku ruchu
+				if (the_robot->communicate_with_edp) {
+
+					execute_motion();
+
+					the_robot->get_reply();
+				}
+			}
+
+			// odczytanie danych z wszystkich czujnikow
+			get_sensors_readings();
+
+			node_counter++;
+			if (ecp_t.pulse_check()) {
+				set_trigger();
+			}
+
+		} while (next_step());
+		ecp_t.command.markAsUsed();
+	}
+
 	/**
 	 * @brief associated ecp_robot object pointer
 	 */
-	//boost::shared_ptr<ECP_ROBOT_T> the_robot;
-	ECP_ROBOT_T * the_robot;
+	const boost::shared_ptr <ECP_ROBOT_T> the_robot;
 
 	/**
 	 * @brief Constructor
 	 * @param _ecp_task ecp task object reference.
 	 */
-	_generator(common::task::_task <ECP_ROBOT_T> & _ecp_task) :
-		ecp_mp::generator::generator(*(_ecp_task.sr_ecp_msg)), ecp_t(_ecp_task)//, the_robot(ecp_t.ecp_m_robot)
+	_generator(task_t & _ecp_task) :
+			generator_base(_ecp_task), the_robot(boost::shared_dynamic_cast <ECP_ROBOT_T>(ecp_t.ecp_m_robot))
 	{
-		if (ecp_t.ecp_m_robot.get()) {
-			the_robot = dynamic_cast <ECP_ROBOT_T *> (ecp_t.ecp_m_robot.get());
-		}
 	}
 
 	/**
@@ -157,10 +214,6 @@ public:
 	{
 	}
 
-	/**
-	 * @brief single trajectory node
-	 */
-	lib::trajectory_description td;
 };
 
 typedef _generator <robot::ecp_robot> generator;

@@ -1,7 +1,7 @@
 add_subdirectory (generator)
 
 add_library(mp
-	MP_main_error.cc
+	mp_task_base.cc
 	mp_task.cc
 	mp_robot.cc
 	mp_m.cc

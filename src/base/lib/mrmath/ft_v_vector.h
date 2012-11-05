@@ -9,11 +9,14 @@
 namespace mrrocpp {
 namespace lib {
 
+// Forward declaration
+class Homog_matrix;
+
 // klasa reprezentujaca wektor sila-moment i wektora predkosci
-class Ft_v_vector : public Eigen::Matrix<double, 6, 1>
+class Ft_v_vector : public Eigen::Matrix <double, 6, 1>
 {
 	//! Helper type for the base type
-	typedef Eigen::Matrix<double, 6, 1> BaseClass;
+	typedef Eigen::Matrix <double, 6, 1> BaseClass;
 
 	//! Give access to boost::serialization framework
 	friend class boost::serialization::access;
@@ -22,19 +25,20 @@ class Ft_v_vector : public Eigen::Matrix<double, 6, 1>
 	template <class Archive>
 	void serialize(Archive & ar, const unsigned int version)
 	{
-		for(int r = 0; r < this->rows(); ++r) {
-			for(int c = 0; c < this->cols(); ++c) {
-				ar & this->operator()(r,c);
+		for (int r = 0; r < this->rows(); ++r) {
+			for (int c = 0; c < this->cols(); ++c) {
+				ar & this->operator()(r, c);
 			}
 		}
 	}
 
 public:
 	//! Copy constructor from any Eigen matrix type
-	template<typename OtherDerived>
-	Ft_v_vector(const Eigen::MatrixBase<OtherDerived>& other)
-		: BaseClass(other)
-	{}
+	template <typename OtherDerived>
+	Ft_v_vector(const Eigen::MatrixBase <OtherDerived>& other) :
+			BaseClass(other)
+	{
+	}
 
 	//! Reuse assignment operators from base class
 	using BaseClass::operator=;
@@ -52,11 +56,11 @@ public:
 	void to_table(double tablica[6]) const;
 
 	//! fill in the input vector with the coordinates from the actual vector
-	void to_vector(std::vector<double> & vector);
+	void to_vector(std::vector <double> & vector);
 
 	//! Wyciagniecie max elementu z wektora
 	//! @author Sibi
-	double max_element ();
+	double max_element();
 
 public:
 	// overload "operator new" so that it generates 16-bytes-aligned pointers.
@@ -64,14 +68,15 @@ public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-// klasa reprezentujaca wektor sila-moment i wektora predkosci
+// klasa reprezentujaca wektor sila-moment
 class Ft_vector : public Ft_v_vector
 {
 public:
-	template<typename OtherDerived>
-	Ft_vector(const Eigen::MatrixBase<OtherDerived>& other)
-		: Ft_v_vector(other)
-	{}
+	template <typename OtherDerived>
+	Ft_vector(const Eigen::MatrixBase <OtherDerived>& other) :
+			Ft_v_vector(other)
+	{
+	}
 
 	Ft_vector();
 	Ft_vector(const double t[6]);
@@ -83,18 +88,18 @@ public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-// klasa reprezentujaca wektor sila-moment i wektora predkosci
 class Xyz_Angle_Axis_vector : public Ft_v_vector
 {
 public:
-	template<typename OtherDerived>
-	Xyz_Angle_Axis_vector(const Eigen::MatrixBase<OtherDerived>& other)
-		: Ft_v_vector(other)
-	{}
+	template <typename OtherDerived>
+	Xyz_Angle_Axis_vector(const Eigen::MatrixBase <OtherDerived>& other) :
+			Ft_v_vector(other)
+	{
+	}
 
 	Xyz_Angle_Axis_vector();
 	Xyz_Angle_Axis_vector(const double t[6]);
-	Xyz_Angle_Axis_vector(double fx, double fy, double fz, double tx, double ty, double tz);
+	Xyz_Angle_Axis_vector(double x, double y, double z, double ax, double ay, double az);
 
 	//! Wektor predkosci jako odleglosc dwoch pozycji zadanych w postaci ramek
 	//! @author Sibi
@@ -106,14 +111,14 @@ public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-// klasa reprezentujaca wektor sila-moment i wektora predkosci
 class Xyz_Euler_Zyz_vector : public Ft_v_vector
 {
 public:
-	template<typename OtherDerived>
-	Xyz_Euler_Zyz_vector(const Eigen::MatrixBase<OtherDerived>& other)
-		: Ft_v_vector(other)
-	{}
+	template <typename OtherDerived>
+	Xyz_Euler_Zyz_vector(const Eigen::MatrixBase <OtherDerived>& other) :
+			Ft_v_vector(other)
+	{
+	}
 
 	//! Reuse assignment operators from base class
 	using Ft_v_vector::operator=;
@@ -128,14 +133,14 @@ public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-// klasa reprezentujaca wektor sila-moment i wektora predkosci
 class Xyz_Rpy_vector : public Ft_v_vector
 {
 public:
-	template<typename OtherDerived>
-	Xyz_Rpy_vector(const Eigen::MatrixBase<OtherDerived>& other)
-		: Ft_v_vector(other)
-	{}
+	template <typename OtherDerived>
+	Xyz_Rpy_vector(const Eigen::MatrixBase <OtherDerived>& other) :
+			Ft_v_vector(other)
+	{
+	}
 
 	Xyz_Rpy_vector();
 	Xyz_Rpy_vector(const double t[6]);

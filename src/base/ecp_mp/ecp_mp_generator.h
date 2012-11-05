@@ -11,7 +11,6 @@
 
 #include "base/ecp_mp/ecp_mp_typedefs.h"
 
-
 namespace mrrocpp {
 
 namespace lib {
@@ -30,18 +29,29 @@ namespace generator {
  */
 class generator
 {
+private:
+	/**
+	 * @brief trigger received flag
+	 */
+	bool trigger;
+
 protected:
 	/**
 	 * @brief the reference to sr communication object in multi thread version
 	 */
 	lib::sr_ecp& sr_ecp_msg;
 
-public:
 	/**
-	 * @brief trigger received flag
+	 * @brief calls initiate reading method for sensor from sensor map
 	 */
-	bool trigger;
+	void initiate_sensors_readings();
 
+	/**
+	 * @brief calls get reading method for sensor from sensor map
+	 */
+	void get_sensors_readings();
+
+public:
 	/**
 	 * @brief Constructor
 	 * @param _sr_ecp_msg the reference to sr communication object in multi thread version
@@ -53,6 +63,11 @@ public:
 	 * @return initial trigger flag state
 	 */
 	bool check_and_null_trigger(); // zwraca wartosc trigger i zeruje go
+
+	/**
+	 * @brief sets trigger flag
+	 */
+	void set_trigger();
 
 	/**
 	 * @brief current macrostep number

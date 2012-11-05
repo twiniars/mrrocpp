@@ -16,8 +16,6 @@
 
 #include <boost/serialization/serialization.hpp>
 
-#include "base/lib/messip/messip.h"
-
 #include "base/lib/typedefs.h"
 #include "base/lib/com_buf.h"
 #include "base/lib/sr/Sender.h"
@@ -97,6 +95,9 @@ private:
 	//! Cached hostname
 	char hostname[128];
 
+	// previous sr message
+	sr_package_t previous_sr_message;
+
 protected:
 	//! Interpret the status code into a text message
 	virtual void interpret(char * description, error_class_t message_type, uint64_t error_code0, uint64_t error_code1 = 0) = 0;
@@ -142,7 +143,7 @@ public:
 	 * \date 12.05.2011
 	 */
 	template <error_class_t ercl>
-	void message(const mrrocpp::lib::exception::mrrocpp_error <ercl> & e_)
+	void message(const mrrocpp::lib::exception::error <ercl> & e_)
 	{
 		// A message that will be sent to SR.
 		sr_package sr_message;
@@ -152,7 +153,7 @@ public:
 
 		// Copy error description and diagnostics to message description.
 		// Retrieve default description.
-		const char* const * pdescription = boost::get_error_info <mrrocpp::lib::exception::mrrocpp_error_description>(e_);
+		const char* const * pdescription = boost::get_error_info <mrrocpp::lib::exception::error_description>(e_);
 		// Check whether description is present.
 		if (pdescription != 0)
 			strcpy(sr_message.description, (*pdescription));
@@ -166,9 +167,7 @@ public:
 
 		// Send message.
 		send_package(sr_message);
-
 	}
-
 };
 
 } // namespace lib

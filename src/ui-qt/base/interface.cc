@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <unistd.h>
 #include <strings.h>
 #include <sys/stat.h>
@@ -22,23 +23,31 @@
 #include "ui_mainwindow.h"
 
 #include "interface.h"
+
+#include "ui_ecp_dialogs/wgt_yes_no.h"
+#include "ui_ecp_dialogs/wgt_swarm.h"
+#include "ui_ecp_dialogs/wgt_message.h"
+#include "ui_ecp_dialogs/wgt_input_integer.h"
+#include "ui_ecp_dialogs/wgt_input_double.h"
+#include "ui_ecp_dialogs/wgt_choose_option.h"
+#include "ui_ecp_dialogs/wgt_teaching.h"
+
 #include "ui_sr.h"
 #include "ui_ecp.h"
 #include "base/lib/ping.h"
 
-#include "../spkm/ui_r_spkm1.h"
-#include "../spkm/ui_r_spkm2.h"
-#include "../smb/ui_r_smb1.h"
-#include "../smb/ui_r_smb2.h"
-#include "../shead/ui_r_shead1.h"
-#include "../shead/ui_r_shead2.h"
-#include "../sbench/ui_r_sbench.h"
+#include "config.h"
+
+#if (R_BIRD_HAND == 1)
+#include "../bird_hand/ui_r_bird_hand.h"
+#endif
+
+#if (R_012 == 1)
 #include "../irp6ot_m/ui_r_irp6ot_m.h"
 #include "../irp6p_m/ui_r_irp6p_m.h"
 #include "../irp6p_tfg/ui_r_irp6p_tfg.h"
 #include "../irp6ot_tfg/ui_r_irp6ot_tfg.h"
-#include "../polycrank/ui_r_polycrank.h"
-#include "../bird_hand/ui_r_bird_hand.h"
+
 #include "../sarkofag/ui_r_sarkofag.h"
 #include "../conveyor/ui_r_conveyor.h"
 
@@ -49,6 +58,9 @@
 #include "../irp6_m/wgt_irp6_m_relative_angle_axis.h"
 #include "../irp6_m/wgt_irp6_m_tool_angle_axis.h"
 #include "../irp6_m/wgt_irp6_m_tool_euler.h"
+#endif
+
+#include "base/lib/exception.h"
 
 #include "wgt_robot_process_control.h"
 #include "mp.h"
@@ -61,12 +73,15 @@ namespace ui {
 namespace common {
 
 Interface::Interface() :
-	is_mp_and_ecps_active(false), position_refresh_interval(200), mrrocpp_bin_to_root_path("../../")
+		is_mp_and_ecps_active(false),
+		position_refresh_interval(200),
+		sigchld_handling(1),
+		mrrocpp_bin_to_root_path("../../")
 {
 
 	mw = (boost::shared_ptr <MainWindow>) new MainWindow(*this);
 
-	main_eb = new function_execution_buffer(*this);
+	main_eb = (boost::shared_ptr <function_execution_buffer>) new function_execution_buffer(*this);
 
 	timer = (boost::shared_ptr <QTimer>) new QTimer(this);
 
@@ -75,19 +90,18 @@ Interface::Interface() :
 	connect(this, SIGNAL(raise_process_control_window_signal()), this, SLOT(raise_process_control_window_slot()), Qt::QueuedConnection);
 	connect(this, SIGNAL(raise_ui_ecp_window_signal()), this, SLOT(raise_ui_ecp_window_slot()), Qt::QueuedConnection);
 
-	ui_state = 1;// ui working
+	ui_state = 1; // ui working
 	file_window_mode = ui::common::FSTRAJECTORY; // uczenie
 
-	all_robots = new AllRobots(this);
-	mp = new Mp(this);
+	all_robots = (boost::shared_ptr <AllRobots>) new AllRobots(*this);
+	mp = (boost::shared_ptr <Mp>) new Mp(*this);
 }
 
 Interface::~Interface()
 {
-	BOOST_FOREACH(robot_pair_t node, robot_m)
-				{
-					delete node.second;
-				}
+	BOOST_FOREACH(robot_pair_t node, robot_m) {
+		delete node.second;
+	}
 }
 
 void Interface::start_on_timer()
@@ -95,9 +109,8 @@ void Interface::start_on_timer()
 	timer->start(50);
 }
 
-bool Interface::html_it(std::string &_input, std::string &_output)
+void Interface::html_it(const std::string &_input, std::string &_output)
 {
-
 	try {
 		// Wyrażenie regularne reprezentujące pierwsze dwie kolumny (druga może być pusta)
 		boost::regex pattern("(<)|(>)|( )|(&)");
@@ -113,8 +126,6 @@ bool Interface::html_it(std::string &_input, std::string &_output)
 	} catch (std::exception &ex) {
 		std::cout << "blad" << ex.what() << std::endl;
 	}
-
-	return true;
 }
 
 void Interface::timer_slot()
@@ -122,12 +133,10 @@ void Interface::timer_slot()
 
 	//fprintf(stderr, "OnTimer()\n");
 
-
 	QTextCharFormat format;
 
 	static int closing_delay_counter; // do odliczania czasu do zamkniecia aplikacji
 	static int Iteration_counter = 0; // licznik uruchomienia funkcji
-
 
 	Iteration_counter++;
 
@@ -146,7 +155,6 @@ void Interface::timer_slot()
 		int iterator = sr_buffer::UI_SR_BUFFER_LENGHT;
 
 		while ((!(ui_sr_obj->inter_buffer_empty())) && ((iterator--) > 0)) { // dopoki mamy co wypisywac
-
 
 			if (iterator < 2) {
 				std::cout << "UI - bufor sr przepelniony" << std::endl;
@@ -244,8 +252,8 @@ void Interface::timer_slot()
 					//	format.setForeground(Qt::yellow);
 
 			}; // end: switch (message.message_type)
-			//	html_line += "</font>";
-			//	mw->getMenuBar()->textEdit_sr->setCurrentCharFormat(format);
+			   //	html_line += "</font>";
+			   //	mw->getMenuBar()->textEdit_sr->setCurrentCharFormat(format);
 
 			std::string text(sr_msg.description);
 
@@ -253,67 +261,66 @@ void Interface::timer_slot()
 			boost::tokenizer <boost::char_separator <char> > tokens(text, sep);
 
 			bool first_it = true;
-			BOOST_FOREACH(const std::string & t, tokens)
-						{
+			BOOST_FOREACH(const std::string & t, tokens) {
 
-							input = t.c_str();
+				input = t.c_str();
 
-							html_it(input, output);
+				html_it(input, output);
 
-							if (first_it) {
-								first_it = false;
+				if (first_it) {
+					first_it = false;
 
-								html_line += output + "</font>";
+					html_line += output + "</font>";
 
-							} else {
-								html_line
-										= "<font face=\"Monospace\" color=\"black\">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; "
-											"&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"
-											"&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"
-												+ output + "</font>";
+				} else {
+					html_line =
+							"<font face=\"Monospace\" color=\"black\">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; "
+									"&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"
+									"&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"
+									+ output + "</font>";
 
-								strcpy(current_line, "                                                     ");
-							}
-							strcat(current_line, t.c_str());
+					strcpy(current_line, "                                                     ");
+				}
+				strcat(current_line, t.c_str());
 
-							mw->get_ui()->textEdit_sr->append(QString::fromStdString(html_line));
+				mw->get_ui()->textEdit_sr->append(QString::fromStdString(html_line));
 
-							(*log_file_outfile) << current_line << std::endl;
-						}
+				(*log_file_outfile) << current_line << std::endl;
+			}
 		}
 
 		(*log_file_outfile).flush();
 
 	}
 
-	if (ui_state == 2) {// jesli ma nastapic zamkniecie z aplikacji
+	if (ui_state == 2) { // jesli ma nastapic zamkniecie z aplikacji
 		set_ui_state_notification(UI_N_EXITING);
 		// 	printf("w ontimer 2\n");
-		closing_delay_counter = 20;// opoznienie zamykania
+		closing_delay_counter = 20; // opoznienie zamykania
 		ui_state = 3;
 		// 		delay(5000);
 
 		mp->MPslay();
 
 		ui_msg->message("closing");
-	} else if (ui_state == 3) {// odliczanie
+	} else if (ui_state == 3) { // odliczanie
 		// 	printf("w ontimer 3\n");
 		if ((--closing_delay_counter) <= 0)
 			ui_state = 4;
-	} else if (ui_state == 4) {// jesli ma nastapic zamkniecie aplikacji
+	} else if (ui_state == 4) { // jesli ma nastapic zamkniecie aplikacji
 		//	printf("w ontimer 4\n");
-		closing_delay_counter = 20;// opoznienie zamykania
+		closing_delay_counter = 20; // opoznienie zamykania
 		ui_state = 5;
 
 		all_robots->EDP_all_robots_slay();
 
-	} else if (ui_state == 5) {// odlcizanie do zamnkiecia
+	} else if (ui_state == 5) { // odlcizanie do zamnkiecia
 		//	printf("w ontimer 5\n");
 		if ((--closing_delay_counter) <= 0)
 			ui_state = 6;
-	} else if (ui_state == 6) {// zakonczenie aplikacji
+	} else if (ui_state == 6) { // zakonczenie aplikacji
 		(*log_file_outfile).close();
-		delete log_file_outfile;
+		log_file_outfile.reset();
 		printf("UI CLOSED\n");
 		abort_threads();
 		get_main_window()->close();
@@ -335,7 +342,7 @@ void Interface::raise_process_control_window()
 
 void Interface::raise_process_control_window_slot()
 {
-	wgt_pc->my_open(false);
+	wgt_pc->my_open(true);
 	wgt_pc->raise();
 	open_process_control_windows();
 	//
@@ -350,12 +357,11 @@ void Interface::open_process_control_windows()
 	//	}
 	//
 	//	wgt_robots_pc.clear();
-	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m)
-				{
-					if ((robot_node.second->state.is_active) && (robot_node.second->state.edp.state > 0)) {
-						robot_node.second->get_wgt_robot_pc()->my_open();
-					}
-				}
+	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m) {
+		if ((robot_node.second->state.is_active) && (robot_node.second->is_edp_loaded())) {
+			robot_node.second->get_wgt_robot_pc()->my_open();
+		}
+	}
 
 	//	BOOST_FOREACH(wgt_robot_process_control *wgt_robot, wgt_robots_pc)
 	//	{
@@ -371,7 +377,6 @@ void Interface::open_process_control_windows()
 //	return instance;
 //}
 
-
 void Interface::raise_ui_ecp_window()
 {
 	//ui->notification_label->setText("GUGUGU");
@@ -382,168 +387,93 @@ void Interface::raise_ui_ecp_window_slot()
 {
 	ui_msg->message("raise_ui_ecp_window_slot");
 
-	lib::ECP_message &ecp_to_ui_msg = ui_ecp_obj->ecp_to_ui_msg;
+	const lib::ECP_message &ecp_to_ui_msg = ui_ecp_obj->ecp_to_ui_msg;
 	lib::UI_reply &ui_rep = ui_ecp_obj->ui_rep;
 
 	switch (ecp_to_ui_msg.ecp_message)
 	{ // rodzaj polecenia z ECP
-		case lib::C_XYZ_ANGLE_AXIS: {
+
+		case lib::C_XYZ_ANGLE_AXIS:
 			if (teachingstate == ui::common::MP_RUNNING) {
 				teachingstate = ui::common::ECP_TEACHING;
 			}
 
-			Ui::wgt_teachingClass* ui = wgt_teaching_obj->get_ui();
+			wgt_teaching_obj->my_open("C_XYZ_ANGLE_AXIS");
 
-			ui->label_message->setText("C_XYZ_ANGLE_AXIS");
+			robot_m[ui_ecp_obj->ecp_to_ui_msg.robot_name]->open_c_xyz_angle_axis_window();
 
-			wgt_teaching_obj->my_open();
-
-			if (ui_ecp_obj->ecp_to_ui_msg.robot_name == lib::irp6ot_m::ROBOT_NAME) {
-				/* TR
-				 start_wnd_irp6_on_track_xyz_angle_axis(widget, apinfo, cbinfo);
-				 */
-			} else if (ui_ecp_obj->ecp_to_ui_msg.robot_name == lib::irp6p_m::ROBOT_NAME) {
-				/* TR
-				 start_wnd_irp6_postument_xyz_angle_axis(widget, apinfo, cbinfo);
-				 */
-			}
-
-		}
 			break;
-		case lib::C_XYZ_EULER_ZYZ: {
+		case lib::C_XYZ_EULER_ZYZ:
 			if (teachingstate == ui::common::MP_RUNNING) {
 				teachingstate = ui::common::ECP_TEACHING;
 			}
 
-			Ui::wgt_teachingClass* ui = wgt_teaching_obj->get_ui();
+			wgt_teaching_obj->my_open("C_XYZ_EULER_ZYZ");
 
-			ui->label_message->setText("C_XYZ_EULER_ZYZ");
+			robot_m[ui_ecp_obj->ecp_to_ui_msg.robot_name]->open_c_xyz_euler_zyz_window();
 
-			wgt_teaching_obj->my_open();
-
-			if (ui_ecp_obj->ecp_to_ui_msg.robot_name == lib::irp6ot_m::ROBOT_NAME) {
-				/* TR
-				 start_wnd_irp6_on_track_xyz_euler_zyz(widget, apinfo, cbinfo);
-				 */
-			} else if (ui_ecp_obj->ecp_to_ui_msg.robot_name == lib::irp6p_m::ROBOT_NAME) {
-				/* TR
-				 start_wnd_irp6_postument_xyz_euler_zyz(widget, apinfo, cbinfo);
-				 */
-			}
-
-		}
 			break;
-		case lib::C_JOINT: {
+		case lib::C_JOINT:
 			if (teachingstate == ui::common::MP_RUNNING) {
 				teachingstate = ui::common::ECP_TEACHING;
 			}
 
-			Ui::wgt_teachingClass* ui = wgt_teaching_obj->get_ui();
+			wgt_teaching_obj->my_open("C_JOINT");
 
-			ui->label_message->setText("C_JOINT");
+			robot_m[ui_ecp_obj->ecp_to_ui_msg.robot_name]->open_c_joint_window();
 
-			wgt_teaching_obj->my_open();
-
-			if (ui_ecp_obj->ecp_to_ui_msg.robot_name == lib::irp6ot_m::ROBOT_NAME) { //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				robot_m[lib::irp6ot_m::ROBOT_NAME]->wgts[irp6p_m::UiRobot::WGT_JOINTS]->my_open();
-			} else if (ui_ecp_obj->ecp_to_ui_msg.robot_name == lib::irp6p_m::ROBOT_NAME) {
-				robot_m[lib::irp6p_m::ROBOT_NAME]->wgts[irp6p_m::UiRobot::WGT_JOINTS]->my_open();
-			}
-
-		}
 			break;
-		case lib::C_MOTOR: {
+		case lib::C_MOTOR:
 			//  printf("C_MOTOR\n");
 
 			if (teachingstate == ui::common::MP_RUNNING) {
 				teachingstate = ui::common::ECP_TEACHING;
 			}
 
-			Ui::wgt_teachingClass* ui = wgt_teaching_obj->get_ui();
+			wgt_teaching_obj->my_open("C_MOTOR", true);
 
-			ui->label_message->setText("C_MOTOR");
+			robot_m[ui_ecp_obj->ecp_to_ui_msg.robot_name]->open_c_motor_window();
 
-			wgt_teaching_obj->my_open();
-
-			if (ui_ecp_obj->ecp_to_ui_msg.robot_name == lib::irp6ot_m::ROBOT_NAME)
-				robot_m[lib::irp6ot_m::ROBOT_NAME]->wgts[irp6p_m::UiRobot::WGT_MOTORS]->my_open();
-			else if (ui_ecp_obj->ecp_to_ui_msg.robot_name == lib::irp6p_m::ROBOT_NAME)
-				robot_m[lib::irp6p_m::ROBOT_NAME]->wgts[irp6p_m::UiRobot::WGT_MOTORS]->my_open();
-
-		}
 			break;
-		case lib::YES_NO: {
-			Ui::wgt_yes_noClass* ui = wgt_yes_no_obj->get_ui();
+		case lib::YES_NO:
 
-			ui->label_message->setText(ecp_to_ui_msg.string);
+			wgt_yes_no_obj->my_open(true);
 
-			wgt_yes_no_obj->my_open();
-
-		}
 			break;
-		case lib::MESSAGE: {
-			Ui::wgt_messageClass* ui = wgt_message_obj->get_ui();
-			ui->label_message->setText(ecp_to_ui_msg.string);
-			wgt_message_obj->my_open();
+		case lib::MESSAGE:
+			wgt_message_obj->my_open(true);
 
 			ui_rep.reply = lib::ANSWER_YES;
 			ui_ecp_obj->synchroniser.command();
-		}
+
 			break;
-		case lib::DOUBLE_NUMBER: {
+		case lib::DOUBLE_NUMBER:
 
-			Ui::wgt_input_doubleClass* ui = wgt_input_double_obj->get_ui();
+			wgt_input_double_obj->my_open(true);
 
-			ui->label_message->setText(ecp_to_ui_msg.string);
-
-			wgt_input_double_obj->my_open();
-		}
 			break;
-		case lib::INTEGER_NUMBER: {
+		case lib::INTEGER_NUMBER:
 
-			Ui::wgt_input_integerClass* ui = wgt_input_integer_obj->get_ui();
+			wgt_input_integer_obj->my_open(true);
 
-			ui->label_message->setText(ecp_to_ui_msg.string);
-
-			wgt_input_integer_obj->my_open();
-
-		}
 			break;
-		case lib::CHOOSE_OPTION: {
+		case lib::CHOOSE_OPTION:
 
-			Ui::wgt_choose_optionClass* ui = wgt_choose_option_obj->get_ui();
+			wgt_choose_option_obj->my_open(true);
 
-			ui->label_message->setText(ecp_to_ui_msg.string);
-
-			// wybor ilosci dostepnych opcji w zaleznosci od wartosci ecp_to_ui_msg.nr_of_options
-
-			if (ecp_to_ui_msg.nr_of_options == 2) {
-				ui->pushButton_3->hide();
-				ui->pushButton_4->hide();
-			} else if (ecp_to_ui_msg.nr_of_options == 3) {
-				ui->pushButton_3->show();
-				ui->pushButton_4->hide();
-			} else if (ecp_to_ui_msg.nr_of_options == 4) {
-				ui->pushButton_3->show();
-				ui->pushButton_4->show();
-			}
-
-			wgt_choose_option_obj->my_open();
-		}
 			break;
-		case lib::LOAD_FILE: {
+		case lib::LOAD_FILE:
 			// Zaladowanie pliku - do ECP przekazywana jest nazwa pliku ze sciezka
 
 			//    printf("lib::LOAD_FILE\n");
-
 
 			file_window_mode = ui::common::FSTRAJECTORY;
 
 			try {
 				QString fileName;
 
-				fileName
-						= QFileDialog::getOpenFileName(mw.get(), tr("Choose file to load or die"), mrrocpp_root_local_path.c_str(), tr("Image Files (*)"));
+				fileName =
+						QFileDialog::getOpenFileName(mw.get(), tr("Choose file to load or die"), mrrocpp_root_local_path.c_str(), tr("Image Files (*)"));
 
 				if (fileName.length() > 0) {
 
@@ -569,9 +499,8 @@ void Interface::raise_ui_ecp_window_slot()
 
 			ui_ecp_obj->synchroniser.command();
 
-		}
 			break;
-		case lib::SAVE_FILE: {
+		case lib::SAVE_FILE:
 
 			// Zapisanie do pliku - do ECP przekazywana jest nazwa pliku ze sciezka
 			//    printf("lib::SAVE_FILE\n");
@@ -581,8 +510,8 @@ void Interface::raise_ui_ecp_window_slot()
 			try {
 				QString fileName;
 
-				fileName
-						= QFileDialog::getSaveFileName(mw.get(), tr("Choose file to save or die"), mrrocpp_root_local_path.c_str(), tr("Image Files (*)"));
+				fileName =
+						QFileDialog::getSaveFileName(mw.get(), tr("Choose file to save or die"), mrrocpp_root_local_path.c_str(), tr("Image Files (*)"));
 
 				if (fileName.length() > 0) {
 
@@ -608,13 +537,12 @@ void Interface::raise_ui_ecp_window_slot()
 
 			ui_ecp_obj->synchroniser.command();
 
-		}
 			break;
 
-		default: {
+		default:
 			perror("Strange ECP message");
 			ui_ecp_obj->synchroniser.command();
-		}
+
 			break;
 	}
 
@@ -622,10 +550,9 @@ void Interface::raise_ui_ecp_window_slot()
 
 void Interface::setRobotsMenu()
 {
-	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m)
-				{
-					robot_node.second->setup_menubar();
-				}
+	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m) {
+		robot_node.second->setup_menubar();
+	}
 }
 
 MainWindow* Interface::get_main_window() const
@@ -633,7 +560,7 @@ MainWindow* Interface::get_main_window() const
 	return mw.get();
 }
 
-int Interface::set_ui_state_notification(UI_NOTIFICATION_STATE_ENUM new_notifacion)
+void Interface::set_ui_state_notification(UI_NOTIFICATION_STATE_ENUM new_notifacion)
 {
 	{
 		boost::unique_lock <boost::mutex> lock(ui_notification_state_mutex);
@@ -643,14 +570,24 @@ int Interface::set_ui_state_notification(UI_NOTIFICATION_STATE_ENUM new_notifaci
 
 	mw->ui_notification();
 
-	return 1;
 }
 
-int Interface::wait_for_child_termiantion(pid_t pid)
+int Interface::wait_for_child_termination(pid_t pid, bool hang)
 {
 	int status;
-	pid_t child_pid;
-	child_pid = waitpid(pid, &status, 0);
+	pid_t child_pid = 0;
+	if (hang) {
+		int iterator = 0;
+		while ((child_pid <= 0) && (iterator < 200)) {
+			child_pid = waitpid(pid, &status, WNOHANG);
+			iterator++;
+			boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+			fprintf(stderr, ".");
+		}
+		fprintf(stderr, "\n");
+	} else {
+		child_pid = waitpid(pid, &status, WNOHANG);
+	}
 
 	if (child_pid == -1) {
 		//	int e = errno;
@@ -690,23 +627,55 @@ common::robots_t Interface::getRobots() const
 
 void Interface::create_robots()
 {
-	ADD_UI_ROBOT(spkm1);
-	ADD_UI_ROBOT(spkm2);
-	ADD_UI_ROBOT(smb1);
-	ADD_UI_ROBOT(smb2);
-	ADD_UI_ROBOT(shead1);
-	ADD_UI_ROBOT(shead2);
-	ADD_UI_ROBOT(sbench);
+
+#if (R_BIRD_HAND == 1)
+	ADD_UI_ROBOT(bird_hand);
+#endif
+
+#if (R_012 == 1)
 	ADD_UI_ROBOT(irp6ot_m);
 	ADD_UI_ROBOT(irp6p_m);
-	ADD_UI_ROBOT(polycrank);
-	ADD_UI_ROBOT(bird_hand);
 	ADD_UI_ROBOT(sarkofag);
 	ADD_UI_ROBOT(irp6p_tfg);
 	ADD_UI_ROBOT(conveyor);
 	ADD_UI_ROBOT(irp6ot_tfg);
+#endif
 
 	setRobotsMenu();
+}
+
+bool Interface::check_sigchld_handling()
+{
+	if (sigchld_handling > 0) {
+		return true;
+	}
+	return false;
+}
+
+void Interface::block_sigchld()
+{
+	//signal(SIGCHLD, SIG_IGN);
+	sigchld_handling--;
+}
+
+void Interface::unblock_sigchld()
+{
+	//signal(SIGCHLD, &catch_signal);
+	sigchld_handling++;
+}
+
+void Interface::mask_signals_for_thread()
+{
+	static sigset_t signal_mask; /* signals to block         */
+
+	sigemptyset(&signal_mask);
+	//sigaddset(&signal_mask, SIGINT);
+	//sigaddset(&signal_mask, SIGTERM);
+	sigaddset(&signal_mask, SIGCHLD);
+	int rc = pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
+	if (rc != 0) {
+
+	}
 }
 
 void Interface::init()
@@ -715,6 +684,7 @@ void Interface::init()
 	// dodanie innych okien w dock widgetach
 	wgt_pc = new wgt_process_control(*this);
 	wgt_yes_no_obj = new wgt_yes_no(*this);
+	wgt_swarm_obj = new wgt_swarm(*this);
 	wgt_message_obj = new wgt_message(*this);
 	wgt_input_integer_obj = new wgt_input_integer(*this);
 	wgt_input_double_obj = new wgt_input_double(*this);
@@ -755,14 +725,14 @@ void Interface::init()
 
 	binaries_local_path = cwd;
 	mrrocpp_local_path = cwd;
-	mrrocpp_local_path.erase(mrrocpp_local_path.length() - 3);// kopiowanie lokalnej sciezki bez "bin" - 3 znaki
+	mrrocpp_local_path.erase(mrrocpp_local_path.length() - 3); // kopiowanie lokalnej sciezki bez "bin" - 3 znaki
 	//mrrocpp_local_path += "../";
 	mrrocpp_root_local_path = mrrocpp_local_path.substr(0, mrrocpp_local_path.rfind("/"));
 	mrrocpp_root_local_path = mrrocpp_root_local_path.substr(0, mrrocpp_root_local_path.rfind("/") + 1);
 	binaries_network_path = "/net/";
 	binaries_network_path += ui_node_name;
 	binaries_network_path += binaries_local_path;
-	binaries_network_path += "/";// wysylane jako argument do procesow potomnych (mp_m i dalej)
+	binaries_network_path += "/"; // wysylane jako argument do procesow potomnych (mp_m i dalej)
 	// printf( "system name  : %s\n", binaries_network_path);
 
 	// sciezka dla okna z wyborem pliku podczas wybor trajektorii dla uczenia
@@ -780,25 +750,26 @@ void Interface::init()
 
 	// printf ("Remember to create gns server\n");
 
-
 	set_ui_state_notification(UI_N_STARTING);
 
-	signal(SIGINT, &catch_signal);// by y aby uniemozliwic niekontrolowane zakonczenie aplikacji ctrl-c z kalwiatury
+	signal(SIGINT, &catch_signal); // by y aby uniemozliwic niekontrolowane zakonczenie aplikacji ctrl-c z kalwiatury
 	signal(SIGALRM, &catch_signal);
 	signal(SIGSEGV, &catch_signal);
+	signal(SIGCHLD, &catch_signal);
 
-	// signal(SIGCHLD, &catch_signal);
+	// Ignore SIGPIPE, which comes from communication errors and should be handled approriately
+	if (signal(SIGPIPE, SIG_IGN ) == SIG_ERR ) {
+		BOOST_THROW_EXCEPTION(lib::exception::system_error());
+	}
 	/* TR
 	 lib::set_thread_priority(pthread_self(), lib::QNX_MAX_PRIORITY - 6);
 	 */
 	// pierwsze zczytanie pliku konfiguracyjnego (aby pobrac nazwy dla pozostalych watkow UI)
 	if (get_default_configuration_file_name() >= 1) // zczytaj nazwe pliku konfiguracyjnego
-	{
+			{
 
 		initiate_configuration();
-		// sprawdza czy sa postawione gns's i ew. stawia je
-		// uwaga serwer musi byc wczesniej postawiony
-		check_gns();
+
 	} else {
 		printf("Blad manage_default_configuration_file\n");
 		/* TR
@@ -812,10 +783,9 @@ void Interface::init()
 
 	// Zablokowanie domyslnej obslugi sygnalu SIGINT w watkach UI_SR i UI_COMM
 
-
 	// kolejne zczytanie pliku konfiguracyjnego
 	if (get_default_configuration_file_name() == 1) // zczytaj nazwe pliku konfiguracyjnego
-	{
+			{
 
 		reload_whole_configuration();
 
@@ -827,7 +797,6 @@ void Interface::init()
 	}
 
 	// inicjacja pliku z logami sr
-	check_gns();
 
 	time_t time_of_day;
 	char file_date[50];
@@ -849,7 +818,7 @@ void Interface::init()
 	strcat(log_file_with_dir, file_name);
 
 	// C++ new does not return 0 on failure, so there is no need to check
-	log_file_outfile = new std::ofstream(log_file_with_dir, std::ios::out);
+	log_file_outfile = (boost::shared_ptr <std::ofstream>) new std::ofstream(log_file_with_dir, std::ios::out);
 
 	//ui_msg->message("closing");
 
@@ -865,7 +834,7 @@ void Interface::print_on_sr(const char *buff, ...)
 	char text[256];
 	va_list arglist;
 
-	va_start(arglist,buff);
+	va_start(arglist, buff);
 	vsprintf(text, buff, arglist);
 	va_end(arglist);
 
@@ -876,12 +845,11 @@ void Interface::manage_pc(void)
 {
 	wgt_pc->process_control_window_init();
 
-	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m)
-				{
-					if ((robot_node.second->state.is_active) && (robot_node.second->state.edp.state > 0)) {
-						robot_node.second->get_wgt_robot_pc()->process_control_window_init();
-					}
-				}
+	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m) {
+		if ((robot_node.second->state.is_active) && (robot_node.second->is_edp_loaded())) {
+			robot_node.second->get_wgt_robot_pc()->window_init();
+		}
+	}
 
 	//wgt_pc->dwgt->raise();
 	//	BOOST_FOREACH(wgt_robot_process_control *wgt_robot, wgt_robots_pc)
@@ -889,17 +857,15 @@ void Interface::manage_pc(void)
 	//		wgt_robot->process_control_window_init();
 	//	}
 
-
 }
 
 // funkcja odpowiedzialna za wyglad aplikacji na podstawie jej stanu
 
-int Interface::manage_interface(void)
+void Interface::manage_interface(void)
 {
 	emit
 	manage_interface_signal();
 
-	return 1;
 }
 
 void Interface::manage_interface_slot()
@@ -907,13 +873,12 @@ void Interface::manage_interface_slot()
 	// okienko process control
 	wgt_pc->process_control_window_init_slot();
 
-	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m)
-				{
-					if ((robot_node.second->state.is_active) && (robot_node.second->state.edp.state > 0)
-							&& robot_node.second->get_wgt_robot_pc()) {
-						robot_node.second->get_wgt_robot_pc()->process_control_window_init();
-					}
-				}
+	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m) {
+		if ((robot_node.second->state.is_active) && (robot_node.second->is_edp_loaded())
+				&& robot_node.second->get_wgt_robot_pc()) {
+			robot_node.second->get_wgt_robot_pc()->window_init();
+		}
+	}
 
 	//wgt_pc->dwgt->raise();
 	// UWAGA ta funkcja powinna byc odporna na odpalenie z dowolnego watku !!!
@@ -929,10 +894,9 @@ void Interface::manage_interface_slot()
 
 	 */
 	// uruchmomienie manage interface dla wszystkich robotow
-	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m)
-				{
-					robot_node.second->manage_interface();
-				}
+	BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m) {
+		robot_node.second->manage_interface();
+	}
 
 	// wlasciwosci menu  ABW_base_all_robots
 
@@ -962,10 +926,9 @@ void Interface::reload_whole_configuration()
 			case UI_ALL_EDPS_NONE_LOADED:
 
 				// uruchmomienie manage interface dla wszystkich robotow
-				BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m)
-							{
-								robot_node.second->reload_configuration();
-							}
+				BOOST_FOREACH(const common::robot_pair_t & robot_node, robot_m) {
+					robot_node.second->reload_configuration();
+				}
 
 				break;
 			default:
@@ -1000,17 +963,14 @@ void Interface::reload_whole_configuration()
 		 */
 
 		// zczytanie konfiguracji UI
-
-
 		// zczytanie konfiguracji MP
-
 		if (is_mp_and_ecps_active) {
 			mp->mp_state.network_pulse_attach_point = config->get_mp_pulse_attach_point();
 
 			if (!config->exists("node_name", lib::MP_SECTION)) {
 				mp->mp_state.node_name = "localhost";
 			} else {
-				mp->mp_state.node_name = config->value <std::string> ("node_name", lib::MP_SECTION);
+				mp->mp_state.node_name = config->value <std::string>("node_name", lib::MP_SECTION);
 			}
 
 			mp->mp_state.pid = -1;
@@ -1018,8 +978,8 @@ void Interface::reload_whole_configuration()
 
 		// inicjacja komunikacji z watkiem sr
 		if (ui_msg == NULL) {
-			ui_msg
-					= (boost::shared_ptr <lib::sr_ui>) new lib::sr_ui(lib::UI, ui_attach_point.c_str(), network_sr_attach_point);
+			ui_msg =
+					(boost::shared_ptr <lib::sr_ui>) new lib::sr_ui(lib::UI, ui_attach_point.c_str(), network_sr_attach_point);
 		}
 
 		// wypisanie komunikatu o odczytaniu konfiguracji
@@ -1043,7 +1003,7 @@ void Interface::UI_close(void)
 		// czas na ustabilizowanie sie edp
 		boost::this_thread::sleep(boost::posix_time::milliseconds(100));
 
-		ui_state = 2;// funcja OnTimer dowie sie ze aplikacja ma byc zamknieta
+		ui_state = 2; // funcja OnTimer dowie sie ze aplikacja ma byc zamknieta
 	}
 }
 
@@ -1058,11 +1018,14 @@ void Interface::abort_threads()
 
 bool Interface::check_node_existence(const std::string & _node, const std::string & beginnig_of_message)
 {
+
 	bool r_val;
 
 	{
 		boost::unique_lock <boost::mutex> lock(process_creation_mtx);
+		block_sigchld();
 		r_val = lib::ping(_node);
+		unblock_sigchld();
 	}
 
 	std::cout << "ping returned " << r_val << std::endl;
@@ -1080,24 +1043,14 @@ bool Interface::check_node_existence(const std::string & _node, const std::strin
 
 }
 
-// sprawdza czy sa postawione gns's i ew. stawia je
-// uwaga serwer powinien byc wczesniej postawiony (dokladnie jeden w sieci)
-// jesli dziala messip (np. pod linux) nieaktywne
-
-int Interface::check_gns()
-{
-	return 1;
-}
-
 // ustala stan wszytkich EDP
-int Interface::check_edps_state_and_modify_mp_state()
+void Interface::check_edps_state_and_modify_mp_state()
 {
 	all_robots->set_edp_state();
 	// modyfikacja stanu MP przez stan wszystkich EDP
 
 	mp->set_mp_state();
 
-	return 1;
 }
 
 // odczytuje nazwe domyslengo pliku konfiguracyjnego, w razie braku ustawia common.ini
@@ -1141,7 +1094,7 @@ int Interface::get_default_configuration_file_name()
 }
 
 // zapisuje nazwe domyslengo pliku konfiguracyjnego
-int Interface::set_default_configuration_file_name()
+void Interface::set_default_configuration_file_name()
 {
 
 	config_file_relativepath = mrrocpp_bin_to_root_path;
@@ -1154,40 +1107,39 @@ int Interface::set_default_configuration_file_name()
 	} else
 		outfile << config_file;
 
-	return 1;
 }
 
 // fills program_node list
-int Interface::fill_program_node_list()
+void Interface::fill_program_node_list()
 {
 	//	printf("fill_program_node_list\n");
 
-	for (std::list <Interface::list_t>::iterator section_list_iterator = section_list.begin(); section_list_iterator
-			!= section_list.end(); section_list_iterator++) {
+	for (std::list <Interface::list_t>::iterator section_list_iterator = section_list.begin();
+			section_list_iterator != section_list.end(); section_list_iterator++) {
 
 		if (config->exists("program_name", *section_list_iterator)
 				&& config->exists("is_active", *section_list_iterator)
-				&& config->value <bool> ("is_active", *section_list_iterator)) {
+				&& config->value <bool>("is_active", *section_list_iterator)) {
 			//	char* tmp_p =config->value<std::string>("program_name", *section_list_iterator);
 			//	char* tmp_n =config->value<std::string>("node_name", *section_list_iterator);
 
 			program_node_user_def tmp_s;
 
-			tmp_s.program_name = config->value <std::string> ("program_name", *section_list_iterator);
+			tmp_s.program_name = config->value <std::string>("program_name", *section_list_iterator);
 			if (config->exists("node_name", *section_list_iterator)) {
-				tmp_s.node_name = config->value <std::string> ("node_name", *section_list_iterator);
+				tmp_s.node_name = config->value <std::string>("node_name", *section_list_iterator);
 			} else {
 				tmp_s.node_name = std::string("localhost");
 			}
 
 			if (config->exists("username", *section_list_iterator)) {
-				tmp_s.user_name = config->value <std::string> ("username", *section_list_iterator);
+				tmp_s.user_name = config->value <std::string>("username", *section_list_iterator);
 			} else {
 				tmp_s.user_name = getenv("USER");
 			}
 
 			if (config->exists("is_qnx", *section_list_iterator)) {
-				tmp_s.is_qnx = config->value <bool> ("is_qnx", *section_list_iterator);
+				tmp_s.is_qnx = config->value <bool>("is_qnx", *section_list_iterator);
 			} else {
 				tmp_s.is_qnx = false;
 			}
@@ -1196,10 +1148,9 @@ int Interface::fill_program_node_list()
 		}
 	}
 
-	return 1;
 }
 
-int Interface::clear_all_configuration_lists()
+void Interface::clear_all_configuration_lists()
 {
 	// clearing of lists
 	section_list.clear();
@@ -1207,10 +1158,9 @@ int Interface::clear_all_configuration_lists()
 	all_node_list.clear();
 	program_node_user_list.clear();
 
-	return 1;
 }
 
-int Interface::initiate_configuration()
+void Interface::initiate_configuration()
 {
 
 	if (access(config_file_relativepath.c_str(), R_OK) != 0) {
@@ -1226,8 +1176,8 @@ int Interface::initiate_configuration()
 
 		config.reset();
 
-		config
-				= (boost::shared_ptr <lib::configurator>) new lib::configurator(ui_node_name, mrrocpp_local_path, lib::UI_SECTION);
+		config =
+				(boost::shared_ptr <lib::configurator>) new lib::configurator(ui_node_name, mrrocpp_local_path, lib::UI_SECTION);
 
 		std::string attach_point = config->get_sr_attach_point();
 
@@ -1265,11 +1215,10 @@ int Interface::initiate_configuration()
 	fill_node_list();
 	fill_program_node_list();
 
-	return 1;
 }
 
 // fills section list of configuration files
-int Interface::fill_section_list(const char* file_name_and_path)
+void Interface::fill_section_list(const char* file_name_and_path)
 {
 	static char line[256];
 
@@ -1315,8 +1264,6 @@ int Interface::fill_section_list(const char* file_name_and_path)
 
 	// zamknij plik
 	fclose(file);
-
-	return 1;
 }
 
 // fills node list
@@ -1335,14 +1282,15 @@ void Interface::fill_node_list()
 		closedir(dirp);
 	}
 
-	for (std::list <Interface::list_t>::iterator section_list_iterator = section_list.begin(); section_list_iterator
-			!= section_list.end(); section_list_iterator++) {
+	for (std::list <Interface::list_t>::iterator section_list_iterator = section_list.begin();
+			section_list_iterator != section_list.end(); section_list_iterator++) {
 		if (config->exists("node_name", *section_list_iterator)) {
-			std::string tmp = config->value <std::string> ("node_name", *section_list_iterator);
+			std::string tmp = config->value <std::string>("node_name", *section_list_iterator);
 
 			std::list <Interface::list_t>::iterator node_list_iterator;
 
-			for (node_list_iterator = config_node_list.begin(); node_list_iterator != config_node_list.end(); node_list_iterator++) {
+			for (node_list_iterator = config_node_list.begin(); node_list_iterator != config_node_list.end();
+					node_list_iterator++) {
 				if (tmp == (*node_list_iterator)) {
 					break;
 				}
@@ -1371,7 +1319,7 @@ void Interface::create_threads()
 }
 
 // zatrzymuje zadanie, zabija procesy
-int Interface::unload_all()
+void Interface::unload_all()
 {
 	mp->MPslay();
 
@@ -1381,15 +1329,13 @@ int Interface::unload_all()
 	/* TR
 	 close_process_control_window(widget, apinfo, cbinfo);
 	 */
-	return 1;
 
 }
 
 // najpierw unload_all zabija wszystkie procesy wzmiankowane w pliku konfiguracyjnym
 
-int Interface::slay_all()
+void Interface::slay_all()
 {
-
 	// program unload
 
 	unload_all();
@@ -1397,7 +1343,8 @@ int Interface::slay_all()
 	// brutal overkilling
 
 	for (std::list <ui::common::program_node_user_def>::iterator program_node_user_list_iterator =
-			program_node_user_list.begin(); program_node_user_list_iterator != program_node_user_list.end(); program_node_user_list_iterator++) {
+			program_node_user_list.begin(); program_node_user_list_iterator != program_node_user_list.end();
+			program_node_user_list_iterator++) {
 		char system_command[100];
 		/*
 		 #if 0
@@ -1425,9 +1372,7 @@ int Interface::slay_all()
 	}
 	printf("slay_all end\n");
 	manage_interface();
-
-	return 1;
-
+	ui_msg->message(lib::NON_FATAL_ERROR, "slay_all executed and finished");
 }
 
 }

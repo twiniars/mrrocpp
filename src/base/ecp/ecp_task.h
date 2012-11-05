@@ -9,41 +9,39 @@
  * @ingroup ecp
  */
 
+#include <boost/ptr_container/ptr_unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "base/lib/agent/Agent.h"
 #include "base/ecp_mp/ecp_mp_task.h"
 #include "base/ecp/ecp_robot.h"
-#include "base/lib/agent/DataBuffer.h"
 #include "base/lib/agent/RemoteAgent.h"
+#include "base/lib/agent/InputBuffer.h"
+#include "base/lib/agent/OutputBuffer.h"
 
 namespace mrrocpp {
 namespace ecp {
 namespace common {
-
-//namespace robot {
-//class ecp_robot;
-//}
-
-namespace sub_task {
-class sub_task_base;
+namespace generator {
+class generator_base;
 }
 
 namespace task {
 
 /**
- * @brief Container type for storing ecp_subtask objects.
+ * @brief Container type for storing ecp_generator objects.
+ * @todo use boost::ptr_unrdered_map container
  *
  * @ingroup ecp
  */
-typedef std::map <std::string, sub_task::sub_task_base *> subtasks_t;
+typedef boost::unordered_map <lib::generator_name_t, generator::generator_base *> generators_t;
 
 /**
- * @brief Type for Items from subtasks_t container.
+ * @brief Type for Items from generators_t container.
  *
  * @ingroup ecp
  */
-typedef subtasks_t::value_type subtask_pair_t;
+typedef generators_t::value_type generator_pair_t;
 
 /*!
  * @brief Base class of all ecp tasks
@@ -60,11 +58,6 @@ private:
 	lib::fd_server_t trigger_attach;
 
 	/**
-	 * @brief MP server communication channel descriptor to send pulses
-	 */
-	RemoteAgent MP;
-
-	/**
 	 * @brief Returns MP command type
 	 * @return mp command variant
 	 */
@@ -74,8 +67,8 @@ private:
 	 * @brief Initializes communication channels
 	 */
 	void initialize_communication(void);
-protected:
 
+protected:
 	/**
 	 * @brief Gets next state from MP
 	 */
@@ -88,7 +81,15 @@ protected:
 	typedef lib::MP_COMMAND_PACKAGE mp_command_t;
 
 public:
+	const boost::shared_ptr <robot::ecp_robot_base> & ecp_m_robot;
+
+public:
 	// TODO: following packages should be 'protected'
+	/**
+	 * @brief MP server proxy
+	 */
+	lib::agent::RemoteAgent MP;
+
 	/**
 	 * @brief Reply to MP
 	 * @note This data type is task dependent, so it should be a parameter of a template class
@@ -96,14 +97,14 @@ public:
 	ecp_reply_t ecp_reply;
 
 	//! Data buffer in the MP
-	OutputBuffer <ecp_reply_t> reply;
+	lib::agent::OutputBuffer <ecp_reply_t> reply;
 
 	/**
 	 * Data buffer with command from MP
 	 *
 	 * Buffer itself is a private object. Access to the data is provided with a 'const' access reference.
 	 */
-	InputBuffer <mp_command_t> command;
+	lib::agent::InputBuffer <mp_command_t> command;
 
 	/**
 	 * @brief buffered MP command
@@ -114,18 +115,23 @@ public:
 	/**
 	 * @brief buffered next state label sent by MP
 	 */
-	std::string mp_2_ecp_next_state_string;
+	const std::string & mp_2_ecp_next_state_string;
 
 	/**
-	 * @brief ECP subtasks container
+	 * @brief ECP generators container
 	 */
-	subtasks_t subtask_m;
+	generators_t generator_m;
 
 	/**
 	 * @brief continuous coordination flag
 	 * influences generator Move method behavior
 	 */
 	bool continuous_coordination;
+
+	/**
+	 * @brief registers generator in generator_m
+	 */
+	void register_generator(generator::generator_base* _gen);
 
 	/**
 	 * @brief checks if new pulse arrived from UI on trigger channel
@@ -137,7 +143,7 @@ public:
 	 * @brief Constructor
 	 * @param _config configurator object reference.
 	 */
-	task_base(lib::configurator &_config);
+	task_base(lib::configurator &_config, boost::shared_ptr <robot::ecp_robot_base> & robot_ref);
 
 	/**
 	 * @brief Destructor
@@ -153,8 +159,9 @@ public:
 	/**
 	 * @brief method called from main_task_algorithm to handle next_state command from MP
 	 * it can be reimplemented in inherited classes
+	 * @todo remove this call together with deprecated attribute
 	 */
-	virtual void mp_2_ecp_next_state_string_handler(void);
+	virtual void mp_2_ecp_next_state_string_handler(void) __attribute__ ((deprecated));
 
 	/**
 	 * @brief method called from main_task_algorithm to handle stop command from MP
@@ -163,7 +170,7 @@ public:
 	virtual void ecp_stop_accepted_handler(void);
 
 	/**
-	 * @brief sends the message to MP after task execution is finished
+	 * @brief sends the message to MP after task execution is completed
 	 */
 	void termination_notice(void);
 
@@ -181,7 +188,7 @@ public:
 	 * @brief method called from main_task_algorithm to handle ecp subtasks execution
 	 * it can be reimplemented in inherited classes
 	 */
-	void subtasks_conditional_execution();
+	void subtasks_and_generators_dispatcher();
 
 public:
 	// TODO: what follows should be private method or accessible only to some friend classes
@@ -198,9 +205,15 @@ public:
 	bool peek_mp_message();
 
 	/**
-	 * @brief waits for resume os stop command from MP
+	 * @brief waits for resume or stop command from MP
 	 */
 	void wait_for_resume();
+
+	/**
+	 * @brief informs if mp_2_ecp_next_state_string_handler is reimplemented in derrived classed
+	 */
+	bool mp_2_ecp_next_state_string_handler_active;
+
 };
 
 template <typename ECP_ROBOT_T>
@@ -212,7 +225,7 @@ public:
 	 * @param _config configurator object reference.
 	 */
 	_task(lib::configurator &_config) :
-		task_base(_config)
+			task_base(_config, (boost::shared_ptr <robot::ecp_robot_base> &) ecp_m_robot)
 	{
 	}
 
@@ -234,7 +247,7 @@ public:
 	typedef _task <ECP_ROBOT_T> task_t;
 
 	/**
-	 * @brief Associated single robot object shared pointer
+	 * @brief Associated robot object shared pointer
 	 */
 	boost::shared_ptr <ECP_ROBOT_T> ecp_m_robot;
 };

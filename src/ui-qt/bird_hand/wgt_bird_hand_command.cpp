@@ -6,7 +6,7 @@
 #include "../../robot/bird_hand/const_bird_hand.h"
 
 //#include "ui/src/ui_ecp_r_single_motor.h"
-#include "../base/ui_ecp_robot/ui_ecp_r_common.h"
+#include "../base/ui_ecp_robot/ui_ecp_r_common_012.h"
 
 #include "../base/interface.h"
 #include "../base/mainwindow.h"
@@ -201,13 +201,13 @@ void wgt_bird_hand_command::on_pushButton_change_command_type_all_clicked()
 	}
 }
 
-int wgt_bird_hand_command::get_command()
+void wgt_bird_hand_command::get_command()
 {
 	try {
 
-		//lib::bird_hand::command &bhcs = robot->ui_ecp_robot->bird_hand_command_data_port->data;
+		//lib::bird_hand::command &bhcs = robot->ui_ecp_robot->bird_hand_command_data_port.data;
 
-		mrrocpp::lib::bird_hand::command &bhcs = robot->ui_ecp_robot->bird_hand_command_data_port->data;
+		mrrocpp::lib::bird_hand::command &bhcs = robot->ui_ecp_robot->the_robot->bird_hand_command_data_port.data;
 
 		// odczyt ilosci krokow i ecp_query step
 
@@ -231,22 +231,21 @@ int wgt_bird_hand_command::get_command()
 
 		 interface.ui_msg->message(ss.str().c_str());
 		 */
-		robot->ui_ecp_robot->bird_hand_command_data_port->set();
+		robot->ui_ecp_robot->the_robot->bird_hand_command_data_port.set();
 		robot->ui_ecp_robot->execute_motion();
 
 	} // end try
 	CATCH_SECTION_UI_PTR
-
-	return 1;
 }
 
-int wgt_bird_hand_command::set_status()
+void wgt_bird_hand_command::set_status()
 {
 
 	joint_status.clear();
 	joint_command.clear();
 
-	mrrocpp::lib::bird_hand::status &bhsrs = robot->ui_ecp_robot->bird_hand_status_reply_data_request_port->data;
+	mrrocpp::lib::bird_hand::status &bhsrs =
+			robot->ui_ecp_robot->the_robot->bird_hand_status_reply_data_request_port.data;
 
 	joint_status.append(&bhsrs.thumb_f[0]);
 	joint_status.append(&bhsrs.thumb_f[1]);
@@ -257,7 +256,7 @@ int wgt_bird_hand_command::set_status()
 	joint_status.append(&bhsrs.ring_f[1]);
 	joint_status.append(&bhsrs.ring_f[2]);
 
-	mrrocpp::lib::bird_hand::command &bhcs = robot->ui_ecp_robot->bird_hand_command_data_port->data;
+	mrrocpp::lib::bird_hand::command &bhcs = robot->ui_ecp_robot->the_robot->bird_hand_command_data_port.data;
 
 	joint_command.append(&bhcs.thumb_f[0]);
 	joint_command.append(&bhcs.thumb_f[1]);
@@ -271,9 +270,9 @@ int wgt_bird_hand_command::set_status()
 	try {
 		if (robot->state.edp.pid != -1) {
 			//	printf("set_status inside\n");
-			robot->ui_ecp_robot->bird_hand_status_reply_data_request_port->set_request();
+			robot->ui_ecp_robot->the_robot->bird_hand_status_reply_data_request_port.set_request();
 			robot->ui_ecp_robot->execute_motion();
-			robot->ui_ecp_robot->bird_hand_status_reply_data_request_port->get();
+			robot->ui_ecp_robot->the_robot->bird_hand_status_reply_data_request_port.get();
 
 			if (robot->state.edp.is_synchronised)
 				for (int i = 0; i < robot->number_of_servos; i++) {
@@ -283,11 +282,9 @@ int wgt_bird_hand_command::set_status()
 		}
 	} // end try
 	CATCH_SECTION_UI_PTR
-
-	return 1;
 }
 
-int wgt_bird_hand_command::copy_command()
+void wgt_bird_hand_command::copy_command()
 {
 	if (robot->state.edp.pid != -1) {
 		if (robot->state.edp.is_synchronised) // Czy robot jest zsynchronizowany?
@@ -305,17 +302,14 @@ int wgt_bird_hand_command::copy_command()
 		}
 
 	}
-
-	return 1;
 }
 
 void wgt_bird_hand_command::on_pushButton_execute_clicked()
 {
-
 	get_command();
 }
 
-int wgt_bird_hand_command::get_variant_finger_command(int fingerId)
+void wgt_bird_hand_command::get_variant_finger_command(int fingerId)
 {
 	QList <QAbstractButton*> buttons_in_group = buttonGroup_Vector[fingerId]->buttons();
 
@@ -335,22 +329,20 @@ int wgt_bird_hand_command::get_variant_finger_command(int fingerId)
 				default:
 					break;
 			}
-			return 1;
+			return;
 		}
 	}
-	return 1;
 }
 
-int wgt_bird_hand_command::get_finger_command(int fingerId)
+void wgt_bird_hand_command::get_finger_command(int fingerId)
 {
 	joint_command[fingerId]->desired_position = desired_pos_spin_box[fingerId]->value();
 	joint_command[fingerId]->desired_torque = doubleSpinBox_destor_Vector[fingerId]->value();
 	joint_command[fingerId]->reciprocal_of_damping = doubleSpinBox_rdamp_Vector[fingerId]->value();
 
-	return 1;
 }
 
-int wgt_bird_hand_command::set_finger_status(int fingerId)
+void wgt_bird_hand_command::set_finger_status(int fingerId)
 {
 	QList <QAbstractButton*> chboxes = checkboxButtonGroup_Vector[fingerId]->buttons();
 
@@ -406,15 +398,12 @@ int wgt_bird_hand_command::set_finger_status(int fingerId)
 		chboxes[7]->setChecked(false);
 	}
 
-	return 1;
 }
 
-int wgt_bird_hand_command::copy_finger_command(int fingerId)
+void wgt_bird_hand_command::copy_finger_command(int fingerId)
 {
 
 	if (joint_command[fingerId]->profile_type == lib::bird_hand::MACROSTEP_ABSOLUTE_POSITION)
 		desired_pos_spin_box[fingerId]->setValue(doubleSpinBox_curpos_Vector[fingerId]->value());
-
-	return 1;
 }
 
