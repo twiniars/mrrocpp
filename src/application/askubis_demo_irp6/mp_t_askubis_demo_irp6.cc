@@ -1,7 +1,7 @@
 #include "mp_t_askubis_demo_irp6.h"
 
 // ecp generators to be commanded
-#include "generator/ecp/askubis_tff_nose_run/ecp_mp_g_askubis_tff_nose_run.h"
+//#include "generator/ecp/askubis_tff_nose_run/ecp_mp_g_askubis_tff_nose_run.h"
 #include "generator/ecp/tff_nose_run/ecp_mp_g_tff_nose_run.h"
 #include "generator/ecp/smooth_file_from_mp/ecp_mp_g_smooth_file_from_mp.h"
 #include "generator/ecp/bias_edp_force/ecp_mp_g_bias_edp_force.h"
@@ -36,8 +36,8 @@ void askubis_demo::main_task_algorithm(void)
 
 	sr_ecp_msg->message("Bias postument");
 
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6ot_m::ROBOT_NAME);
-	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6p_m::ROBOT_NAME);
+	wait_for_task_termination(false, lib::irp6p_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);
 
 	sr_ecp_msg->message("TFF nose start");
 	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, 1, "", lib::irp6p_m::ROBOT_NAME);
