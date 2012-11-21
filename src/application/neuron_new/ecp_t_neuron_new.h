@@ -45,7 +45,7 @@ private:
 	 * signal from VSP is sent START_BREAKING which indicate the moment
 	 * when braking occurs and stops execution of generator.
 	 */
-	common::generator::neuron_generator_new* neuronGenerator;
+	common::generator::Neuron_generator_new* neuronGenerator;
 
 	/**
 	 * @brief Communication manager between VSP and MRROC++.

@@ -1,6 +1,6 @@
 /**
- * @file ecp_g_neuron_generator_new.h
- * @brief Header file for neuron_generator_new class
+ * @file ecp_g_Neuron_generator_new.h
+ * @brief Header file for Neuron_generator_new class
  * @author Tomasz Bem (mebmot@wp.pl)
  * @author Rafal Tulwin (rtulwin@stud.elka.pw.edu.pl)
  * @ingroup neuron
@@ -35,7 +35,7 @@ namespace generator {
  * position for next 5 macro steps, which are processed and interpolated in
  * next step method of the generator.
  */
-class neuron_generator_new : public common::generator::generator
+class Neuron_generator_new : public common::generator::generator
 {
 private:
 
@@ -136,8 +136,8 @@ private:
 	void openFiles();
 
 public:
-	neuron_generator_new(common::task::task& _ecp_task);
-	virtual ~neuron_generator_new();
+	Neuron_generator_new(common::task::task& _ecp_task);
+	virtual ~Neuron_generator_new();
 	virtual bool first_step();
 	virtual bool next_step();
 

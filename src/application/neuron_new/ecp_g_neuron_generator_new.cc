@@ -1,6 +1,6 @@
 /**
- * @file ecp_g_neuron_generator_new.cc
- * @brief Header file for neuron_generator_new class
+ * @file ecp_g_Neuron_generator_new.cc
+ * @brief Header file for Neuron_generator_new class
  * @author Tomasz Bem (mebmot@wp.pl)
  * @author Rafal Tulwin (rtulwin@gmail.com)
  * @ingroup neuron
@@ -42,7 +42,7 @@ static inline void generatePowers(int n, double x, double* powers)
  * @brief Constructor along with task configurator.
  * @param _ecp_task Reference to task configurator.
  */
-neuron_generator_new::neuron_generator_new(common::task::task& _ecp_task) :
+Neuron_generator_new::Neuron_generator_new(common::task::task& _ecp_task) :
 		common::generator::generator(_ecp_task)
 {
 	reset();
@@ -51,7 +51,7 @@ neuron_generator_new::neuron_generator_new(common::task::task& _ecp_task) :
 /*==============================Destructor================================*//**
  * @brief Destructor.
  */
-neuron_generator_new::~neuron_generator_new()
+Neuron_generator_new::~Neuron_generator_new()
 {
 }
 
@@ -61,7 +61,7 @@ neuron_generator_new::~neuron_generator_new()
  * new trajectory execution is starting, therefore requests first coordinates
  * of a trajectory.
  */
-bool neuron_generator_new::first_step()
+bool Neuron_generator_new::first_step()
 {
 	sr_ecp_msg.message("neuron generator first step");
 	printf("neuron generator first step\n");
@@ -91,7 +91,7 @@ bool neuron_generator_new::first_step()
 	return true;
 }
 
-void neuron_generator_new::openFiles()
+void Neuron_generator_new::openFiles()
 {
 	time_t rawtime;
 	struct tm * timeinfo;
@@ -124,7 +124,7 @@ void neuron_generator_new::openFiles()
  * coordinates from VSP. It also receives information whether to start breaking
  * or not. More over it calculates the overshoot of the manipulator.
  */
-bool neuron_generator_new::next_step()
+bool Neuron_generator_new::next_step()
 {
 	the_robot->ecp_command.instruction_type = lib::SET_GET;
 	flushall();
@@ -278,7 +278,7 @@ bool neuron_generator_new::next_step()
  * @brief Returns current robot position.
  * @return Current robot position.
  */
-lib::Xyz_Angle_Axis_vector neuron_generator_new::get_position()
+lib::Xyz_Angle_Axis_vector Neuron_generator_new::get_position()
 {
 	return position;
 }
@@ -287,7 +287,7 @@ lib::Xyz_Angle_Axis_vector neuron_generator_new::get_position()
  * @brief Returns time necessary to reach the desired position while breaking.
  * @return time necessary to reach the desired position while breaking (in seconds)
  */
-double neuron_generator_new::get_breaking_time()
+double Neuron_generator_new::get_breaking_time()
 {
 	return break_steps_ * 0.02;
 }
@@ -296,7 +296,7 @@ double neuron_generator_new::get_breaking_time()
  * @brief returns the overshoot.
  * @return the biggest value of the overshoot while breaking.
  */
-double neuron_generator_new::get_overshoot()
+double Neuron_generator_new::get_overshoot()
 {
 	return overshoot_;
 }
@@ -306,7 +306,7 @@ double neuron_generator_new::get_overshoot()
  * @details Resets all of the temporary variables. It is necessary to call the
  * reset between the calls of the generator Move() method.
  */
-void neuron_generator_new::reset()
+void Neuron_generator_new::reset()
 {
 	t = 0.02;
 	overshoot_ = 1000000;
@@ -315,7 +315,7 @@ void neuron_generator_new::reset()
 	break_steps_ = 1;
 }
 
-void neuron_generator_new::velocityProfileLinear(double *coeff, double pos1, double pos2, double t)
+void Neuron_generator_new::velocityProfileLinear(double *coeff, double pos1, double pos2, double t)
 {
 	coeff[0] = pos1;
 	coeff[1] = (pos2 - pos1) / t;
@@ -325,7 +325,7 @@ void neuron_generator_new::velocityProfileLinear(double *coeff, double pos1, dou
 	coeff[5] = 0.0;
 }
 
-void neuron_generator_new::velocityProfileSpline(double *coeff, double pos1, double vel1, double pos2, double vel2, double time)
+void Neuron_generator_new::velocityProfileSpline(double *coeff, double pos1, double vel1, double pos2, double vel2, double time)
 {
 	double t[6];
 	generatePowers(5, time, t);

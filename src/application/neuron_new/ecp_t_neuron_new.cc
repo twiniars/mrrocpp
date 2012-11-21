@@ -93,7 +93,7 @@ void Neuron_new::mp_2_ecp_next_state_string_handler(void)
 		//Initalizing all needed items: sensors and generators.
 		neuronSensor = new ecp_mp::sensor::Neuron_sensor_new(config);
 		sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR_NEW] = neuronSensor;
-		neuronGenerator = new common::generator::neuron_generator_new(*this);
+		neuronGenerator = new common::generator::Neuron_generator_new(*this);
 		neuronGenerator->sensor_m = sensor_m;
 
 		//coordinates sent from VSP to MRROC++;
