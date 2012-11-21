@@ -1,6 +1,6 @@
 /**
- * @file ecp_g_neuron_generator.cc
- * @brief Header file for neuron_generator class
+ * @file ecp_g_neuron_generator_new.cc
+ * @brief Header file for neuron_generator_new class
  * @author Tomasz Bem (mebmot@wp.pl)
  * @author Rafal Tulwin (rtulwin@gmail.com)
  * @ingroup neuron
@@ -28,7 +28,7 @@ const double MIN_TIME = 0.02;
 const double MAX_TIME = 5.0;
 const double MSTEP_TIME = 0.002 * 10.0;
 
-const double current_ref[] = {15000.0, 18000.0, 10000.0, 10000.0, 10000.0, 10000.0};
+const double current_ref[] = { 15000.0, 18000.0, 10000.0, 10000.0, 10000.0, 10000.0 };
 
 static inline void generatePowers(int n, double x, double* powers)
 {
@@ -42,8 +42,8 @@ static inline void generatePowers(int n, double x, double* powers)
  * @brief Constructor along with task configurator.
  * @param _ecp_task Reference to task configurator.
  */
-neuron_generator::neuron_generator(common::task::task& _ecp_task) :
-	common::generator::generator(_ecp_task)
+neuron_generator_new::neuron_generator_new(common::task::task& _ecp_task) :
+		common::generator::generator(_ecp_task)
 {
 	reset();
 }
@@ -51,7 +51,7 @@ neuron_generator::neuron_generator(common::task::task& _ecp_task) :
 /*==============================Destructor================================*//**
  * @brief Destructor.
  */
-neuron_generator::~neuron_generator()
+neuron_generator_new::~neuron_generator_new()
 {
 }
 
@@ -61,7 +61,7 @@ neuron_generator::~neuron_generator()
  * new trajectory execution is starting, therefore requests first coordinates
  * of a trajectory.
  */
-bool neuron_generator::first_step()
+bool neuron_generator_new::first_step()
 {
 	sr_ecp_msg.message("neuron generator first step");
 	printf("neuron generator first step\n");
@@ -76,7 +76,7 @@ bool neuron_generator::first_step()
 	the_robot->ecp_command.motion_type = lib::ABSOLUTE;
 
 	//get neuron sensor and send information about starting new trajectory.
-	neuron_sensor = (ecp_mp::sensor::neuron_sensor*) sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR];
+	neuron_sensor = (ecp_mp::sensor::neuron_sensor*) sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR_NEW];
 	neuron_sensor->startGettingTrajectory();
 	macroSteps = neuron_sensor->getMacroStepsNumber();
 	radius = neuron_sensor->getRadius();
@@ -91,21 +91,22 @@ bool neuron_generator::first_step()
 	return true;
 }
 
-void neuron_generator::openFiles(){
+void neuron_generator_new::openFiles()
+{
 	time_t rawtime;
 	struct tm * timeinfo;
 	char realTrajectory[100];
 	char givenTrajectory[100];
 	time(&rawtime);
-	timeinfo=localtime(&rawtime);
+	timeinfo = localtime(&rawtime);
 
 	struct stat st;
 
-	if(stat("trajectoryLogs",&st)<0)
+	if (stat("trajectoryLogs", &st) < 0)
 		mkdir("trajectoryLogs", 0777);
 
-	strftime(realTrajectory,100,"trajectoryLogs/%Y%m%d_%H%M%S_",timeinfo);
-	strftime(givenTrajectory,100,"trajectoryLogs/%Y%m%d_%H%M%S_",timeinfo);
+	strftime(realTrajectory, 100, "trajectoryLogs/%Y%m%d_%H%M%S_", timeinfo);
+	strftime(givenTrajectory, 100, "trajectoryLogs/%Y%m%d_%H%M%S_", timeinfo);
 
 	strcat(realTrajectory, neuron_sensor->getFileName());
 	strcat(givenTrajectory, neuron_sensor->getFileName());
@@ -113,8 +114,8 @@ void neuron_generator::openFiles(){
 	strcat(realTrajectory, "_real");
 	strcat(givenTrajectory, "_given");
 
-	pFileR = fopen(realTrajectory,"w");
-	pFileG = fopen(givenTrajectory,"w");
+	pFileR = fopen(realTrajectory, "w");
+	pFileG = fopen(givenTrajectory, "w");
 }
 
 /*================================next_step===============================*//**
@@ -123,7 +124,7 @@ void neuron_generator::openFiles(){
  * coordinates from VSP. It also receives information whether to start breaking
  * or not. More over it calculates the overshoot of the manipulator.
  */
-bool neuron_generator::next_step()
+bool neuron_generator_new::next_step()
 {
 	the_robot->ecp_command.instruction_type = lib::SET_GET;
 	flushall();
@@ -138,10 +139,9 @@ bool neuron_generator::next_step()
 	actual_position_matrix = the_robot->reply_package.arm.pf_def.arm_frame;
 	actual_position_matrix.get_xyz_angle_axis(msr_position);
 
-	fprintf(pFileR,"%f|%f|%f\n",msr_position[0],msr_position[1],msr_position[2]);
+	fprintf(pFileR, "%f|%f|%f\n", msr_position[0], msr_position[1], msr_position[2]);
 
-	if(first_next_step)
-	{
+	if (first_next_step) {
 		position = msr_position;
 		first_next_step = false;
 	}
@@ -149,23 +149,22 @@ bool neuron_generator::next_step()
 	if (breaking_) {
 		double tmp;
 
-		tmp = normalized_vector[0] * (msr_position[0] - desired_position[0]) + normalized_vector[1] * (msr_position[1]
-				- desired_position[1]) + normalized_vector[2] * (msr_position[2] - desired_position[2]);
+		tmp = normalized_vector[0] * (msr_position[0] - desired_position[0])
+				+ normalized_vector[1] * (msr_position[1] - desired_position[1])
+				+ normalized_vector[2] * (msr_position[2] - desired_position[2]);
 		if (tmp < overshoot_) {
 			overshoot_ = tmp;
 		}
 	}
 
-	for(int i = 0; i < 6; i++)
-	{
+	for (int i = 0; i < 6; i++) {
 		current_sum += the_robot->reply_package.arm.measured_current.average_module[i];
 
-		double ref3 = current_ref[i]*current_ref[i]*current_ref[i];
+		double ref3 = current_ref[i] * current_ref[i] * current_ref[i];
 
 		double current_norm = the_robot->reply_package.arm.measured_current.average_cubic[i] / ref3;
 
-		if(current_max < current_norm)
-		{
+		if (current_max < current_norm) {
 			current_max = current_norm;
 		}
 	}
@@ -218,12 +217,11 @@ bool neuron_generator::next_step()
 			//	time = 2 * radius / (2 * MIN_VELOCITY);
 			//} else {
 			double radius2 = 0;
-			for (int i=0; i<3; i++)
-				radius2 += (msr_position[i]-desired_position[i])*(msr_position[i]-desired_position[i]);
+			for (int i = 0; i < 3; i++)
+				radius2 += (msr_position[i] - desired_position[i]) * (msr_position[i] - desired_position[i]);
 			//time = radius / ( sqrt(vel_[0] * vel_[0] + vel_[1] * vel_[1] + vel_[2] * vel_[2]));
-			time = 3.0 * sqrt(radius2) / ( sqrt(vel_[0] * vel_[0] + vel_[1] * vel_[1] + vel_[2] * vel_[2]));
+			time = 3.0 * sqrt(radius2) / (sqrt(vel_[0] * vel_[0] + vel_[1] * vel_[1] + vel_[2] * vel_[2]));
 			//}
-
 
 			time = std::min(std::max(MIN_TIME, time), MAX_TIME);
 
@@ -252,14 +250,14 @@ bool neuron_generator::next_step()
 	double t[6];
 	generatePowers(5, time, t);
 	for (int i = 0; i < 3; i++) {
-		position[i] = t[0] * coeff_[i][0] + t[1] * coeff_[i][1] + t[2] * coeff_[i][2] + t[3] * coeff_[i][3] + t[4]
-				* coeff_[i][4] + t[5] * coeff_[i][5];
+		position[i] = t[0] * coeff_[i][0] + t[1] * coeff_[i][1] + t[2] * coeff_[i][2] + t[3] * coeff_[i][3]
+				+ t[4] * coeff_[i][4] + t[5] * coeff_[i][5];
 	}
 	//printf("mstep : %d  setpoint: %f %f %f\n", mstep_, position[0],position[1],position[2]);
 
 	++mstep_; // increment macro step number
 
-	fprintf(pFileG,"%f|%f|%f|%f|%f|%f\n", position[0], position[1], position[2], position[3], position[4], position[5]);
+	fprintf(pFileG, "%f|%f|%f|%f|%f|%f\n", position[0], position[1], position[2], position[3], position[4], position[5]);
 
 	// --------- send new position to the robot (EDP) ---------------
 	position_matrix.set_from_xyz_angle_axis(position);
@@ -280,7 +278,7 @@ bool neuron_generator::next_step()
  * @brief Returns current robot position.
  * @return Current robot position.
  */
-lib::Xyz_Angle_Axis_vector neuron_generator::get_position()
+lib::Xyz_Angle_Axis_vector neuron_generator_new::get_position()
 {
 	return position;
 }
@@ -289,7 +287,7 @@ lib::Xyz_Angle_Axis_vector neuron_generator::get_position()
  * @brief Returns time necessary to reach the desired position while breaking.
  * @return time necessary to reach the desired position while breaking (in seconds)
  */
-double neuron_generator::get_breaking_time()
+double neuron_generator_new::get_breaking_time()
 {
 	return break_steps_ * 0.02;
 }
@@ -298,7 +296,7 @@ double neuron_generator::get_breaking_time()
  * @brief returns the overshoot.
  * @return the biggest value of the overshoot while breaking.
  */
-double neuron_generator::get_overshoot()
+double neuron_generator_new::get_overshoot()
 {
 	return overshoot_;
 }
@@ -308,7 +306,7 @@ double neuron_generator::get_overshoot()
  * @details Resets all of the temporary variables. It is necessary to call the
  * reset between the calls of the generator Move() method.
  */
-void neuron_generator::reset()
+void neuron_generator_new::reset()
 {
 	t = 0.02;
 	overshoot_ = 1000000;
@@ -317,7 +315,7 @@ void neuron_generator::reset()
 	break_steps_ = 1;
 }
 
-void neuron_generator::velocityProfileLinear(double *coeff, double pos1, double pos2, double t)
+void neuron_generator_new::velocityProfileLinear(double *coeff, double pos1, double pos2, double t)
 {
 	coeff[0] = pos1;
 	coeff[1] = (pos2 - pos1) / t;
@@ -327,7 +325,7 @@ void neuron_generator::velocityProfileLinear(double *coeff, double pos1, double 
 	coeff[5] = 0.0;
 }
 
-void neuron_generator::velocityProfileSpline(double *coeff, double pos1, double vel1, double pos2, double vel2, double time)
+void neuron_generator_new::velocityProfileSpline(double *coeff, double pos1, double vel1, double pos2, double vel2, double time)
 {
 	double t[6];
 	generatePowers(5, time, t);
@@ -340,7 +338,7 @@ void neuron_generator::velocityProfileSpline(double *coeff, double pos1, double 
 	coeff[5] = 0.0;
 }
 
-}//generator
-}//common
-}//ecp
-}//mrrocpp
+} //generator
+} //common
+} //ecp
+} //mrrocpp

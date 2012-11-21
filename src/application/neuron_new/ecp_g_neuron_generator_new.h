@@ -1,14 +1,14 @@
 /**
- * @file ecp_g_neuron_generator.h
- * @brief Header file for neuron_generator class
+ * @file ecp_g_neuron_generator_new.h
+ * @brief Header file for neuron_generator_new class
  * @author Tomasz Bem (mebmot@wp.pl)
  * @author Rafal Tulwin (rtulwin@stud.elka.pw.edu.pl)
  * @ingroup neuron
  * @date 02.07.2010
  */
 
-#ifndef ECP_G_NEURON_GENERATOR_H_
-#define ECP_G_NEURON_GENERATOR_H_
+#ifndef ECP_G_NEURON_GENERATOR_NEW_H_
+#define ECP_G_NEURON_GENERATOR_NEW_H_
 
 #include "base/lib/impconst.h"
 #include "base/lib/com_buf.h"
@@ -35,7 +35,7 @@ namespace generator {
  * position for next 5 macro steps, which are processed and interpolated in
  * next step method of the generator.
  */
-class neuron_generator : public common::generator::generator
+class neuron_generator_new : public common::generator::generator
 {
 private:
 
@@ -136,8 +136,8 @@ private:
 	void openFiles();
 
 public:
-	neuron_generator(common::task::task& _ecp_task);
-	virtual ~neuron_generator();
+	neuron_generator_new(common::task::task& _ecp_task);
+	virtual ~neuron_generator_new();
 	virtual bool first_step();
 	virtual bool next_step();
 
@@ -147,9 +147,9 @@ public:
 	void reset();
 };
 
-}//generator
-}//common
-}//ecp
-}//mrrocpp
+} //generator
+} //common
+} //ecp
+} //mrrocpp
 
 #endif /* ECP_G_NEURON_GENERATOR_H_ */

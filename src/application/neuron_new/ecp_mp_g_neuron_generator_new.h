@@ -6,22 +6,22 @@
  * @date 02.07.2010
  */
 
-#ifndef ECP_MP_G_NEURON_GENERATOR_H_
-#define ECP_MP_G_NEURON_GENERATOR_H_
+#ifndef ECP_MP_G_NEURON_GENERATOR_NEW_H_
+#define ECP_MP_G_NEURON_GENERATOR_NEW_H_
 
-namespace mrrocpp{
-namespace ecp_mp{
-namespace common{
-namespace generator{
+namespace mrrocpp {
+namespace ecp_mp {
+namespace common {
+namespace generator {
 
 /**
  * @brief Neuron generator label definition.
  */
-const std::string ECP_MP_G_NEURON_GENERATOR="ECP_MP_G_NEURON_GENERATOR";
+const std::string ECP_MP_G_NEURON_GENERATOR_NEW = "ECP_MP_G_NEURON_GENERATOR_NEW";
 
-}//generator
-}//common
-}//ecp_mp
-}//mrrocpp
+} //generator
+} //common
+} //ecp_mp
+} //mrrocpp
 
 #endif /*ECP_MP_G_NEURON_GENERATOR_H_*/

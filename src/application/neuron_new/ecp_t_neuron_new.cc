@@ -1,6 +1,6 @@
 /**
  * @file mp_t_neuron.cc
- * @brief Source file for Neuron task class.
+ * @brief Source file for Neuron_new task class.
  * @author Tomasz Bem (mebmot@wp.pl)
  * @ingroup neuron
  * @date 13.05.2010
@@ -21,19 +21,19 @@ namespace task {
  * @brief Constructor along with appropriate configuration.
  * @param _config Configuration object reference.
  */
-Neuron::Neuron(lib::configurator &_config) :
+Neuron_new::Neuron_new(lib::configurator &_config) :
 		common::task::task(_config)
 {
 	ecp_m_robot = (boost::shared_ptr <robot_t>) new irp6ot_m::robot(*this); //initialization of robot
 	smoothGenerator = new common::generator::newsmooth(*this, lib::ECP_XYZ_ANGLE_AXIS, 6);
-	sr_ecp_msg->message("ECP loaded Neuron");
+	sr_ecp_msg->message("ECP loaded Neuron_new");
 }
 
 /*============================Destructor==================================*//**
  * @brief Destructor.
  * @details Cleans it own shit.
  */
-Neuron::~Neuron()
+Neuron_new::~Neuron_new()
 {
 	delete neuronGenerator;
 	delete smoothGenerator;
@@ -41,10 +41,10 @@ Neuron::~Neuron()
 
 /*====================mp_2_ecp_next_state_string_handler==================*//**
  * @brief Method called from main_task_algorithm to handle next_state command.
- * @details Method that handles main algorithm and information flow for Neuron
+ * @details Method that handles main algorithm and information flow for Neuron_new
  * task. Starts generators and waits for start and stop signal from VSP.
  */
-void Neuron::mp_2_ecp_next_state_string_handler(void)
+void Neuron_new::mp_2_ecp_next_state_string_handler(void)
 {
 	sr_ecp_msg->message("poczatek");
 	if (mp_2_ecp_next_state_string == ecp_mp::task::ECP_T_NEURON) {
@@ -92,8 +92,8 @@ void Neuron::mp_2_ecp_next_state_string_handler(void)
 
 		//Initalizing all needed items: sensors and generators.
 		neuronSensor = new ecp_mp::sensor::neuron_sensor(config);
-		sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR] = neuronSensor;
-		neuronGenerator = new common::generator::neuron_generator(*this);
+		sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR_NEW] = neuronSensor;
+		neuronGenerator = new common::generator::neuron_generator_new(*this);
 		neuronGenerator->sensor_m = sensor_m;
 
 		//coordinates sent from VSP to MRROC++;
@@ -132,7 +132,7 @@ void Neuron::mp_2_ecp_next_state_string_handler(void)
 				if (smoothGenerator->calculate_interpolate())
 					smoothGenerator->Move();
 
-				//starts Neuron generator.
+				//starts Neuron_new generator.
 				neuronGenerator->reset();
 				neuronGenerator->Move();
 
@@ -160,12 +160,12 @@ void Neuron::mp_2_ecp_next_state_string_handler(void)
  * MRROC++ is no longer available for work therefore neuron sensor is deleted
  * from the map of sensors.
  */
-void Neuron::ecp_stop_accepted_handler()
+void Neuron_new::ecp_stop_accepted_handler()
 {
 	sr_ecp_msg->message("mp_stop_pressed");
 	neuronSensor->sendCommunicationFinished();
-	delete sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR];
-	sensor_m.erase(ecp_mp::sensor::ECP_MP_NEURON_SENSOR);
+	delete sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR_NEW];
+	sensor_m.erase(ecp_mp::sensor::ECP_MP_NEURON_SENSOR_NEW);
 }
 
 } //namespace task
@@ -181,7 +181,7 @@ namespace task {
  */
 task_base* return_created_ecp_task(lib::configurator &_config)
 {
-	return new common::task::Neuron(_config);
+	return new common::task::Neuron_new(_config);
 }
 
 } // namespace task
