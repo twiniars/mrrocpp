@@ -1,8 +1,8 @@
 /**
- * @file mp_t_neuron.h
- * @brief Header file for neuron class.
+ * @file mp_t_Neuron_new.h
+ * @brief Header file for Neuron_new class.
  * @author Tomasz Bem (mebmot@wp.pl)
- * @ingroup neuron
+ * @ingroup Neuron_new
  * @date 25.06.2010
  */
 
@@ -28,24 +28,24 @@ namespace task {
  */
 task* return_created_mp_task(lib::configurator& _config)
 {
-	return new neuron(_config);
+	return new Neuron_new(_config);
 }
 
 /*================================constructor=============================*//**
  * @brief Constructor, with task configurator.
  * @param _config configurator object reference.
  */
-neuron::neuron(lib::configurator &_config) :
+Neuron_new::Neuron_new(lib::configurator &_config) :
 		task(_config)
 {
 }
 
 /*================================create_robots===========================*//**
  * @brief Brings robots into being.
- * @details Which robots are bring into being depends on neuron.ini
+ * @details Which robots are bring into being depends on Neuron_new.ini
  * configuration file.
  */
-void neuron::create_robots()
+void Neuron_new::create_robots()
 {
 	//ACTIVATE_MP_ROBOT(conveyor);
 	//
@@ -69,19 +69,19 @@ void neuron::create_robots()
 
 /*===============================main_task_algorithm======================*//**
  * @brief Main taks algorithm.
- * @details It initializes neuron subtask.
+ * @details It initializes Neuron_new subtask.
  */
-void neuron::main_task_algorithm(void)
+void Neuron_new::main_task_algorithm(void)
 {
 	sr_ecp_msg->message("Neuron task initialization");
 
-	set_next_ecp_state(ecp_mp::task::ECP_T_NEURON, 5, "", lib::irp6ot_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::task::ECP_T_NEURON_NEW, 5, "", lib::irp6ot_m::ROBOT_NAME);
 	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
 
 	sr_ecp_msg->message("END");
 }
 
-neuron::~neuron()
+Neuron_new::~Neuron_new()
 {
 }
 

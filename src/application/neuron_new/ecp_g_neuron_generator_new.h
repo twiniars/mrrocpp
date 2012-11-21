@@ -44,7 +44,7 @@ private:
 	 * @details Neuron sensor from the point of view of this class is used
 	 * to send current position and assesment data and receive next postion
 	 */
-	ecp_mp::sensor::neuron_sensor *neuron_sensor;
+	ecp_mp::sensor::Neuron_sensor_new *neuron_sensor;
 
 	/**
 	 * @brief Matrix to which the current position of the robot is written.

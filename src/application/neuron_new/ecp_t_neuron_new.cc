@@ -47,7 +47,7 @@ Neuron_new::~Neuron_new()
 void Neuron_new::mp_2_ecp_next_state_string_handler(void)
 {
 	sr_ecp_msg->message("poczatek");
-	if (mp_2_ecp_next_state_string == ecp_mp::task::ECP_T_NEURON) {
+	if (mp_2_ecp_next_state_string == ecp_mp::task::ECP_T_NEURON_NEW) {
 
 		/*smoothGenerator->reset();
 		 smoothGenerator->set_absolute();
@@ -91,7 +91,7 @@ void Neuron_new::mp_2_ecp_next_state_string_handler(void)
 		 */
 
 		//Initalizing all needed items: sensors and generators.
-		neuronSensor = new ecp_mp::sensor::neuron_sensor(config);
+		neuronSensor = new ecp_mp::sensor::Neuron_sensor_new(config);
 		sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR_NEW] = neuronSensor;
 		neuronGenerator = new common::generator::neuron_generator_new(*this);
 		neuronGenerator->sensor_m = sensor_m;

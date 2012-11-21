@@ -6,21 +6,20 @@
  * @date 25.06.2010
  */
 
-#ifndef ECP_MP_T_NEURON_H_
-#define ECP_MP_T_NEURON_H_
+#ifndef ECP_MP_T_NEURON_NEW_H_
+#define ECP_MP_T_NEURON_NEW_H_
 
-namespace mrrocpp{
-namespace ecp_mp{
-namespace task{
+namespace mrrocpp {
+namespace ecp_mp {
+namespace task {
 
 /**
  * @brief Task label definition.
  */
-const std::string ECP_T_NEURON = "ECP_T_NEURON";
+const std::string ECP_T_NEURON_NEW = "ECP_T_NEURON_NEW";
 
 } //task
 } //ecp_mp
 } //task
-
 
 #endif /* ECP_MP_T_NEURON_H_ */

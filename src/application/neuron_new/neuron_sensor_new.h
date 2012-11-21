@@ -6,8 +6,8 @@
  * @date 23.06.2010
  */
 
-#ifndef NEURON_SENSOR_H_
-#define NEURON_SENSOR_H_
+#ifndef NEURON_SENSOR_NEW_H_
+#define NEURON_SENSOR_NEW_H_
 
 #include "base/ecp_mp/ecp_mp_sensor.h"
 
@@ -44,7 +44,7 @@ struct Coordinates
  * control commands from VSP which is considered as a server and thus holds
  * main control over entire system.
  */
-class neuron_sensor : public ecp_mp::sensor::sensor_interface
+class Neuron_sensor_new : public ecp_mp::sensor::sensor_interface
 {
 
 private:
@@ -95,8 +95,8 @@ private:
 	void sendData(uint8_t command, double x, double y, double z, double vx, double vy, double vz);
 
 public:
-	neuron_sensor(mrrocpp::lib::configurator& _configurator);
-	virtual ~neuron_sensor();
+	Neuron_sensor_new(mrrocpp::lib::configurator& _configurator);
+	virtual ~Neuron_sensor_new();
 	void get_reading();
 	void configure_sensor();
 	void initiate_reading();

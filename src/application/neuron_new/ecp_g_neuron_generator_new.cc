@@ -76,7 +76,7 @@ bool neuron_generator_new::first_step()
 	the_robot->ecp_command.motion_type = lib::ABSOLUTE;
 
 	//get neuron sensor and send information about starting new trajectory.
-	neuron_sensor = (ecp_mp::sensor::neuron_sensor*) sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR_NEW];
+	neuron_sensor = (ecp_mp::sensor::Neuron_sensor_new*) sensor_m[ecp_mp::sensor::ECP_MP_NEURON_SENSOR_NEW];
 	neuron_sensor->startGettingTrajectory();
 	macroSteps = neuron_sensor->getMacroStepsNumber();
 	radius = neuron_sensor->getRadius();

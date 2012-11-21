@@ -6,8 +6,8 @@
  * @date 13.05.2010
  */
 
-#ifndef ECP_T_NEURON_H_
-#define ECP_T_NEURON_H_
+#ifndef ECP_T_NEURON_NEW_H_
+#define ECP_T_NEURON_NEW_H_
 
 #include "base/ecp/ecp_task.h"
 #include "generator/ecp/newsmooth/ecp_g_newsmooth.h"
@@ -53,7 +53,7 @@ private:
 	 * to control MRROC++ form VSP side. Mainly to start entire system and
 	 * sent information when the system stops working.
 	 */
-	ecp_mp::sensor::neuron_sensor* neuronSensor;
+	ecp_mp::sensor::Neuron_sensor_new* neuronSensor;
 
 public:
 	Neuron_new(lib::configurator &_config);
