@@ -37,6 +37,8 @@ tff_nose_run::tff_nose_run(common::task::task& _ecp_task, int step) :
 	//configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, lib::FORCE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);
 	configure_reciprocal_damping(lib::FORCE_RECIPROCAL_DAMPING, lib::FORCE_RECIPROCAL_DAMPING, 0.005, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING);
 	configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, 0, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);
+	force_meassure=true;
+
 
 }
 
