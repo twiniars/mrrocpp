@@ -55,7 +55,7 @@ void kinematic_model::check_direct_inverse_kinematic_match(const lib::JointArray
 
 	direct_kinematics_transform(local_desired_joints, check_matrix);
 	lib::Homog_matrix error_matrix = local_desired_end_effector_frame * (!check_matrix);
-	std::cout << error_matrix << std::endl;
+//	std::cout << error_matrix << std::endl;
 
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 4; j++) {
