@@ -37,7 +37,7 @@ tff_nose_run::tff_nose_run(common::task::task& _ecp_task, int step) :
 	//configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, lib::FORCE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);
 	configure_reciprocal_damping(lib::FORCE_RECIPROCAL_DAMPING, lib::FORCE_RECIPROCAL_DAMPING, 0.005, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING);
 	configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, 0, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);
-	force_meassure=true;
+
 
 
 }
@@ -160,6 +160,7 @@ bool tff_nose_run::first_step()
 		the_robot->ecp_command.arm.pf_def.inertia[i] = generator_edp_data.next_inertia[i];
 	}
 
+
 	return true;
 }
 
@@ -196,7 +197,10 @@ bool tff_nose_run::next_step()
 
 		lib::Ft_v_vector force_torque(the_robot->reply_package.arm.pf_def.force_xyz_torque_xyz);
 
-		std::cout << "force: " << force_torque << std::endl;
+
+		std::cout << "force measured: " << force_torque << std::endl;
+
+
 	}
 	return true;
 
