@@ -202,6 +202,8 @@ typedef enum _PROCESS_TYPE
 #define NOT_A_NUMBER_JOINT_VALUE_THETA6         0x6600000000000000ULL
 #define NOT_A_NUMBER_JOINT_VALUE_THETA7         0x6700000000000000ULL
 
+#define DIRECT_INVERSE_KINEMATIC_MISMATCH       0x7000000000000000ULL
+
 //------------------------------------------------------------------------------
 /*! Errors detected by SERVO_GROUP. */
 #define SERVO_ERROR_IN_PASSIVE_LOOP             0x0004000000000000ULL
