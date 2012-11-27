@@ -153,6 +153,14 @@ public:
 	 * @param[in] local_desired_end_effector_frame Given end-effector frame.
 	 */
 	virtual void inverse_kinematics_transform(lib::JointArray & local_desired_joints, const lib::JointArray & local_current_joints, const lib::Homog_matrix& local_desired_end_effector_frame);
+
+	/**
+	 * @brief Solves inverse kinematics. The new, additional DOF is active, while the track is treated as passive one.
+	 * @param[out] local_desired_joints Computed join values (d0, q1, q2, ...).
+	 * @param[in] local_current_joints Current (in fact previous) internal values.
+	 * @param[in] local_desired_end_effector_frame Given end-effector frame.
+	 */
+	void inverse_kinematics_single_iteration(lib::JointArray & local_desired_joints, const lib::JointArray & local_current_joints, const lib::Homog_matrix& local_desired_end_effector_frame);
 };
 
 } // namespace irp6ot
