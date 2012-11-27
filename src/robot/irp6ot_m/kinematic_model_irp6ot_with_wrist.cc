@@ -518,6 +518,47 @@ void model_with_wrist::inverse_kinematics_transform(lib::JointArray & local_desi
 	lib::JointArray local_current_joints_tmp(number_of_servos);
 	local_current_joints_tmp = local_current_joints;
 
+	// odczytujemy biezaca pozycje we wspolrzednych zewnetrznych
+	lib::Homog_matrix current_matrix;
+
+	direct_kinematics_transform(local_current_joints, current_matrix);
+
+	// liczymy przyrost pozycji we wspolrzednych zewnetrzenych
+	lib::Homog_matrix increment_matrix = (!current_matrix) * local_desired_end_effector_frame;
+
+	// badamy czy przyrost nie przekracza wartosci granicznej
+
+	lib::Xyz_Angle_Axis_Gamma_vector increment_agama;
+	increment_matrix.get_xyz_angle_axis_gamma(increment_agama);
+
+//	std::cout << "increment_agama: 1" << increment_agama << std::endl;
+
+	// jezeli kat agama jest zbyt duzy (wydaje sie ze powyzej 1/2 pi) to mozemy wykonac posredni krok interpolacji, czasami pomaga, praktycznie nigdy nie przeszkadza
+	if (fabs(increment_agama(6)) > (M_PI_2 - 0.1)) {
+		increment_agama(6) = increment_agama(6) / 2;
+		//	std::cout << "increment_agama: 2" << increment_agama << std::endl;
+		increment_matrix.set_from_xyz_angle_axis_gamma(increment_agama);
+		lib::Homog_matrix tmp_desired_matrix = current_matrix * increment_matrix;
+
+		inverse_kinematics_single_iteration(local_desired_joints, local_current_joints_tmp, tmp_desired_matrix);
+
+		// std::cout << "lalala" << std::endl;
+
+		local_current_joints_tmp = local_desired_joints;
+
+	}
+
+	inverse_kinematics_single_iteration(local_desired_joints, local_current_joints_tmp, local_desired_end_effector_frame);
+
+} //: inverse_kinematics_transform()
+
+void model_with_wrist::inverse_kinematics_single_iteration(lib::JointArray & local_desired_joints, const lib::JointArray & local_current_joints, const lib::Homog_matrix& local_desired_end_effector_frame)
+{
+
+	lib::JointArray local_current_joints_tmp(number_of_servos);
+	local_current_joints_tmp = local_current_joints;
+
+	// poprawka w celu uwzglednienia konwencji DH
 	local_current_joints_tmp[3] += local_current_joints_tmp[2] + M_PI_2;
 	local_current_joints_tmp[4] += local_current_joints_tmp[3];
 
@@ -685,7 +726,7 @@ void model_with_wrist::inverse_kinematics_transform(lib::JointArray & local_desi
 // Sprawdzenie ograniczen na wspolrzedne wewnetrzne.
 	check_joints(local_desired_joints);
 
-} //: inverse_kinematics_transform()
+} //: inverse_kinematics_single_iteration()
 
 } // namespace irp6ot
 } // namespace kinematic
