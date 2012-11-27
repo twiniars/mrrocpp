@@ -622,24 +622,35 @@ void model_with_wrist::inverse_kinematics_transform(lib::JointArray & local_desi
 				> fabs(t6 + 2 * M_PI - local_desired_joints[4] - (local_current_joints_tmp[6])))
 			t_ok = t6 + 2 * M_PI - local_desired_joints[4];
 
+		//	std::cout << "variant 1" << std::endl;
+
 		local_desired_joints[6] = t_ok;
 	} else {
 		t6 = atan2(-s1 * Ox + c1 * Oy, s1 * Nx - c1 * Ny);
 		t_ok = t6;
-
+		//	std::cout << "variant 2" << std::endl;
 		// Sprawdzenie warunkow.
-		if (fabs(t_ok - local_current_joints_tmp[6]) > fabs(t6 - M_PI - (local_current_joints_tmp[6])))
+		if (fabs(t_ok - local_current_joints_tmp[6]) > fabs(t6 - M_PI - (local_current_joints_tmp[6]))) {
+			//	std::cout << "variant 2 a" << std::endl;
 			t_ok = t6 - M_PI;
-		if (fabs(t_ok - local_current_joints_tmp[6]) > fabs(t6 + M_PI - (local_current_joints_tmp[6])))
+		}
+		if (fabs(t_ok - local_current_joints_tmp[6]) > fabs(t6 + M_PI - (local_current_joints_tmp[6]))) {
+			//	std::cout << "variant 2 b" << std::endl;
 			t_ok = t6 + M_PI;
+		}
 
 		local_desired_joints[6] = t_ok;
 		t_ok = atan2(c1 * Ax + s1 * Ay, Az);
 
-		if (fabs(t_ok - local_current_joints_tmp[4]) > fabs(t_ok - M_PI - (local_current_joints_tmp[4])))
+		if (fabs(t_ok - local_current_joints_tmp[4]) > fabs(t_ok - M_PI - (local_current_joints_tmp[4]))) {
+			//	std::cout << "variant 2 c" << std::endl;
 			t_ok = t_ok - M_PI;
-		if (fabs(t_ok - local_current_joints_tmp[4]) > fabs(t_ok + M_PI - (local_current_joints_tmp[4])))
+		}
+		if (fabs(t_ok - local_current_joints_tmp[4]) > fabs(t_ok + M_PI - (local_current_joints_tmp[4]))) {
+			//	std::cout << "variant 2 d" << std::endl;
 			t_ok = t_ok + M_PI;
+		}
+
 		local_desired_joints[4] = t_ok;
 	} //: else
 
@@ -668,7 +679,10 @@ void model_with_wrist::inverse_kinematics_transform(lib::JointArray & local_desi
 	local_desired_joints[3] -= local_desired_joints[2] + M_PI_2;
 	local_desired_joints[4] -= local_desired_joints[3] + local_desired_joints[2] + M_PI_2;
 
-	// Sprawdzenie ograniczen na wspolrzedne wewnetrzne.
+	// sprawdzenie czy wynik jest poprawny tzn. prosta kinematyka daje to samo co odwrotna (z pewnym epsilonem)
+	check_direct_inverse_kinematic_match(local_desired_joints, local_desired_end_effector_frame);
+
+// Sprawdzenie ograniczen na wspolrzedne wewnetrzne.
 	check_joints(local_desired_joints);
 
 } //: inverse_kinematics_transform()

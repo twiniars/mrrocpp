@@ -639,6 +639,9 @@ void model_with_wrist::inverse_kinematics_transform(lib::JointArray & local_desi
 	local_desired_joints[2] -= local_desired_joints[1] + M_PI_2;
 	local_desired_joints[3] -= local_desired_joints[2] + local_desired_joints[1] + M_PI_2;
 
+	// sprawdzenie czy wynik jest poprawny tzn. prosta kinematyka daje to samo co odwrotna (z pewnym epsilonem)
+	check_direct_inverse_kinematic_match(local_desired_joints, local_desired_end_effector_frame);
+
 	// Sprawdzenie ograniczen na wspolrzedne wewnetrzne.
 	check_joints(local_desired_joints);
 

@@ -77,7 +77,7 @@ void model::check_motor_position(const lib::MotorArray & motor_position) const
 void model::check_joints(const lib::JointArray & q) const
 {
 	if (isnan(q[0]))
-		BOOST_THROW_EXCEPTION(nfe_2() << mrrocpp_error0(NOT_A_NUMBER_JOINT_VALUE_THETA7));
+		BOOST_THROW_EXCEPTION(nfe_2() << mrrocpp_error0(NOT_A_NUMBER_JOINT_VALUE_THETA1));
 	if (q[0] < lower_limit_joint) // 7 st. swobody
 		BOOST_THROW_EXCEPTION(nfe_2() << mrrocpp_error0(BEYOND_LOWER_THETA1_LIMIT));
 
