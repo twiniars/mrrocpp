@@ -57,6 +57,7 @@ reader_config::reader_config() :
 		real_cartesian_position[i] = false;
 		real_cartesian_vel[i] = false;
 		real_cartesian_acc[i] = false;
+		imu_cartesian_acc[i] = false;
 	}
 }
 
@@ -159,6 +160,9 @@ void reader_buffer::operator()()
 
 			sprintf(tmp_string, "real_cartesian_acc_%d", j);
 			reader_cnf.real_cartesian_acc[j] = master.config.check_config(tmp_string);
+
+			sprintf(tmp_string, "imu_cartesian_acc_%d", j);
+			reader_cnf.imu_cartesian_acc[j] = master.config.check_config(tmp_string);
 		}
 	}
 
@@ -385,11 +389,18 @@ void reader_buffer::write_data_old_format(std::ofstream& outfile, const reader_d
 			outfile << data.real_cartesian_vel[j] << " ";
 	}
 
-	outfile << "a: ";
+	outfile << "ra: ";
 
 	for (int j = 0; j < 6; j++) {
 		if (reader_cnf.real_cartesian_acc[j])
 			outfile << data.real_cartesian_acc[j] << " ";
+	}
+
+	outfile << "ia: ";
+
+	for (int j = 0; j < 6; j++) {
+		if (reader_cnf.imu_cartesian_acc[j])
+			outfile << data.imu_cartesian_acc[j] << " ";
 	}
 
 	outfile << "t: " << data.ui_trigger;
@@ -465,6 +476,11 @@ void reader_buffer::write_header_csv(std::ofstream& outfile)
 			outfile << "real_cartesian_acc[" << j << "];";
 	}
 
+	for (int j = 0; j < 6; j++) {
+		if (reader_cnf.imu_cartesian_acc[j])
+			outfile << "real_cartesian_acc[" << j << "];";
+	}
+
 	outfile << "ui_trigger\n";
 }
 
@@ -534,6 +550,11 @@ void reader_buffer::write_data_csv(std::ofstream& outfile, const reader_data & d
 	for (int j = 0; j < 6; j++) {
 		if (reader_cnf.real_cartesian_acc[j])
 			outfile << data.real_cartesian_acc[j] << ";";
+	}
+
+	for (int j = 0; j < 6; j++) {
+		if (reader_cnf.imu_cartesian_acc[j])
+			outfile << data.imu_cartesian_acc[j] << ";";
 	}
 
 	outfile << data.ui_trigger << '\n';
