@@ -301,7 +301,7 @@ void force::get_reading(void)
 			computed_force_in_tool.to_table(master.rb_obj->step_data.computed_force);
 			adjusted_force_in_tool.to_table(master.rb_obj->step_data.adjusted_force);
 			inertial_force_in_tool.to_table(master.rb_obj->step_data.inertial_force);
-			imu_acc.to_table(master.rb_obj->step_data.real_cartesian_acc);
+			imu_acc.to_table(master.rb_obj->step_data.imu_cartesian_acc);
 		} else {
 			//	std::cerr << " " << std::endl;
 		}
