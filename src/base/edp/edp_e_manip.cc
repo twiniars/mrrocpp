@@ -34,6 +34,12 @@ bool manip_effector::compute_servo_joints_and_frame(void)
 
 	static int catch_nr = 0;
 
+	// poprzedni pomiar
+	static lib::Xyz_Angle_Axis_vector servo_prev_real_kartez_pos;
+
+	// poprzedni pomiar
+	static lib::Xyz_Angle_Axis_vector servo_prev_real_kartez_vel;
+
 	// wyznaczenie nowych wartosci joints and frame dla obliczen w servo
 	try {
 
@@ -44,6 +50,9 @@ bool manip_effector::compute_servo_joints_and_frame(void)
 		// Pobranie wsp. zewnetrznych w ukladzie
 
 		lib::Xyz_Angle_Axis_vector servo_real_kartez_pos; // by Y polozenie we wspolrzednych xyz_euler_zyz obliczane co krok servo   XXXXX
+		lib::Xyz_Angle_Axis_vector servo_real_kartez_vel; // by Y polozenie we wspolrzednych xyz_euler_zyz obliczane co krok servo   XXXXX
+		lib::Xyz_Angle_Axis_vector servo_real_kartez_acc; // by Y polozenie we wspolrzednych xyz_euler_zyz obliczane co krok servo   XXXXX
+
 		local_matrix.get_xyz_angle_axis(servo_real_kartez_pos);
 
 		//obliczanie zadanej pozycji koncowki wedlug aktualnego rozkazu przetwarzanego w servo
@@ -65,11 +74,18 @@ bool manip_effector::compute_servo_joints_and_frame(void)
 		lib::Xyz_Angle_Axis_vector servo_desired_kartez_pos; // by Y polozenie we wspolrzednych xyz_euler_zyz obliczane co krok servo   XXXXX
 		local_matrix.get_xyz_angle_axis(servo_desired_kartez_pos);
 
+		servo_real_kartez_vel = (servo_real_kartez_pos - servo_prev_real_kartez_pos) / (lib::EDP_STEP);
+		servo_real_kartez_acc = (servo_real_kartez_vel - servo_prev_real_kartez_vel) / (lib::EDP_STEP);
+		servo_prev_real_kartez_pos = servo_real_kartez_pos;
+		servo_prev_real_kartez_vel = servo_real_kartez_vel;
+
 		// scope-locked reader data update
 		{
 			boost::mutex::scoped_lock lock(rb_obj->reader_mutex);
 
 			servo_real_kartez_pos.to_table(rb_obj->step_data.real_cartesian_position);
+			servo_real_kartez_vel.to_table(rb_obj->step_data.real_cartesian_vel);
+			servo_real_kartez_acc.to_table(rb_obj->step_data.real_cartesian_acc);
 			servo_desired_kartez_pos.to_table(rb_obj->step_data.desired_cartesian_position);
 		}
 

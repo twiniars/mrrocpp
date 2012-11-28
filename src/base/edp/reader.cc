@@ -478,7 +478,7 @@ void reader_buffer::write_header_csv(std::ofstream& outfile)
 
 	for (int j = 0; j < 6; j++) {
 		if (reader_cnf.imu_cartesian_acc[j])
-			outfile << "real_cartesian_acc[" << j << "];";
+			outfile << "imu_cartesian_acc[" << j << "];";
 	}
 
 	outfile << "ui_trigger\n";
