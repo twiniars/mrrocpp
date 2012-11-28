@@ -49,7 +49,7 @@ struct reader_config
 	bool desired_joints[lib::MAX_SERVOS_NR];
 	bool measured_current[lib::MAX_SERVOS_NR];
 
-	bool desired_cartesian_position[6]; // skaldowe liniowe polozenia zadanego
+	bool desired_cartesian_position[6]; // skladowe liniowe polozenia zadanego
 	bool real_cartesian_position[6]; // polozenie rzeczywiste zmierzone z silnikow i przeliczen kinematycznych
 	bool real_cartesian_vel[6]; // predkosc rzeczywista zmierzone z silnikow i przeliczen kinematycznych
 	bool real_cartesian_acc[6]; // przyspieszenie rzeczywiste zmierzone z silnikow i przeliczen kinematycznych
