@@ -1,0 +1,63 @@
+/*
+ * dice_visual_servo.h
+ *
+ *  Created on: May 26, 2010
+ *      Author: tpokorsk
+ */
+
+#ifndef DICE_VISUAL_SERVO_H_
+#define DICE_VISUAL_SERVO_H_
+
+#include <ctime>
+
+#include "visual_servo.h"
+#include "DiceReading.h"
+
+namespace mrrocpp {
+
+namespace ecp {
+
+namespace servovision {
+
+/** @addtogroup servovision
+ *  @{
+ */
+
+/**
+ *
+ */
+class dice_visual_servo : public visual_servo
+{
+public:
+			pb_visual_servo(boost::shared_ptr <visual_servo_regulator> regulator, boost::shared_ptr <
+					mrrocpp::ecp_mp::sensor::discode::discode_sensor> sensor, const std::string& section_name, mrrocpp::lib::configurator& configurator);
+	virtual ~pb_visual_servo();
+
+	virtual Types::Mrrocpp_Proxy::DiceReading* get_reading();
+
+	virtual void reset();
+protected:
+	virtual void retrieve_reading();
+	virtual void predict_reading();
+	virtual bool is_object_visible_in_latest_reading();
+
+	Types::Mrrocpp_Proxy::DiceReading reading;
+
+	lib::Homog_matrix G_T_E_desired;
+
+private:
+	bool use_reading_linear_extrapolation;
+
+	Types::Mrrocpp_Proxy::DiceReading reading_t_minus_1;
+	Types::Mrrocpp_Proxy::DiceReading reading_t_minus_2;
+};
+
+/** @} */
+
+}//namespace generator {
+
+}
+
+}
+
+#endif /* PB_VISUAL_SERVO_H_ */

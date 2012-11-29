@@ -1,0 +1,51 @@
+#if !defined(__MP_T_TP_PICK_H)
+#define __MP_T_TP_PICK_IRP6_H
+
+#include "base/mp/mp_task.h"
+
+namespace mrrocpp {
+namespace mp {
+namespace task {
+
+/**
+ * @defgroup swarm_demo swarm_demo
+ * @ingroup application
+ * A swarm demo application
+ */
+
+class tp_pick : public task
+{
+protected:
+
+public:
+
+	/**
+	 * Constructor.
+	 */
+	tp_pick(lib::configurator &config);
+	/// utworzenie robotow
+	void create_robots(void);
+	void main_task_algorithm(void);
+
+	//int slot;
+	void start_position(void);
+	void gripper(double);
+	void down(void);
+	void up(void);
+	void throw_dices(void);
+	void pick(double x,double y);
+	void under_slot(int slot);
+	void put_away(void);
+	void put_to_cup(void);
+	void pick_all(void);
+
+	bool run_vs;
+	int vs_settle_time;
+	std::string robot_name;
+};
+
+} // namespace task
+} // namespace mp
+} // namespace mrrocpp
+
+#endif
