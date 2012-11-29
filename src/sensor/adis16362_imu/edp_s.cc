@@ -35,7 +35,15 @@ adis16362_imu::adis16362_imu(common::manip_effector &_master) :
 
 void adis16362_imu::connect_to_hardware(void)
 {
-	ai = new IMU();
+	std::string device_path;
+	if (master.config.exists("imu_device_path")) {
+		device_path = master.config.value <std::string>("imu_device_path");
+		std::cout << "imu_device_path" << device_path << std::endl;
+		ai = new IMU(device_path);
+	} else {
+		std::cout << "imu_device_path not set" << std::endl;
+	}
+
 }
 
 adis16362_imu::~adis16362_imu(void)
