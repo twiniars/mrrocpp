@@ -1,7 +1,8 @@
 /*
  * ecp_t_tp_pick_servovision.cc
  *
- *      Author: tpokorsk
+ *  Created on: Apr 21, 2010
+ *      Author: mboryn
  */
 
 #include <stdexcept>

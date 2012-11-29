@@ -1,7 +1,8 @@
 /*
  * ecp_mp_g_visual_servo_tester.h
  *
- *      Author: tpokorsk
+ *  Created on: Jul 29, 2010
+ *      Author: mboryn
  */
 
 #ifndef ECP_MP_G_VISUAL_SERVO_TESTER_H_

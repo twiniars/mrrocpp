@@ -1,7 +1,6 @@
 /*
  * DiceReading.hpp
  *
- *  Created on: 19-11-2010
  *      Author: tpokorsk
  */
 
