@@ -330,7 +330,7 @@ void manip_effector::iterate_macrostep(const lib::JointArray & begining_joints, 
 	const uint16_t &ECP_value_in_step_no = instruction.value_in_step_no; // liczba krokow po ktorych bedzie wyslana odpowiedz do ECP o przewidywanym zakonczeniu ruchu
 	const lib::POSE_SPECIFICATION &set_arm_type = instruction.set_arm_type;
 
-	double force_xyz_torque_xyz[6]; // wartosci zadana sily
+	lib::Ft_v_vector desired_force_torque; // wartosci zadana sily
 	double inertia[6];
 	double reciprocal_damping[6];
 
@@ -348,22 +348,31 @@ void manip_effector::iterate_macrostep(const lib::JointArray & begining_joints, 
 			case lib::UNGUARDED_MOTION:
 				inertia[i] = 0.0;
 				reciprocal_damping[i] = 0.0; // the force influence is eliminated
-				force_xyz_torque_xyz[i] = instruction.arm.pf_def.force_xyz_torque_xyz[i];
+				desired_force_torque[i] = instruction.arm.pf_def.force_xyz_torque_xyz[i];
 				// inertia is not eleliminated
 				break;
 			case lib::GUARDED_MOTION:
 				inertia[i] = instruction.arm.pf_def.inertia[i];
 				reciprocal_damping[i] = instruction.arm.pf_def.reciprocal_damping[i];
-				force_xyz_torque_xyz[i] = 0.0; // the desired force is set to zero
+				desired_force_torque[i] = 0.0; // the desired force is set to zero
 				break;
 			case lib::CONTACT:
 				inertia[i] = instruction.arm.pf_def.inertia[i];
 				reciprocal_damping[i] = instruction.arm.pf_def.reciprocal_damping[i];
-				force_xyz_torque_xyz[i] = instruction.arm.pf_def.force_xyz_torque_xyz[i];
+				desired_force_torque[i] = instruction.arm.pf_def.force_xyz_torque_xyz[i];
 				break;
 			default:
 				break;
 		}
+	}
+
+	if (rb_obj) {
+		boost::mutex::scoped_lock lock(rb_obj->reader_mutex);
+
+		desired_force_torque.to_table(rb_obj->step_data.desired_force);
+
+	} else {
+		//	std::cerr << " " << std::endl;
 	}
 
 	const unsigned long PREVIOUS_MOVE_VECTOR_NULL_STEP_VALUE = 10;
@@ -441,7 +450,7 @@ void manip_effector::iterate_macrostep(const lib::JointArray & begining_joints, 
 			}
 
 			// PRAWO STEROWANIA
-			move_rot_vector[i] = ((reciprocal_damping[i] * (force_xyz_torque_xyz[i] - current_force_torque[i])
+			move_rot_vector[i] = ((reciprocal_damping[i] * (desired_force_torque[i] - current_force_torque[i])
 					+ pos_xyz_rot_xyz_vector[i]) * lib::EDP_STEP * lib::EDP_STEP
 					+ reciprocal_damping[i] * inertia[i] * previous_move_rot_vector[i])
 					/ (lib::EDP_STEP + reciprocal_damping[i] * inertia[i]);
