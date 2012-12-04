@@ -54,6 +54,7 @@ reader_config::reader_config() :
 		adjusted_force[i] = false;
 		inertial_force[i] = false;
 		desired_cartesian_position[i] = false;
+		desired_cartesian_vel[i] = false;
 		real_cartesian_position[i] = false;
 		real_cartesian_vel[i] = false;
 		real_cartesian_acc[i] = false;
@@ -151,6 +152,9 @@ void reader_buffer::operator()()
 
 			sprintf(tmp_string, "desired_cartesian_position_%d", j);
 			reader_cnf.desired_cartesian_position[j] = master.config.check_config(tmp_string);
+
+			sprintf(tmp_string, "desired_cartesian_vel_%d", j);
+			reader_cnf.real_cartesian_vel[j] = master.config.check_config(tmp_string);
 
 			sprintf(tmp_string, "real_cartesian_position_%d", j);
 			reader_cnf.real_cartesian_position[j] = master.config.check_config(tmp_string);
@@ -375,6 +379,11 @@ void reader_buffer::write_data_old_format(std::ofstream& outfile, const reader_d
 			outfile << data.desired_cartesian_position[j] << " ";
 	}
 
+	for (int j = 0; j < 6; j++) {
+		if (reader_cnf.desired_cartesian_vel[j])
+			outfile << data.desired_cartesian_vel[j] << " ";
+	}
+
 	outfile << "r: ";
 
 	for (int j = 0; j < 6; j++) {
@@ -460,6 +469,10 @@ void reader_buffer::write_header_csv(std::ofstream& outfile)
 		if (reader_cnf.desired_cartesian_position[j])
 			outfile << "desired_cartesian_position[" << j << "];";
 	}
+	for (int j = 0; j < 6; j++) {
+		if (reader_cnf.desired_cartesian_vel[j])
+			outfile << "desired_cartesian_vel[" << j << "];";
+	}
 
 	for (int j = 0; j < 6; j++) {
 		if (reader_cnf.real_cartesian_position[j])
@@ -535,6 +548,11 @@ void reader_buffer::write_data_csv(std::ofstream& outfile, const reader_data & d
 	for (int j = 0; j < 6; j++) {
 		if (reader_cnf.desired_cartesian_position[j])
 			outfile << data.desired_cartesian_position[j] << ";";
+	}
+
+	for (int j = 0; j < 6; j++) {
+		if (reader_cnf.desired_cartesian_vel[j])
+			outfile << data.desired_cartesian_vel[j] << ";";
 	}
 
 	for (int j = 0; j < 6; j++) {
