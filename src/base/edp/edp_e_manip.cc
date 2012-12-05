@@ -38,6 +38,9 @@ bool manip_effector::compute_servo_joints_and_frame(void)
 	static lib::Xyz_Angle_Axis_vector servo_prev_real_kartez_pos;
 
 	// poprzedni pomiar
+	static lib::Xyz_Angle_Axis_vector servo_prev_desired_kartez_pos;
+
+	// poprzedni pomiar
 	static lib::Xyz_Angle_Axis_vector servo_prev_real_kartez_vel;
 
 	// wyznaczenie nowych wartosci joints and frame dla obliczen w servo
@@ -49,6 +52,7 @@ bool manip_effector::compute_servo_joints_and_frame(void)
 		get_current_kinematic_model()->i2e_transform(servo_current_joints, local_matrix);
 		// Pobranie wsp. zewnetrznych w ukladzie
 
+		lib::Xyz_Angle_Axis_vector servo_desired_kartez_vel; // by Y polozenie we wspolrzednych xyz_euler_zyz obliczane co krok servo   XXXXX
 		lib::Xyz_Angle_Axis_vector servo_real_kartez_pos; // by Y polozenie we wspolrzednych xyz_euler_zyz obliczane co krok servo   XXXXX
 		lib::Xyz_Angle_Axis_vector servo_real_kartez_vel; // by Y polozenie we wspolrzednych xyz_euler_zyz obliczane co krok servo   XXXXX
 		lib::Xyz_Angle_Axis_vector servo_real_kartez_acc; // by Y polozenie we wspolrzednych xyz_euler_zyz obliczane co krok servo   XXXXX
@@ -76,8 +80,10 @@ bool manip_effector::compute_servo_joints_and_frame(void)
 
 		servo_real_kartez_vel = (servo_real_kartez_pos - servo_prev_real_kartez_pos) / (lib::EDP_STEP);
 		servo_real_kartez_acc = (servo_real_kartez_vel - servo_prev_real_kartez_vel) / (lib::EDP_STEP);
+		servo_desired_kartez_vel = (servo_desired_kartez_pos - servo_prev_desired_kartez_pos) / (lib::EDP_STEP);
 		servo_prev_real_kartez_pos = servo_real_kartez_pos;
 		servo_prev_real_kartez_vel = servo_real_kartez_vel;
+		servo_prev_desired_kartez_pos = servo_desired_kartez_pos;
 
 		// scope-locked reader data update
 		{
@@ -87,6 +93,7 @@ bool manip_effector::compute_servo_joints_and_frame(void)
 			servo_real_kartez_vel.to_table(rb_obj->step_data.real_cartesian_vel);
 			servo_real_kartez_acc.to_table(rb_obj->step_data.real_cartesian_acc);
 			servo_desired_kartez_pos.to_table(rb_obj->step_data.desired_cartesian_position);
+			servo_desired_kartez_vel.to_table(rb_obj->step_data.desired_cartesian_vel);
 		}
 
 		// Obliczenie polozenia robota we wsp. zewnetrznych bez narzedzia.
