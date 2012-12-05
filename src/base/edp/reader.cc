@@ -154,7 +154,7 @@ void reader_buffer::operator()()
 			reader_cnf.desired_cartesian_position[j] = master.config.check_config(tmp_string);
 
 			sprintf(tmp_string, "desired_cartesian_vel_%d", j);
-			reader_cnf.real_cartesian_vel[j] = master.config.check_config(tmp_string);
+			reader_cnf.desired_cartesian_vel[j] = master.config.check_config(tmp_string);
 
 			sprintf(tmp_string, "real_cartesian_position_%d", j);
 			reader_cnf.real_cartesian_position[j] = master.config.check_config(tmp_string);
