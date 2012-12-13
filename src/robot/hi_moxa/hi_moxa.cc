@@ -449,6 +449,7 @@ uint64_t HI_moxa::read_write_hardware(void)
 	master.controller_state_edp_buf.is_synchronised = robot_synchronized;
 	master.controller_state_edp_buf.robot_in_fault_state = power_fault;
 	if (power_fault) {
+		hardware_panic = true;
 		if (error_msg_power_stage == 0) {
 			master.msg->message(lib::NON_FATAL_ERROR, "Wylaczono moc - robot zablokowany");
 			error_msg_power_stage++;
