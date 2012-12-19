@@ -79,6 +79,7 @@ const_vel_gen_test::const_vel_gen_test(task::task & _ecp_t) :
 	}
 
 	network_path = _ecp_t.config.value <std::string>("trajectory_file", lib::MP_SECTION);
+	network_path1 = _ecp_t.config.value <std::string>("trajectory_file1", lib::MP_SECTION);
 }
 
 void const_vel_gen_test::conditional_execution()
@@ -101,6 +102,17 @@ void const_vel_gen_test::conditional_execution()
 	) {
 		cvgenjoint->Move();
 	}
+
+	sr_ecp_msg.message("teeeeest");
+
+	cvgenjoint->load_trajectory_from_file(network_path1.c_str());
+		//network_path = std::string(ecp_t.mrrocpp_network_path);
+
+		if (cvgenjoint->calculate_interpolate()
+		//	 && cvgenjoint->detect_jerks(1) == 0
+		) {
+			cvgenjoint->Move();
+		}
 
 	/*// JOINT ABSOLUTE
 	 sr_ecp_msg.message("Joint absolute");

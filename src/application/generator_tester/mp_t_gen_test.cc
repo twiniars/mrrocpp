@@ -85,6 +85,7 @@ void gen_test::main_task_algorithm(void)
 
 	// Postument
 	if (config.exists_and_true("is_active", "[edp_irp6p_m]")) {
+		sr_ecp_msg->message("POSTUMENT ACTIVE");
 		//------------------- CONSTANT VELOCITY GENERATOR -------------------
 		//set_next_ecp_state(ecp_mp::subtask::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
 
