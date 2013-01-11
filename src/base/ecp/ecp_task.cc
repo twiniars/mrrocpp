@@ -15,7 +15,6 @@
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "base/lib/configurator.h"
 #include "base/lib/sr/sr_ecp.h"
 #include "ecp_task.h"
 #include "ecp_robot.h"
