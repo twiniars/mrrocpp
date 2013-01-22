@@ -52,8 +52,11 @@ void servo_buffer::load_hardware_interface(void)
 	clear_reply_status_tmp();
 
 	for (int j = 0; j < master.number_of_servos; j++) {
-		command.parameters.move.abs_position[j] = 0.0;
+		command.parameters.move.servo_desired_motor_pos_new[j] = 0.0;
+		command.parameters.move.servo_desired_motor_pos_old[j] = 0.0;
 	}
+	//zeby odczytac na pewno stan synchronizacji robota
+	hi->read_write_hardware();
 }
 
 // obliczenie statystyk pradu
@@ -134,18 +137,31 @@ void servo_buffer::compute_current_measurement_statistics()
 /*-----------------------------------------------------------------------*/
 uint8_t servo_buffer::Move_a_step(void)
 {
+
+	static bool reg_abs_desired_motor_pos_initialized = false;
+
 	// obliczenie statystyk pradu
 	compute_current_measurement_statistics();
 	// wykonac ruch o krok nie reagujac na SYNCHRO_SWITCH oraz SYNCHRO_ZERO
 
 	Move_1_step();
-	if (master.is_synchronised()) { // by Y aktualizacja transformera am jedynie sens po synchronizacji (kiedy robot zna swoja pozycje)
-		// by Y - do dokonczenia
-		if (!(master.robot_test_mode)) {
-			for (int i = 0; i < master.number_of_servos; i++) {
-				master.update_servo_current_motor_pos_abs(hi->get_position(i) * (2 * M_PI) / axe_inc_per_revolution[i], i);
+
+	if (!(master.robot_test_mode)) {
+		for (int i = 0; i < master.number_of_servos; i++) {
+			double abs_pos = hi->get_position(i) * (2 * M_PI) / axe_inc_per_revolution[i];
+			master.update_servo_current_motor_pos_abs(abs_pos, i);
+			regulator_ptr[i]->reg_abs_current_motor_pos = abs_pos;
+			if (!reg_abs_desired_motor_pos_initialized) {
+				reg_abs_desired_motor_pos_initialized = true;
+				command.parameters.move.servo_desired_motor_pos_old[i] =
+						command.parameters.move.servo_desired_motor_pos_new[i] = abs_pos;
+				regulator_ptr[i]->reg_abs_desired_motor_pos = abs_pos;
 			}
+
 		}
+	}
+
+	if (master.is_synchronised()) { // by Y aktualizacja transformera ma jedynie sens po synchronizacji (kiedy robot zna swoja pozycje)
 
 		master.compute_servo_joints_and_frame(); // by Y - aktualizacja trasformatora
 	}
@@ -262,7 +278,9 @@ void servo_buffer::operator()()
 	} catch (std::exception & e) {
 		printf("servo group exception: %s\n", e.what());
 		master.msg->message(lib::FATAL_ERROR, e.what());
-		exit(EXIT_SUCCESS);
+		// signal master thread to continue executing
+		thread_started.command();
+		raise(SIGUSR2);
 	}
 
 	if (!master.robot_test_mode) {
@@ -365,7 +383,8 @@ SERVO_COMMAND servo_buffer::command_type() const
 servo_buffer::servo_buffer(motor_driven_effector & _master) :
 		servo_command_rdy(false), sg_reply_rdy(false), step_number_in_macrostep(0), thread_started(), master(_master)
 {
-
+	// to be changed in particular robot sb;
+	display_axis_number = 10;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -528,7 +547,8 @@ void servo_buffer::Move(void)
 		send_after_last_step = false;
 
 	for (int k = 0; k < master.number_of_servos; k++) {
-		new_increment[k] = command.parameters.move.macro_step[k] / command.parameters.move.number_of_steps;
+		new_increment[k] = (command.parameters.move.servo_desired_motor_pos_new[k]
+				- command.parameters.move.servo_desired_motor_pos_old[k]) / command.parameters.move.number_of_steps;
 		regulator_ptr[k]->new_desired_velocity_error = true;
 	}
 
@@ -553,6 +573,12 @@ void servo_buffer::Move(void)
 
 		for (int k = 0; k < master.number_of_servos; k++) {
 			regulator_ptr[k]->insert_new_step(new_increment[k]);
+			regulator_ptr[k]->reg_abs_desired_motor_pos = command.parameters.move.servo_desired_motor_pos_old[k]
+					+ step_number_in_macrostep
+							* (command.parameters.move.servo_desired_motor_pos_new[k]
+									- command.parameters.move.servo_desired_motor_pos_old[k])
+							/ command.parameters.move.number_of_steps;
+
 			if (master.robot_test_mode) {
 				master.update_servo_current_motor_pos_abs(regulator_ptr[k]->previous_abs_position
 						+ new_increment[k] * step_number_in_macrostep, k);
@@ -587,7 +613,7 @@ void servo_buffer::Move(void)
 	}
 
 	for (int i = 0; i < master.number_of_servos; i++) {
-		regulator_ptr[i]->previous_abs_position = command.parameters.move.abs_position[i];
+		regulator_ptr[i]->previous_abs_position = command.parameters.move.servo_desired_motor_pos_new[i];
 	}
 }
 /*-----------------------------------------------------------------------*/
@@ -625,7 +651,9 @@ void servo_buffer::reply_to_EDP_MASTER(void)
 void servo_buffer::ppp(void) const
 {
 	// wydruk kontrolny polecenia przysylanego z EDP_MASTER
-	std::cout << " macro_step= " << command.parameters.move.macro_step << "\n";
+	std::cout << " macro_step= "
+			<< command.parameters.move.servo_desired_motor_pos_new - command.parameters.move.servo_desired_motor_pos_old
+			<< "\n";
 	std::cout << " number_of_steps= " << command.parameters.move.number_of_steps << "\n";
 	std::cout << " return_value_in_step_no= " << command.parameters.move.return_value_in_step_no << "\n";
 }
@@ -720,7 +748,8 @@ void servo_buffer::synchronise(void)
 
 	for (int j = 0; j < (master.number_of_servos); j++) {
 
-		command.parameters.move.abs_position[j] = 0.0;
+		command.parameters.move.servo_desired_motor_pos_new[j] = 0.0;
+		command.parameters.move.servo_desired_motor_pos_old[j] = 0.0;
 	} // end: for
 
 	// szeregowa synchronizacja serwomechanizmow

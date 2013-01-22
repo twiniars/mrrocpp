@@ -40,12 +40,16 @@ class imu : public lib::sensor::sensor_interface
 {
 protected:
 	ImuData ldata;
+//	static const int IMU_BUFFER_LENGHT = 3;
+//	ImuData previous_ldata;
 	/*!
 	 * \brief Info if the imu sensor test mode is active.
 	 *
 	 * It is taken from configuration data.
 	 */
 	bool imu_sensor_test_mode;
+
+	int imu_buffer_length;
 
 	common::manip_effector &master;
 
@@ -69,6 +73,8 @@ public:
 	lib::condition_synchroniser new_command_synchroniser;
 	bool new_edp_command;
 	common::IMU_ORDER command;
+
+	boost::circular_buffer <lib::Xyz_Angle_Axis_vector> *cb;
 
 	lib::condition_synchroniser first_measure_synchroniser;
 	lib::condition_synchroniser thread_started;

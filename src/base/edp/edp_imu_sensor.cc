@@ -132,19 +132,34 @@ void imu::configure_sensor(void)
 }
 
 imu::imu(common::manip_effector &_master) :
-		imu_sensor_test_mode(true), master(_master), new_edp_command(false)
+		imu_sensor_test_mode(true), imu_buffer_length(1), master(_master), new_edp_command(false)
 {
+
 	sr_msg =
 			boost::shared_ptr <lib::sr_vsp>(new lib::sr_vsp(lib::EDP, "i_" + master.config.robot_name, master.config.get_sr_attach_point()));
 
 	sr_msg->message("imu constructor");
 
-	if (master.config.exists(lib::IMU_SENSOR_TEST_MODE)) {
-		imu_sensor_test_mode = master.config.exists_and_true(lib::IMU_SENSOR_TEST_MODE);
+	if (master.config.exists(common::IMU_BUFFER_LENGTH)) {
+		imu_buffer_length = master.config.value <int>(common::IMU_BUFFER_LENGTH);
+	}
+
+	cb = new boost::circular_buffer <lib::Xyz_Angle_Axis_vector>(imu_buffer_length);
+
+	if (master.config.exists(common::IMU_SENSOR_TEST_MODE)) {
+		imu_sensor_test_mode = master.config.exists_and_true(common::IMU_SENSOR_TEST_MODE);
 	}
 
 	if (imu_sensor_test_mode) {
 		sr_msg->message("IMU sensor test mode activated");
+	}
+
+	lib::Xyz_Angle_Axis_vector zero_data;
+
+	cb->clear();
+
+	for (int i = 0; i < imu_buffer_length; i++) {
+		cb->push_back(zero_data);
 	}
 
 }
@@ -175,16 +190,30 @@ void imu::get_reading(void)
 
 	}
 
-	if (master.rb_obj) {
-		boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
-		master.rb_obj->step_data.real_cartesian_acc[0] = ldata.linearAcceleration[0];
-		master.rb_obj->step_data.real_cartesian_acc[1] = ldata.linearAcceleration[1];
-		master.rb_obj->step_data.real_cartesian_acc[2] = ldata.linearAcceleration[2];
-		master.rb_obj->step_data.real_cartesian_vel[3] = ldata.angularVelocity[0];
-		master.rb_obj->step_data.real_cartesian_vel[4] = ldata.angularVelocity[1];
-		master.rb_obj->step_data.real_cartesian_vel[5] = ldata.angularVelocity[2];
+	lib::Xyz_Angle_Axis_vector imu_acc;
+	imu_acc[0] = ldata.linearAcceleration[0];
+	imu_acc[1] = ldata.linearAcceleration[1];
+	imu_acc[2] = ldata.linearAcceleration[2];
+	imu_acc[3] = ldata.angularAcceleration[0];
+	imu_acc[4] = ldata.angularAcceleration[1];
+	imu_acc[5] = ldata.angularAcceleration[2];
 
+	// dodanie nowej sily do bufora dla celow usredniania (filtracji dolnoprzepustowej)
+	cb->push_back(imu_acc);
+
+	lib::Xyz_Angle_Axis_vector imu_out;
+	// usredniamy za FORCE_BUFFER_LENGHT pomiarow
+	for (int j = 0; j < 6; j++) {
+		imu_out[j] = 0.0;
 	}
+
+	for (int i = 0; i < imu_buffer_length; i++) {
+		for (int j = 0; j < 6; j++) {
+			imu_out[j] += ((*cb)[i][j]) / (double) imu_buffer_length;
+		}
+	}
+
+	master.imu_acc_dp.write(imu_out);
 
 }
 

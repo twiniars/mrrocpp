@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include "base/lib/impconst.h"
 
 #include <iostream>
 
@@ -12,8 +13,9 @@ IMU::IMU(const std::string& port, int baud)
 	connected = false;
 	dlen = 0;
 
-	gyro_factor = 14.375;
-	acc_factor = 256;
+	gyro_factor = 0.05 * M_PI / 180.0;
+	acc_factor = 0.000333 * lib::G_ACC;
+	imu_step = 0.0012;
 
 	fd = open(port.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
 	if (fd >= 0) {
@@ -69,17 +71,27 @@ ImuData IMU::getReading()
 
 		int select_retval = select(fd + 1, &rfds, NULL, NULL, &timeout);
 
-		if (select_retval == 0) {
-			printf("timeout !!! \n");
+		if (select_retval < 0) {
+			printf("imu 16362 <0 !! \n");
+			//	throw std::runtime_error("imu 16362 <0 !!!");
+		} else if (select_retval == 0) {
+			printf("imu 16362 ==0 timeout !!! \n");
+			//	throw std::runtime_error("imu 16362 ==0  timeout !!!");
 		} else {
+			//printf("imu 16362 >0  \n");
 			int ret = read(fd, data + dlen, 50 - dlen);
 			if (ret <= 0)
 				continue;
+			//	printf("imu 16362 >0 2  \n");
 			dlen += ret;
+			bool myexit = false;
 			for (unsigned int i = 0; i < dlen; i++) {
+
 				if (data[i] == '\n') {
-					if (i > 21)
+					if (i > 21) {
 						interpret(data + i - 22);
+						myexit = true;
+					}
 					unsigned int k = 0;
 
 					for (unsigned int j = i + 1; j < dlen; j++) {
@@ -89,9 +101,15 @@ ImuData IMU::getReading()
 					dlen = k;
 
 					i = 0;
+
 				}
 			}
-			return imu_data;
+
+			if (myexit) {
+				//	printf("imu 16362 >0 3  \n");
+				return imu_data;
+			}
+
 		}
 	}
 }
@@ -128,6 +146,8 @@ void IMU::interpret(char * dat)
 {
 	int16_t sup, gyroX, gyroY, gyroZ, acclX, acclY, acclZ, tempX, tempY, tempZ;
 
+	static ImuData last_imu_data;
+
 	sup = getShort12(&dat[0]);
 
 	gyroX = getShort14(&dat[2]);
@@ -142,13 +162,19 @@ void IMU::interpret(char * dat)
 	tempY = getShort12(&dat[16]);
 	tempZ = getShort12(&dat[18]);
 
-	imu_data.angularVelocity[0] = gyroX * 0.05 * M_PI / 180.0;
-	imu_data.angularVelocity[1] = gyroY * 0.05 * M_PI / 180.0;
-	imu_data.angularVelocity[2] = gyroZ * 0.05 * M_PI / 180.0;
+	imu_data.angularVelocity[0] = gyroX * gyro_factor;
+	imu_data.angularVelocity[1] = gyroY * gyro_factor;
+	imu_data.angularVelocity[2] = gyroZ * gyro_factor;
 
-	imu_data.linearAcceleration[0] = acclX * 0.000333;
-	imu_data.linearAcceleration[1] = acclY * 0.000333;
-	imu_data.linearAcceleration[2] = acclZ * 0.000333;
+	imu_data.linearAcceleration[0] = acclX * acc_factor;
+	imu_data.linearAcceleration[1] = acclY * acc_factor;
+	imu_data.linearAcceleration[2] = acclZ * acc_factor;
+
+	imu_data.angularAcceleration[0] = -(imu_data.angularVelocity[0] - last_imu_data.angularVelocity[0]) / imu_step;
+	imu_data.angularAcceleration[1] = -(imu_data.angularVelocity[1] - last_imu_data.angularVelocity[1]) / imu_step;
+	imu_data.angularAcceleration[2] = -(imu_data.angularVelocity[2] - last_imu_data.angularVelocity[2]) / imu_step;
+
+	last_imu_data = imu_data;
 
 //	imu.tempX = 25.0 + tempX * 0.136;
 //	imu.tempY = 25.0 + tempY * 0.136;

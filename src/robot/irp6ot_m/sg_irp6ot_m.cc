@@ -71,6 +71,19 @@ void servo_buffer::load_hardware_interface(void)
 	hi->set_parameter_now(5, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_5);
 	hi->set_parameter_now(6, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_6);
 
+	/*
+	 NF_STRUCT_Regulator tmpReg = { 0x1010, 0x2020, 0x3030, 0x4040 };
+
+	 hi->set_parameter_now(0, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 hi->set_parameter_now(1, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 hi->set_parameter_now(2, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 hi->set_parameter_now(3, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 hi->set_parameter_now(4, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 hi->set_parameter_now(5, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 hi->set_parameter_now(6, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 */
+
+
 	// utworzenie tablicy regulatorow
 	// Serwomechanizm 1
 	// regulator_ptr[0] = new NL_regulator_1 (0, 0, 0.64, 16.61/5., 15.89/5., 0.35);
@@ -96,7 +109,7 @@ void servo_buffer::load_hardware_interface(void)
 			new NL_regulator_6_irp6ot(5, 0, 0, 0.39, 8.62 / 2., 7.89 / 2., 0.35, master, common::REG_OUTPUT::PWM_OUTPUT);
 
 	regulator_ptr[6] =
-			new NL_regulator_7_irp6ot(6, 0, 0, 0.39, 8.62 / 2., 7.89 / 2., 0.35, master, common::REG_OUTPUT::CURRENT_OUTPUT);
+			new NL_regulator_7_irp6ot(6, 0, 0, 0.39, 8.62 / 2., 7.89 / 2., 0.35, master, common::REG_OUTPUT::PWM_OUTPUT);
 
 	common::servo_buffer::load_hardware_interface();
 }

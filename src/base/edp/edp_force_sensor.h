@@ -60,6 +60,21 @@ typedef struct _force_data
 class force : public lib::sensor::sensor_interface
 {
 protected:
+
+	/*!
+	 * \brief Info if the imu sensor test mode is active.
+	 *
+	 * It is taken from configuration data.
+	 */
+	bool imu_sensor_test_mode;
+
+	/*!
+	 * \brief Decides if gravitational acceleration should be removed from imu measures
+	 *
+	 * It is taken from configuration data.
+	 */
+	bool imu_gravity_compensation;
+
 	/*!
 	 * \brief Info if the force sensor test mode is active.
 	 *
@@ -74,8 +89,12 @@ protected:
 
 	// is sensor_frame right turn
 	bool is_right_turn_frame;
-	// sensor_frame related to wrist frame
-	lib::Homog_matrix sensor_frame;
+
+	// force_sensor_frame related to wrist frame
+	lib::Homog_matrix force_sensor_frame;
+
+	// imu_frame related to wrist frame
+	lib::Homog_matrix imu_frame;
 
 	lib::ForceTrans *gravity_transformation; // klasa likwidujaca wplyw grawitacji na czujnik
 
@@ -101,6 +120,9 @@ protected:
 
 	void get_reading(void);
 
+	// computes inertial force
+	lib::Ft_vector compute_inertial_force(lib::Xyz_Angle_Axis_vector & output_acc, const lib::Homog_matrix curr_frame);
+
 	struct _from_vsp
 	{
 		lib::sensor::VSP_REPORT_t vsp_report;
@@ -112,6 +134,10 @@ protected:
 	static const int FORCE_BUFFER_LENGHT = 2;
 
 	void clear_cb();
+
+	lib::Xyz_Angle_Axis_vector gravitational_acceleration;
+
+	lib::Homog_matrix tool_mass_center_translation;
 
 public:
 	void operator()();
