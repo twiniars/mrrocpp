@@ -1,5 +1,6 @@
 add_subdirectory (weight_measure)
 add_subdirectory (bias_edp_force)
+add_subdirectory (limit_force)
 add_subdirectory (force_tool_change)
 add_subdirectory (tff_gripper_approach)
 add_subdirectory (tff_nose_run)
@@ -14,6 +15,7 @@ add_subdirectory (spline)
 add_subdirectory (visual_servo)
 add_subdirectory (teach_in)
 add_subdirectory (operator_reaction_condition)
+
 
 
 add_library(ecp_mp_generators
@@ -49,6 +51,7 @@ ecp_g_constant_velocity
 ecp_g_get_position
 ecp_g_spline
 ecp_g_visual_servo
+ecp_g_limit_force
 )
 
 
