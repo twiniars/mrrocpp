@@ -1,4 +1,4 @@
-//if !defined(_ECP_GEN_LIMIT_FORCE_H)
+#if !defined(_ECP_GEN_LIMIT_FORCE_H)
 #define _ECP_GEN_LIMIT_FORCE_H
 
 /*!
@@ -44,4 +44,4 @@ public:
 } // namespace ecp
 } // namespace mrrocpp
 
-//#endif
+#endif

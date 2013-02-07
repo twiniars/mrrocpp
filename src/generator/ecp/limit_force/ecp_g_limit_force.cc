@@ -1,7 +1,7 @@
 /*!
  * @file
- * @brief File contains bias_edp_force generator definition
- * @author mkula>, Warsaw University of Technology
+ * @brief File contains limit_force generator definition
+ * @author mkula, Warsaw University of Technology
  *
  * @ingroup generators
  */
@@ -16,7 +16,7 @@ namespace generator {
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // ///////////////////
 //
-// 			limit_generator
+// 			limit_force_generator
 //
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // ///////////////////
 
@@ -31,9 +31,9 @@ bool limit_force::first_step()
 
 //	std::cout << "bias_edp_force" << node_counter << std::endl;
 
-	the_robot->ecp_command.instruction_type = lib::SET;
+	/*the_robot->ecp_command.instruction_type = lib::SET;
 	the_robot->ecp_command.set_type = ROBOT_MODEL_DEFINITION;
-	the_robot->ecp_command.robot_model.type = lib::FORCE_BIAS;
+	the_robot->ecp_command.robot_model.type = lib::FORCE_BIAS;*/
 
 	return true;
 }
