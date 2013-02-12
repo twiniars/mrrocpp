@@ -30,14 +30,14 @@ private:
 	bool track;
 	bool postument;
 	bool conv;
-        //std::string network_path;
+        std::string network_path;
         //std::string network_path1;
 
 public:
         limit_force_gen_test(task::task & _ecp_t);
         ~limit_force_gen_test();
 
-	//void conditional_execution();
+	void conditional_execution();
 };
 
 } // namespace generator

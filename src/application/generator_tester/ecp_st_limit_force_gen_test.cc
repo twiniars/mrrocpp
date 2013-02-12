@@ -77,37 +77,37 @@ limit_force_gen_test::limit_force_gen_test(task::task & _ecp_t) :
 
 	}
 
-	//network_path = _ecp_t.config.value <std::string>("trajectory_file", lib::MP_SECTION);
+	network_path = _ecp_t.config.value <std::string>("trajectory_file", lib::MP_SECTION);
 	//network_path1 = _ecp_t.config.value <std::string>("trajectory_file1", lib::MP_SECTION);
 }
 
-/*
+
 void limit_force_gen_test::conditional_execution()
 {
 
 	std::vector <double> coordinates1(6); //postument
 	std::vector <double> coordinates2(7); //track
 	std::vector <double> coordinates4(1); //conveyor
-*/
+
 
 	//network_path = "../../src/application/generator_tester/optimizedTraj.trj";
 	//lfgenjoint->load_coordinates_from_file(network_path.c_str());
 	//lfgenjoint->Move();
 
 	//network_path = "../../src/application/generator_tester/trajectory.trj";
-	/*lfgenjoint->load_trajectory_from_file(network_path.c_str());
+	//lfgenjoint->load_trajectory_from_file(network_path.c_str());
 	//network_path = std::string(ecp_t.mrrocpp_network_path);
 
-	if (lfgenjoint->calculate_interpolate()
+	//if (lfgenjoint->calculate_interpolate()
 	//	 && lfgenjoint->detect_jerks(1) == 0
-	) {
+	/*) {
 		lfgenjoint->Move();
 	}*/
 
 	//sr_ecp_msg.message("teeeeest");
 
 	//lfgenjoint->load_trajectory_from_file(network_path1.c_str());
-	//network_path = std::string(ecp_t.mrrocpp_network_path);
+	network_path = std::string(ecp_t.mrrocpp_network_path);
 
 	/*if (lfgenjoint->calculate_interpolate()
 	//	 && lfgenjoint->detect_jerks(1) == 0

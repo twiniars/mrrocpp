@@ -21,7 +21,7 @@ namespace generator {
  * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
  * @ingroup generators
  */
-class limit_force : public common::generator::generator
+class limit_force : public constant_velocity
 {
 public:
 
@@ -35,7 +35,7 @@ public:
 	 * @brief generates first step of transition function
 	 * @return terminal condition value
 	 */
-	bool first_step();
+	bool next_step();
 
 };
 

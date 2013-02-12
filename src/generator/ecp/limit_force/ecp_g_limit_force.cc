@@ -21,12 +21,12 @@ namespace generator {
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // ///////////////////
 
 limit_force::limit_force(common::task::task& _ecp_task) :
-		common::generator::generator(_ecp_task)
+		common::generator::constant_velocity(_ecp_task, lib::ECP_JOINT, 6)
 {
 	generator_name = ecp_mp::generator::ECP_GEN_LIMIT_FORCE;
 }
 
-bool limit_force::first_step()
+bool limit_force::next_step()
 {
 
 //	std::cout << "bias_edp_force" << node_counter << std::endl;

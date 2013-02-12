@@ -29,17 +29,17 @@ const_vel_gen_test::const_vel_gen_test(task::task & _ecp_t) :
 		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_JOINT, 6);
 		cvgenjoint->set_debug(true);
 
-		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_MOTOR, 6);
+		cvgenmotor = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_MOTOR, 6);
 		cvgenmotor->set_debug(true);
 
 		track = false;
 		postument = true;
 		conv = false;
 
-		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_EULER_ZYZ, 6);
+		cvgeneuler = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_EULER_ZYZ, 6);
 		cvgeneuler->set_debug(true);
 
-		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_ANGLE_AXIS, 6);
+		cvgenangle = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_ANGLE_AXIS, 6);
 		cvgenangle->set_debug(true);
 
 	} else if (_ecp_t.ecp_m_robot->robot_name == lib::irp6ot_m::ROBOT_NAME) {
