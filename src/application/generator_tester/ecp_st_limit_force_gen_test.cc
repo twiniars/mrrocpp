@@ -37,43 +37,43 @@ limit_force_gen_test::limit_force_gen_test(task::task & _ecp_t) :
 	generator_name = mrrocpp::ecp_mp::generator::ECP_MP_LIMIT_FORCE_GEN_TEST;
 
 	if (_ecp_t.ecp_m_robot->robot_name == lib::irp6p_m::ROBOT_NAME) {
-		lfgenjoint = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t/*, lib::ECP_JOINT, 6*/);
+		lfgenjoint = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_JOINT, 6);
 
-		lfgenmotor = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_MOTOR, 6);
+		lfgenmotor = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_MOTOR, 6);
 
 		track = false;
 		postument = true;
 		conv = false;
 
-		lfgeneuler = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_XYZ_EULER_ZYZ, 6);
+		lfgeneuler = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_XYZ_EULER_ZYZ, 6);
 
-		lfgenangle = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_XYZ_ANGLE_AXIS, 6);
+		lfgenangle = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_XYZ_ANGLE_AXIS, 6);
 
 	} else if (_ecp_t.ecp_m_robot->robot_name == lib::irp6ot_m::ROBOT_NAME) {
-		lfgenjoint = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_JOINT, 7);
+		lfgenjoint = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_JOINT, 7);
 
-		lfgenmotor = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_MOTOR, 7);
+		lfgenmotor = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_MOTOR, 7);
 
 		track = true;
 		postument = false;
 		conv = false;
 
-		lfgeneuler = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_XYZ_EULER_ZYZ, 6);
+		lfgeneuler = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_XYZ_EULER_ZYZ, 6);
 
-		lfgenangle = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_XYZ_ANGLE_AXIS, 6);
+		lfgenangle = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_XYZ_ANGLE_AXIS, 6);
 
 	} else if (_ecp_t.ecp_m_robot->robot_name == lib::conveyor::ROBOT_NAME) {
-		lfgenjoint = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_JOINT, 1);
+		lfgenjoint = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_JOINT, 1);
 
-		lfgenmotor = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_MOTOR, 1);
+		lfgenmotor = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_MOTOR, 1);
 
 		track = false;
 		postument = false;
 		conv = true;
 
-		lfgeneuler = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_XYZ_EULER_ZYZ, 1);
+		lfgeneuler = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_XYZ_EULER_ZYZ, 1);
 
-		lfgenangle = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t);//, lib::ECP_XYZ_ANGLE_AXIS, 1);
+		lfgenangle = (boost::shared_ptr <limit_force>) new limit_force(_ecp_t, lib::ECP_XYZ_ANGLE_AXIS, 1);
 
 	}
 
@@ -643,17 +643,5 @@ void limit_force_gen_test::conditional_execution()
 	 }
 	 // ANGLE AXIS RELATIVE END*/
 //}
-
-limit_force_gen_test::~limit_force_gen_test()
-{
-
-}
-
-} // namespace generator
-} // namespace common
-} // namespace ecp
-} // namespace mrrocpp
-
-
 
 

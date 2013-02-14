@@ -20,8 +20,7 @@ namespace generator {
 //
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // ///////////////////
 
-limit_force::limit_force(common::task::task& _ecp_task) :
-		common::generator::constant_velocity(_ecp_task, lib::ECP_JOINT, 6)
+limit_force::limit_force(common::task::task& _ecp_task, lib::ECP_POSE_SPECIFICATION pose_spec, int axes_num) : common::generator::constant_velocity(_ecp_task, pose_spec, axes_num)
 {
 	generator_name = ecp_mp::generator::ECP_GEN_LIMIT_FORCE;
 }

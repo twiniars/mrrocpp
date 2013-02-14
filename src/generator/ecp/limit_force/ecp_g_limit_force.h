@@ -7,8 +7,10 @@
  * @author mkula, Warsaw University of Technology
  * @ingroup generators
  */
+
 #include "ecp_mp_g_limit_force.h"
 #include "base/ecp/ecp_generator.h"
+#include "generator/ecp/constant_velocity/ecp_g_constant_velocity.h"
 
 namespace mrrocpp {
 namespace ecp {
@@ -21,7 +23,7 @@ namespace generator {
  * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
  * @ingroup generators
  */
-class limit_force : public constant_velocity
+class limit_force : public ecp::common::generator::constant_velocity
 {
 public:
 
@@ -29,7 +31,7 @@ public:
 	 * @brief Constructor
 	 * @param _ecp_task ecp task object reference.
 	 */
-	limit_force(common::task::task& _ecp_task);
+	limit_force(common::task::task& _ecp_task, lib::ECP_POSE_SPECIFICATION pose_spec, int axes_num);
 
 	/**
 	 * @brief generates first step of transition function
