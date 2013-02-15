@@ -33,6 +33,7 @@ public:
 	 */
 	limit_force(common::task::task& _ecp_task, lib::ECP_POSE_SPECIFICATION pose_spec, int axes_num);
 
+	virtual ~limit_force();
 	/**
 	 * @brief generates first step of transition function
 	 * @return terminal condition value

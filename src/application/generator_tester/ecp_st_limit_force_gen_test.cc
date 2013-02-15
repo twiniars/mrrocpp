@@ -14,6 +14,7 @@
 #include "base/lib/com_buf.h"
 
 #include "base/lib/sr/srlib.h"
+
 #include "application/generator_tester/ecp_st_limit_force_gen_test.h"
 #include "generator/ecp/limit_force/ecp_g_limit_force.h"
 
@@ -31,8 +32,7 @@ namespace ecp {
 namespace common {
 namespace generator {
 
-limit_force_gen_test::limit_force_gen_test(task::task & _ecp_t) :
-		common::generator::generator(_ecp_t)
+limit_force_gen_test::limit_force_gen_test(task::task & _ecp_t) : common::generator::generator(_ecp_t)
 {
 	generator_name = mrrocpp::ecp_mp::generator::ECP_MP_LIMIT_FORCE_GEN_TEST;
 
@@ -86,36 +86,37 @@ void limit_force_gen_test::conditional_execution()
 {
 
 	std::vector <double> coordinates1(6); //postument
-	std::vector <double> coordinates2(7); //track
-	std::vector <double> coordinates4(1); //conveyor
+		std::vector <double> coordinates2(7); //track
+		std::vector <double> coordinates4(1); //conveyor
 
+		//network_path = "../../src/application/generator_tester/optimizedTraj.trj";
+		//cvgenjoint->load_coordinates_from_file(network_path.c_str());
+		//cvgenjoint->Move();
 
-	//network_path = "../../src/application/generator_tester/optimizedTraj.trj";
-	//lfgenjoint->load_coordinates_from_file(network_path.c_str());
-	//lfgenjoint->Move();
+		//network_path = "../../src/application/generator_tester/trajectory.trj";
+		lfgenjoint->load_trajectory_from_file(network_path.c_str());
+		//network_path = std::string(ecp_t.mrrocpp_network_path);
 
-	//network_path = "../../src/application/generator_tester/trajectory.trj";
-	//lfgenjoint->load_trajectory_from_file(network_path.c_str());
-	//network_path = std::string(ecp_t.mrrocpp_network_path);
+		if (lfgenjoint->calculate_interpolate()
+		//	 && cvgenjoint->detect_jerks(1) == 0
+		) {
+			lfgenjoint->Move();
+		}
 
-	//if (lfgenjoint->calculate_interpolate()
-	//	 && lfgenjoint->detect_jerks(1) == 0
-	/*) {
-		lfgenjoint->Move();
-	}*/
+		sr_ecp_msg.message("teeeeest");
 
-	//sr_ecp_msg.message("teeeeest");
+		//cvgenjoint->load_trajectory_from_file(network_path1.c_str());
+		//network_path = std::string(ecp_t.mrrocpp_network_path);
 
-	//lfgenjoint->load_trajectory_from_file(network_path1.c_str());
-	network_path = std::string(ecp_t.mrrocpp_network_path);
+		if (lfgenjoint->calculate_interpolate()
+		//	 && cvgenjoint->detect_jerks(1) == 0
+		) {
+			lfgenjoint->Move();
+		}
 
-	/*if (lfgenjoint->calculate_interpolate()
-	//	 && lfgenjoint->detect_jerks(1) == 0
-	) {
-		lfgenjoint->Move();
-	}*/
+		/*// JOINT ABSOLUTE
 
-	/*// JOINT ABSOLUTE
+	/* JOINT ABSOLUTE
 	 sr_ecp_msg.message("Joint absolute");
 	 lfgenjoint->reset();
 	 lfgenjoint->set_absolute();
@@ -188,11 +189,11 @@ void limit_force_gen_test::conditional_execution()
 
 	 if (lfgenjoint->calculate_interpolate()) {
 	 lfgenjoint->Move();
-	 }
+	 }*/
 	 // JOINT ABSOLUTE END
 
 
-	 /* // JOINT RELATIVE
+	 /*  //JOINT RELATIVE
 	 sr_ecp_msg.message("Joint relative");
 	 lfgenjoint->reset();
 	 lfgenjoint->set_relative();
@@ -642,6 +643,17 @@ void limit_force_gen_test::conditional_execution()
 	 lfgenangle->Move();
 	 }
 	 // ANGLE AXIS RELATIVE END*/
-//}
+}
+
+limit_force_gen_test::~limit_force_gen_test()
+{
+
+}
+
+
+} // namespace generator
+} // namespace common
+} // namespace ecp
+} // namespace mrrocpp
 
 

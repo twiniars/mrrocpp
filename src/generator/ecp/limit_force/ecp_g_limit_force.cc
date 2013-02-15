@@ -28,7 +28,7 @@ limit_force::limit_force(common::task::task& _ecp_task, lib::ECP_POSE_SPECIFICAT
 bool limit_force::next_step()
 {
 
-//	std::cout << "bias_edp_force" << node_counter << std::endl;
+	std::cout << "bias_edp_force" << node_counter << std::endl;
 
 	/*the_robot->ecp_command.instruction_type = lib::SET;
 	the_robot->ecp_command.set_type = ROBOT_MODEL_DEFINITION;
