@@ -25,6 +25,11 @@ namespace generator {
  */
 class limit_force : public ecp::common::generator::constant_velocity
 {
+private:
+	std::string max_force_p;
+	std::string max_force_ot;
+	std::string max_torque_p;
+	std::string max_torque_ot;
 public:
 
 	/**
@@ -33,12 +38,13 @@ public:
 	 */
 	limit_force(common::task::task& _ecp_task, lib::ECP_POSE_SPECIFICATION pose_spec, int axes_num);
 
-	virtual ~limit_force();
+	virtual ~limit_force() {};
 	/**
 	 * @brief generates first step of transition function
 	 * @return terminal condition value
 	 */
 	bool next_step();
+	bool calculate_force(double force, lib::robot_name_t);
 
 };
 
