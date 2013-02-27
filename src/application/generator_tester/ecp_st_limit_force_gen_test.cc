@@ -27,6 +27,8 @@
 
 #include "base/ecp/ecp_task.h"
 
+
+
 namespace mrrocpp {
 namespace ecp {
 namespace common {
@@ -88,6 +90,7 @@ void limit_force_gen_test::conditional_execution()
 	std::vector <double> coordinates1(6); //postument
 		std::vector <double> coordinates2(7); //track
 		std::vector <double> coordinates4(1); //conveyor
+
 
 		//network_path = "../../src/application/generator_tester/optimizedTraj.trj";
 		//cvgenjoint->load_coordinates_from_file(network_path.c_str());

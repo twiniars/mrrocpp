@@ -18,18 +18,22 @@ namespace common {
 namespace generator {
 
 /*!
- * @brief generator to send the bias (set offset) command to EDP force measurements
+ * @brief generator limiting on the maximum force
  *
- * @author twiniars <twiniars@ia.pw.edu.pl>, Warsaw University of Technology
+ * @author mkula, Warsaw University of Technology
  * @ingroup generators
  */
 class limit_force : public ecp::common::generator::constant_velocity
 {
 private:
-	std::string max_force_p;
-	std::string max_force_ot;
-	std::string max_torque_p;
-	std::string max_torque_ot;
+	float max_force_p;
+	float max_force_ot;
+	float max_torque_p;
+	float max_torque_ot;
+	lib::K_vector torque_v;
+	lib::K_vector force_v;
+	float force;
+	float torque;
 public:
 
 	/**
@@ -44,7 +48,6 @@ public:
 	 * @return terminal condition value
 	 */
 	bool next_step();
-	bool calculate_force(double force, lib::robot_name_t);
 
 };
 

@@ -1,8 +1,10 @@
 #include <vector>
 
+
 #include "base/lib/typedefs.h"
 #include "base/lib/impconst.h"
 #include "base/lib/com_buf.h"
+
 
 #include "base/lib/sr/srlib.h"
 #include "application/generator_tester/ecp_st_const_vel_gen_test.h"
@@ -88,6 +90,7 @@ void const_vel_gen_test::conditional_execution()
 	std::vector <double> coordinates1(6); //postument
 	std::vector <double> coordinates2(7); //track
 	std::vector <double> coordinates4(1); //conveyor
+
 
 	//network_path = "../../src/application/generator_tester/optimizedTraj.trj";
 	//cvgenjoint->load_coordinates_from_file(network_path.c_str());
