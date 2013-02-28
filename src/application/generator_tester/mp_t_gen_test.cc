@@ -23,6 +23,7 @@
 #include "application/generator_tester/ecp_mp_st_smooth_gen_test.h"
 #include "application/generator_tester/ecp_mp_st_spline_gen_test.h"
 #include "application/generator_tester/ecp_mp_st_const_vel_gen_test.h"
+#include "application/generator_tester/ecp_mp_st_limit_force_gen_test.h"
 
 #include "robot/irp6ot_m/mp_r_irp6ot_m.h"
 #include "robot/irp6p_m/mp_r_irp6p_m.h"
@@ -62,7 +63,7 @@ void gen_test::main_task_algorithm(void)
 	if (config.exists_and_true("is_active", "[edp_irp6ot_m]")) {
 		//------------------- CONSTANT VELOCITY GENERATOR -------------------
 
-		set_next_ecp_state(ecp_mp::generator::ECP_MP_CONST_VEL_GEN_TEST, (int) 5, "", lib::irp6ot_m::ROBOT_NAME);
+		set_next_ecp_state(ecp_mp::generator::ECP_MP_LIMIT_FORCE_GEN_TEST, (int) 5, "", lib::irp6ot_m::ROBOT_NAME);
 
 		wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME.c_str());
 
@@ -84,7 +85,7 @@ void gen_test::main_task_algorithm(void)
 	}
 
 	// Postument
-	if (config.exists_and_true("is_active", "[edp_irp6p_m]")) {
+	/*if (config.exists_and_true("is_active", "[edp_irp6p_m]")) {
 		sr_ecp_msg->message("POSTUMENT ACTIVE");
 		//------------------- CONSTANT VELOCITY GENERATOR -------------------
 		//set_next_ecp_state(ecp_mp::subtask::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
@@ -102,7 +103,7 @@ void gen_test::main_task_algorithm(void)
 
 		//wait_for_task_termination(false, 1, lib::irp6p_m::ROBOT_NAME.c_str());
 		//------------------- SPLINE GENERATOR END -------------------
-	}
+	}*/
 
 	/*// Conveyor
 

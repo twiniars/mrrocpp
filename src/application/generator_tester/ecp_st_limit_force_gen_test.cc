@@ -106,7 +106,6 @@ void limit_force_gen_test::conditional_execution()
 			lfgenjoint->Move();
 		}
 
-		sr_ecp_msg.message("teeeeest");
 
 		//cvgenjoint->load_trajectory_from_file(network_path1.c_str());
 		//network_path = std::string(ecp_t.mrrocpp_network_path);
