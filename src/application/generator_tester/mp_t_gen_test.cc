@@ -61,12 +61,13 @@ void gen_test::main_task_algorithm(void)
 
 	// Track
 	if (config.exists_and_true("is_active", "[edp_irp6ot_m]")) {
-		//------------------- CONSTANT VELOCITY GENERATOR -------------------
+		//------------------- LIMI FORCE GENERATOR -------------------
 
+		sr_ecp_msg->message("dziala? 1");
 		set_next_ecp_state(ecp_mp::generator::ECP_MP_LIMIT_FORCE_GEN_TEST, (int) 5, "", lib::irp6ot_m::ROBOT_NAME);
 
 		wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME.c_str());
-
+		sr_ecp_msg->message("dziala? 2");
 		//------------------- CONSTANT VELOCITY GENERATOR END -------------------
 
 		/*

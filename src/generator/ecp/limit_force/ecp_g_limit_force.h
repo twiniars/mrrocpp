@@ -11,6 +11,11 @@
 #include "ecp_mp_g_limit_force.h"
 #include "base/ecp/ecp_generator.h"
 #include "generator/ecp/constant_velocity/ecp_g_constant_velocity.h"
+#include "base/lib/trajectory_pose/constant_velocity_trajectory_pose.h"
+#include "generator/ecp/ecp_g_multiple_position.h"
+
+
+
 
 namespace mrrocpp {
 namespace ecp {
