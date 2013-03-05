@@ -1,9 +1,9 @@
 /*
- * ecp_st_limit_force_gen_test.h
- *
- *  Created on: 05-02-2013
- *      Author: mkula
- */
+* ecp_st_limit_force_gen_test.h
+*
+* Created on: 05-02-2013
+* Author: mkula
+*/
 
 #ifndef ECP_ST_LIMIT_FORCE_GEN_TEST_H_
 #define ECP_ST_LIMIT_FORCE_GEN_TEST_H_
@@ -27,9 +27,9 @@ private:
         boost::shared_ptr <limit_force> lfgeneuler;
         boost::shared_ptr <limit_force> lfgenangle;
 
-	bool track;
-	bool postument;
-	bool conv;
+bool track;
+bool postument;
+bool conv;
         std::string network_path;
         //std::string network_path1;
 
@@ -37,7 +37,7 @@ public:
         limit_force_gen_test(task::task & _ecp_t);
         ~limit_force_gen_test();
 
-	void conditional_execution();
+void conditional_execution();
 };
 
 } // namespace generator
