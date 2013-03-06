@@ -92,11 +92,11 @@ void reader_buffer::operator()()
 	// czytanie konfiguracji
 	std::string reader_meassures_dir;
 
-	//if (master.config.exists("reader_meassures_dir")) {
+	if (master.config.exists("reader_meassures_dir")) {
 		reader_meassures_dir = master.config.value <std::string>("reader_meassures_dir", lib::UI_SECTION);
-//	} else {
-//		reader_meassures_dir = master.config.return_default_reader_measures_path();
-//	}
+	} else {
+		reader_meassures_dir = master.config.return_default_reader_measures_path();
+	}
 
 	std::string robot_filename = master.config.get_edp_reader_attach_point();
 
