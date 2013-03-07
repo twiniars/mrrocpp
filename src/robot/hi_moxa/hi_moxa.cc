@@ -60,9 +60,10 @@ void HI_moxa::init()
 	std::cout << "[func] HI_moxa::init()" << std::endl;
 #endif
 	// inicjalizacja crcTable[]
-	crcInit();
+	NFv2_CrcInit();
 	// zerowanie danych i ustawienie neutralnych adresow
 	NF_ComBufReset(&NFComBuf);
+
 
 	// inicjalizacja zmiennych
 	NFComBuf.myAddress = NF_MasterAddress;
