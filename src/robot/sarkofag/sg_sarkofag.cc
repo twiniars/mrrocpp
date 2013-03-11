@@ -10,6 +10,7 @@
 #include "base/lib/typedefs.h"
 #include "base/lib/impconst.h"
 #include "base/lib/com_buf.h"
+#include "base/lib/mis_fun.h"
 
 #include "robot/sarkofag/sg_sarkofag.h"
 
@@ -54,9 +55,10 @@ void servo_buffer::load_hardware_interface(void)
 	hi->init();
 	hi->set_parameter_now(0, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::sarkofag::MAX_CURRENT_0);
 
-	 NF_STRUCT_Regulator tmpReg = { 0, 0, 0, 0 };
-
-	 hi->set_parameter_now(0, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	hi->set_pwm_mode(0);
+	NF_STRUCT_Regulator tmpReg =
+			{ lib::convert_to_115(0.0600), lib::convert_to_115(0.0500), lib::convert_to_115(0.0), 0 };
+	hi->set_parameter_now(0, NF_COMMAND_SetCurrentRegulator, tmpReg);
 
 	// utworzenie tablicy regulatorow
 	// Serwomechanizm 1
