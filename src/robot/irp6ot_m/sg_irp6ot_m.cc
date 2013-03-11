@@ -11,6 +11,7 @@
 #include "base/lib/typedefs.h"
 #include "base/lib/impconst.h"
 #include "base/lib/com_buf.h"
+#include "base/lib/mis_fun.h"
 
 #include "robot/irp6ot_m/const_irp6ot_m.h"
 
@@ -63,6 +64,8 @@ void servo_buffer::load_hardware_interface(void)
 			new hi_moxa::HI_moxa(master, mrrocpp::lib::irp6ot_m::LAST_MOXA_PORT_NUM, ports_vector, mrrocpp::lib::irp6ot_m::CARD_ADDRESSES, mrrocpp::lib::irp6ot_m::MAX_INCREMENT, mrrocpp::lib::irp6ot_m::TX_PREFIX_LEN);
 	hi->init();
 
+//	lib::set_process_sched();
+
 	hi->set_parameter_now(0, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_0);
 	hi->set_parameter_now(1, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_1);
 	hi->set_parameter_now(2, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_2);
@@ -70,18 +73,25 @@ void servo_buffer::load_hardware_interface(void)
 	hi->set_parameter_now(4, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_4);
 	hi->set_parameter_now(5, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_5);
 	hi->set_parameter_now(6, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_6);
-
-/*
-	hi->set_parameter_now(0, NF_COMMAND_SetDrivesMode, NF_DrivesMode_PWM);
-	NF_STRUCT_Regulator tmpReg = { 0, 0, 0, 0 };
-	//	parametry: p, i, d, t - w reprezentacji fractional 1.15. Domyslne przy starcie karty:
-	//	p	0.0600
-	//	i	0.0500
-	//	d	0.0000
-	//	t	nieuzywane
-	hi->set_parameter_now(0, NF_COMMAND_SetCurrentRegulator, tmpReg);
-	hi->set_parameter_now(0, NF_COMMAND_SetDrivesMode, NF_DrivesMode_CURRENT);
-*/
+	/*
+	 //	hi->set_pwm_mode(0);
+	 hi->set_pwm_mode(1);
+	 NF_STRUCT_Regulator tmpReg =
+	 { lib::convert_to_115(0.0600), lib::convert_to_115(0.0500), lib::convert_to_115(0.0), 0 };
+	 //	hi->set_parameter_now(0, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 hi->set_parameter_now(1, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 */
+	/*
+	 hi->set_parameter_now(0, NF_COMMAND_SetDrivesMode, NF_DrivesMode_PWM);
+	 NF_STRUCT_Regulator tmpReg = { 0, 0, 0, 0 };
+	 //	parametry: p, i, d, t - w reprezentacji fractional 1.15. Domyslne przy starcie karty:
+	 //	p	0.0600
+	 //	i	0.0500
+	 //	d	0.0000
+	 //	t	nieuzywane
+	 hi->set_parameter_now(0, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	 hi->set_parameter_now(0, NF_COMMAND_SetDrivesMode, NF_DrivesMode_CURRENT);
+	 */
 
 	// utworzenie tablicy regulatorow
 	// Serwomechanizm 1
