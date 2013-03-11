@@ -80,6 +80,7 @@ void HI_moxa::init()
 		NFComBuf.ReadDrivesPosition.addr[drive_number] = drives_addresses[drive_number];
 		NFComBuf.SetDrivesMisc.addr[drive_number] = drives_addresses[drive_number];
 		NFComBuf.ReadDrivesStatus.addr[drive_number] = drives_addresses[drive_number];
+		NFComBuf.SetCurrentRegulator.addr[drive_number] = drives_addresses[drive_number];
 
 		NFComBuf.ReadDeviceStatus.data[drive_number] = 0;
 		NFComBuf.ReadDeviceVitals.data[drive_number] = 0;
