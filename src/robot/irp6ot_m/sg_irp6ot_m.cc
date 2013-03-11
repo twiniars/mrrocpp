@@ -73,14 +73,14 @@ void servo_buffer::load_hardware_interface(void)
 	hi->set_parameter_now(4, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_4);
 	hi->set_parameter_now(5, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_5);
 	hi->set_parameter_now(6, NF_COMMAND_SetDrivesMaxCurrent, mrrocpp::lib::irp6ot_m::MAX_CURRENT_6);
-	/*
-	 //	hi->set_pwm_mode(0);
-	 hi->set_pwm_mode(1);
-	 NF_STRUCT_Regulator tmpReg =
-	 { lib::convert_to_115(0.0600), lib::convert_to_115(0.0500), lib::convert_to_115(0.0), 0 };
-	 //	hi->set_parameter_now(0, NF_COMMAND_SetCurrentRegulator, tmpReg);
-	 hi->set_parameter_now(1, NF_COMMAND_SetCurrentRegulator, tmpReg);
-	 */
+
+	//	hi->set_pwm_mode(0);
+	hi->set_pwm_mode(1);
+	NF_STRUCT_Regulator tmpReg =
+			{ lib::convert_to_115(0.0600), lib::convert_to_115(0.0500), lib::convert_to_115(0.0), 0 };
+	//	hi->set_parameter_now(0, NF_COMMAND_SetCurrentRegulator, tmpReg);
+	hi->set_parameter_now(1, NF_COMMAND_SetCurrentRegulator, tmpReg);
+
 	/*
 	 hi->set_parameter_now(0, NF_COMMAND_SetDrivesMode, NF_DrivesMode_PWM);
 	 NF_STRUCT_Regulator tmpReg = { 0, 0, 0, 0 };
