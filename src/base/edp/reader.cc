@@ -92,16 +92,12 @@ void reader_buffer::operator()()
 	// czytanie konfiguracji
 	std::string reader_meassures_dir;
 
-<<<<<<< HEAD
 
-	//if (master.config.exists("reader_meassures_dir")) {
-=======
 	if (master.config.exists("reader_meassures_dir", lib::UI_SECTION)) {
->>>>>>> 18224c2a9a680b4947f39b4ec65afe1e05ad8d99
 		reader_meassures_dir = master.config.value <std::string>("reader_meassures_dir", lib::UI_SECTION);
-	//} else {
-	//	reader_meassures_dir = master.config.return_default_reader_measures_path();
-	//}
+	} else {
+		reader_meassures_dir = master.config.return_default_reader_measures_path();
+	}
 
 
 	std::cout<<std::endl<<"test ASKUBIS "<<master.config.exists("reader_meassures_dir")<<std::endl;
