@@ -539,7 +539,7 @@ public:
 	/**
 	 * Definition of the next_step method.
 	 */
-	bool next_step()
+	virtual bool next_step()
 	{
 
 		if (debug) {

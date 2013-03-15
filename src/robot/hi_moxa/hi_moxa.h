@@ -26,9 +26,8 @@
 #include "base/edp/HardwareInterface.h"
 #include "robot/hi_moxa/hi_moxa_combuf.h"
 
-#include "serialcomm.hpp"
-#include "nfv2.h"
-#include "mycrc.h"
+#include "serialcomm/serialcomm.hpp"
+#include "nf/nfv2.h"
 
 namespace mrrocpp {
 namespace edp {

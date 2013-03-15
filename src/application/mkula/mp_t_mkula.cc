@@ -1,5 +1,5 @@
 #include "base/mp/mp_task.h"
-#include "mp_t_gen_test.h"
+#include "mp_t_mkula.h"
 
 #include "base/lib/mrmath/mrmath.h"
 
@@ -18,12 +18,9 @@
 #include <sstream>
 #include "base/lib/sr/srlib.h"
 
-#include "ecp_mp_t_gen_test.h"
+#include "ecp_mp_st_mkula_gen.h"
 
-#include "application/generator_tester/ecp_mp_st_smooth_gen_test.h"
-#include "application/generator_tester/ecp_mp_st_spline_gen_test.h"
-#include "application/generator_tester/ecp_mp_st_const_vel_gen_test.h"
-#include "application/generator_tester/ecp_mp_st_limit_force_gen_test.h"
+#include "application/mkula/ecp_mp_st_mkula_gen.h"
 
 #include "robot/irp6ot_m/mp_r_irp6ot_m.h"
 #include "robot/irp6p_m/mp_r_irp6p_m.h"
@@ -35,23 +32,23 @@ namespace task {
 
 task* return_created_mp_task(lib::configurator &_config)
 {
-	return new gen_test(_config);
+	return new mkula(_config);
 }
 
 //Robot creation, depending on the configuration file
-void gen_test::create_robots()
+void mkula::create_robots()
 {
 	ACTIVATE_MP_ROBOT(irp6ot_m);
 	ACTIVATE_MP_ROBOT(irp6p_m);
 	ACTIVATE_MP_ROBOT(conveyor);
 }
 
-gen_test::gen_test(lib::configurator &_config) :
+mkula::mkula(lib::configurator &_config) :
 		task(_config)
 {
 }
 
-void gen_test::main_task_algorithm(void)
+void mkula::main_task_algorithm(void)
 {
 
 	sr_ecp_msg->message("Gen Test (MP) START");
@@ -64,29 +61,14 @@ void gen_test::main_task_algorithm(void)
 		//------------------- LIMI FORCE GENERATOR -------------------
 
 
-		set_next_ecp_state(ecp_mp::generator::ECP_MP_LIMIT_FORCE_GEN_TEST, (int) 5, "", lib::irp6ot_m::ROBOT_NAME);
+		set_next_ecp_state(ecp_mp::generator::ECP_MP_MKULA, (int) 5, "", lib::irp6ot_m::ROBOT_NAME);
 
 		wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME.c_str());
 
-		//------------------- CONSTANT VELOCITY GENERATOR END -------------------
-
-		/*
-		 //------------------- SMOOTH GENERATOR -------------------
-		 set_next_ecp_state(ecp_mp::generator::ECP_MP_SMOOTH_GEN_TEST, (int) 5, "", lib::irp6ot_m::ROBOT_NAME);
-
-		 wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME.c_str());
-		 //------------------- SMOOTH GENERATOR END -------------------
-		 */
-		//------------------- SPLINE GENERATOR -------------------
-		/*	 set_next_ecp_state(ecp_mp::subtask::ECP_ST_SPLINE_GEN_TEST, (int) 5, "", 0, lib::irp6ot_m::ROBOT_NAME);
-
-		 wait_for_task_termination(false, 1, lib::irp6ot_m::ROBOT_NAME.c_str());
-		 //------------------- SPLINE GENERATOR END -------------------
-		 */
 	}
 
 	// Postument
-	/*if (config.exists_and_true("is_active", "[edp_irp6p_m]")) {
+	if (config.exists_and_true("is_active", "[edp_irp6p_m]")) {
 		sr_ecp_msg->message("POSTUMENT ACTIVE");
 		//------------------- CONSTANT VELOCITY GENERATOR -------------------
 		//set_next_ecp_state(ecp_mp::subtask::ECP_ST_CONST_VEL_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
@@ -94,9 +76,14 @@ void gen_test::main_task_algorithm(void)
 		//wait_for_task_termination(false, 1, lib::irp6p_m::ROBOT_NAME.c_str());
 		//------------------- CONSTANT VELOCITY GENERATOR END -------------------
 
+		set_next_ecp_state(ecp_mp::generator::ECP_MP_MKULA, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
+
+				wait_for_task_termination(false, lib::irp6p_m::ROBOT_NAME.c_str());
+
+
 		//------------------- SMOOTH GENERATOR -------------------
-		set_next_ecp_state(ecp_mp::generator::ECP_MP_SMOOTH_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
-		wait_for_task_termination(false, lib::irp6p_m::ROBOT_NAME);
+		/*set_next_ecp_state(ecp_mp::generator::ECP_MP_SMOOTH_GEN_TEST, (int) 5, "", lib::irp6p_m::ROBOT_NAME);
+		wait_for_task_termination(false, lib::irp6p_m::ROBOT_NAME);*/
 		//------------------- SMOOTH GENERATOR END -------------------
 
 		//------------------- SPLINE GENERATOR -------------------
@@ -104,7 +91,7 @@ void gen_test::main_task_algorithm(void)
 
 		//wait_for_task_termination(false, 1, lib::irp6p_m::ROBOT_NAME.c_str());
 		//------------------- SPLINE GENERATOR END -------------------
-	}*/
+	}
 
 	/*// Conveyor
 
