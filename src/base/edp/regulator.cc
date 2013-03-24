@@ -295,15 +295,15 @@ void NL_regulator::compute_set_value_final_computations()
 			//	if ((axis_number == display_axis_number) && (master.servo_mode == true))
 			if ((axis_number == display_axis_number)) {
 				//if ((axis_number == display_axis_number))				{
-				/*double dev = reg_abs_desired_motor_pos - reg_abs_current_motor_pos;
+				double dev = reg_abs_desired_motor_pos - reg_abs_current_motor_pos;
 				double des = reg_abs_desired_motor_pos;
-				double cur = reg_abs_current_motor_pos;*/
+				double cur = reg_abs_current_motor_pos;
 				/*std::cout << "cascade_a: " << display_axis_number << " sm: " << master.servo_mode
 				 << " meassured_current: " << measured_current << " desired_current: " << output_value
 				 << " pin: " << position_increment_new << std::endl;*/
-				/*std::cout << "desired pos.: " << des << "\tcurrent pos.: " << cur << "\tdeviation: " << dev
+				std::cout << "desired pos.: " << des << "\tcurrent pos.: " << cur << "\tdeviation: " << dev
 						<< "\tdev_integral: " << abs_pos_dev_int << "\tdes. current: " << output_value
-						<< "\tmeas. current: " << measured_current << "\n";*/
+						<< "\tmeas. current: " << measured_current << "\n";
 			}
 
 		}

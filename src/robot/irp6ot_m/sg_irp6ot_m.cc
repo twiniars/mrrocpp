@@ -120,7 +120,9 @@ void servo_buffer::load_hardware_interface(void)
 	regulator_ptr[6] =
 			new NL_regulator_7_irp6ot(6, 0, 0, 0.39, 8.62 / 2., 7.89 / 2., 0.35, master, common::REG_OUTPUT::PWM_OUTPUT);
 
+
 	common::servo_buffer::load_hardware_interface();
+
 }
 
 } // namespace irp6ot
