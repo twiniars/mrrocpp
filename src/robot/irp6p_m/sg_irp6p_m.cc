@@ -109,8 +109,9 @@ void servo_buffer::load_hardware_interface(void)
 	regulator_ptr[5] =
 			new NL_regulator_7_irp6p(5, 0, 0, 0.39, 8.62 / 2., 7.89 / 2., 0.35, master, common::REG_OUTPUT::PWM_OUTPUT);
 
-	common::servo_buffer::load_hardware_interface();
 
+	common::servo_buffer::load_hardware_interface();
+//	display_axis_number = 0;
 }
 
 } // namespace irp6p_m
