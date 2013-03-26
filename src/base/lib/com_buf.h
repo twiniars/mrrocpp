@@ -53,11 +53,20 @@ enum ECP_REPLY
 
 //------------------------------------------------------------------------------
 /*!
- *  Type of arm position definition.
+ *  Type of arm coordinates definition.
  */
 enum POSE_SPECIFICATION
 {
 	INVALID_END_EFFECTOR, FRAME, JOINT, MOTOR, PF_VELOCITY
+};
+
+//------------------------------------------------------------------------------
+/*!
+ *  Type of axis definition.
+ */
+enum AXIS_CONTROL_MODE_SPECIFICATION
+{
+	POSITION_CM, CURRENT_CM
 };
 
 //------------------------------------------------------------------------------
@@ -450,6 +459,7 @@ struct c_buffer_arm_t
 	//----------------------------------------------------------
 	struct
 	{
+		AXIS_CONTROL_MODE_SPECIFICATION axis_control_mode;
 		/*!  End's trihedron relative to the base system. */
 		lib::Homog_matrix arm_frame;
 		/*! XYZ + end's orientation relative to the base system. */
@@ -470,6 +480,7 @@ private:
 	template <class Archive>
 	void serialize(Archive & ar, const unsigned int version)
 	{
+		ar & pf_def.axis_control_mode;
 		ar & pf_def.arm_frame; // if set_arm_type == FRAME
 		ar & pf_def.arm_coordinates; // otherwise.
 		ar & pf_def.desired_torque_or_current;
