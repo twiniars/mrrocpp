@@ -255,11 +255,11 @@ void manip_effector::compute_base_pos_xyz_rot_xyz_vector(const lib::JointArray &
 				case lib::FRAME:
 					goal_frame = arm_frame;
 					break;
-				case lib::JOINT_POS:
+				case lib::JOINT:
 					get_current_kinematic_model()->i2e_transform(joint_arm_coordinates, goal_frame);
 
 					break;
-				case lib::MOTOR_POS:
+				case lib::MOTOR:
 					get_current_kinematic_model()->mp2i_transform(motor_arm_coordinates, tmp_joints);
 					get_current_kinematic_model()->i2e_transform(tmp_joints, goal_frame);
 
@@ -275,13 +275,13 @@ void manip_effector::compute_base_pos_xyz_rot_xyz_vector(const lib::JointArray &
 					goal_frame = arm_frame;
 					goal_frame = begining_end_effector_frame * goal_frame;
 					break;
-				case lib::JOINT_POS:
+				case lib::JOINT:
 					for (int i = 0; i < number_of_servos; i++) {
 						tmp_joints[i] = begining_joints[i] + joint_arm_coordinates[i];
 					}
 					get_current_kinematic_model()->i2e_transform(tmp_joints, goal_frame);
 					break;
-				case lib::MOTOR_POS:
+				case lib::MOTOR:
 					for (int i = 0; i < number_of_servos; i++) {
 						tmp_motor_pos[i] = desired_motor_pos_new[i] + motor_arm_coordinates[i];
 					}
@@ -302,8 +302,8 @@ void manip_effector::compute_base_pos_xyz_rot_xyz_vector(const lib::JointArray &
 	switch (set_arm_type)
 	{
 		case lib::FRAME:
-		case lib::JOINT_POS:
-		case lib::MOTOR_POS:
+		case lib::JOINT:
+		case lib::MOTOR:
 			goal_frame_increment_in_end_effector = ((!begining_end_effector_frame) * goal_frame);
 			goal_frame_increment_in_end_effector.get_xyz_angle_axis(goal_xyz_angle_axis_increment_in_end_effector);
 			for (int i = 0; i < 6; i++) {
@@ -431,8 +431,8 @@ void manip_effector::iterate_macrostep(const lib::JointArray & begining_joints, 
 		switch (set_arm_type)
 		{
 			case lib::FRAME:
-			case lib::JOINT_POS:
-			case lib::MOTOR_POS:
+			case lib::JOINT:
+			case lib::MOTOR:
 				pos_xyz_rot_xyz_vector = lib::Xi_v(!(lib::Xi_v(!begining_end_effector_frame_with_current_translation
 						* desired_end_effector_frame))) * base_pos_xyz_rot_xyz_vector;
 				break;

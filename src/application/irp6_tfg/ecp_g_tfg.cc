@@ -61,8 +61,8 @@ bool tfg::first_step()
 	the_robot->ecp_command.instruction_type = lib::GET;
 	the_robot->ecp_command.get_type = ARM_DEFINITION;
 	the_robot->ecp_command.set_type = ARM_DEFINITION;
-	the_robot->ecp_command.set_arm_type = lib::JOINT_POS;
-//	the_robot->ecp_command.get_arm_type = lib::JOINT_POS;
+	the_robot->ecp_command.set_arm_type = lib::JOINT;
+//	the_robot->ecp_command.get_arm_type = lib::JOINT;
 	the_robot->ecp_command.motion_type = lib::ABSOLUTE;
 	the_robot->ecp_command.interpolation_type = lib::MIM;
 	the_robot->ecp_command.motion_steps = step_no;

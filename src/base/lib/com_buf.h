@@ -57,7 +57,7 @@ enum ECP_REPLY
  */
 enum POSE_SPECIFICATION
 {
-	INVALID_END_EFFECTOR, FRAME, JOINT_POS, MOTOR_POS, PF_VELOCITY, MOTOR_TORQUE, MOTOR_CURRENT
+	INVALID_END_EFFECTOR, FRAME, JOINT, MOTOR, PF_VELOCITY
 };
 
 //------------------------------------------------------------------------------
