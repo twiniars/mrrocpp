@@ -57,7 +57,7 @@ enum ECP_REPLY
  */
 enum POSE_SPECIFICATION
 {
-	INVALID_END_EFFECTOR, FRAME, JOINT, MOTOR, PF_VELOCITY
+	INVALID_END_EFFECTOR, FRAME, JOINT_POS, MOTOR_POS, PF_VELOCITY, MOTOR_TORQUE, MOTOR_CURRENT
 };
 
 //------------------------------------------------------------------------------
@@ -818,7 +818,7 @@ public:
 	/*!
 	 * \brief template method to put data into the memory (serialize)
 	 */
-template	<typename BUFFER_TYPE>
+	template <typename BUFFER_TYPE>
 	void set(const BUFFER_TYPE & buffer)
 	{
 		xdr_oarchive <> oa;

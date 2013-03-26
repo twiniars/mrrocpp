@@ -45,7 +45,7 @@ bool ecp_g_conveyor_sinus::first_step()
 //	the_robot->ecp_command.get_arm_type = lib::JOINT;
 	the_robot->ecp_command.motion_type = lib::ABSOLUTE;
 	the_robot->ecp_command.set_type = ARM_DEFINITION;
-	the_robot->ecp_command.set_arm_type = lib::JOINT;
+	the_robot->ecp_command.set_arm_type = lib::JOINT_POS;
 	the_robot->ecp_command.interpolation_type = lib::TCIM;
 	the_robot->ecp_command.motion_steps = motion_steps;
 	the_robot->ecp_command.value_in_step_no = motion_steps - 3;

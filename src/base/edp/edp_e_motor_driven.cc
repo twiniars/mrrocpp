@@ -109,11 +109,12 @@ void motor_driven_effector::single_thread_move_arm(const lib::c_buffer &instruct
 
 	switch (instruction.set_arm_type)
 	{
-		case lib::MOTOR:
+		case lib::MOTOR_POS:
+
 			compute_motors(instruction);
 			move_servos();
 			break;
-		case lib::JOINT:
+		case lib::JOINT_POS:
 			compute_joints(instruction);
 			move_servos();
 			break;
@@ -131,12 +132,12 @@ void motor_driven_effector::multi_thread_move_arm(const lib::c_buffer &instructi
 
 	switch (instruction.set_arm_type)
 	{
-		case lib::MOTOR:
+		case lib::MOTOR_POS:
 			compute_motors(instruction);
 			move_servos();
 			mt_tt_obj->trans_t_to_master_synchroniser.command();
 			break;
-		case lib::JOINT:
+		case lib::JOINT_POS:
 			compute_joints(instruction);
 			move_servos();
 			mt_tt_obj->trans_t_to_master_synchroniser.command();
@@ -312,7 +313,7 @@ bool motor_driven_effector::pre_synchro_motion(lib::c_buffer &instruction) const
 // przed wykonaniem synchronizacji robota
 {
 	if ((instruction.instruction_type == lib::SET) && (instruction.set_type == ARM_DEFINITION)
-			&& (instruction.set_arm_type == lib::MOTOR) && (instruction.motion_type == lib::RELATIVE))
+			&& (instruction.set_arm_type == lib::MOTOR_POS) && (instruction.motion_type == lib::RELATIVE))
 		return true;
 	else
 		return false;

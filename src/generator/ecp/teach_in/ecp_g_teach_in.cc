@@ -369,7 +369,7 @@ bool teach_in::first_step()
 	the_robot->ecp_command.instruction_type = lib::GET;
 	the_robot->ecp_command.get_type = ARM_DEFINITION;
 	the_robot->ecp_command.set_type = ARM_DEFINITION;
-	the_robot->ecp_command.set_arm_type = lib::MOTOR;
+	the_robot->ecp_command.set_arm_type = lib::MOTOR_POS;
 	the_robot->ecp_command.motion_type = lib::ABSOLUTE;
 	the_robot->ecp_command.interpolation_type = lib::MIM;
 	the_robot->ecp_command.motion_steps = 8;
@@ -403,7 +403,7 @@ bool teach_in::next_step()
 			//  	fprintf(stderr, "DEBUG@%s:%d\n", __FILE__, __LINE__);
 			the_robot->ecp_command.instruction_type = lib::SET;
 			the_robot->ecp_command.set_type = ARM_DEFINITION; // ARM
-			the_robot->ecp_command.set_arm_type = lib::MOTOR;
+			the_robot->ecp_command.set_arm_type = lib::MOTOR_POS;
 			the_robot->ecp_command.motion_type = lib::ABSOLUTE;
 			the_robot->ecp_command.interpolation_type = lib::MIM;
 			the_robot->ecp_command.motion_steps = (uint16_t) ceil(tip.motion_time / lib::EDP_STEP);
@@ -415,7 +415,7 @@ bool teach_in::next_step()
 			//   	fprintf(stderr, "DEBUG@%s:%d\n", __FILE__, __LINE__);
 			the_robot->ecp_command.instruction_type = lib::SET;
 			the_robot->ecp_command.set_type = ARM_DEFINITION; // ARM
-			the_robot->ecp_command.set_arm_type = lib::JOINT;
+			the_robot->ecp_command.set_arm_type = lib::JOINT_POS;
 			the_robot->ecp_command.motion_type = lib::ABSOLUTE;
 			the_robot->ecp_command.interpolation_type = lib::MIM;
 			the_robot->ecp_command.motion_steps = (uint16_t) ceil(tip.motion_time / lib::EDP_STEP);

@@ -518,11 +518,11 @@ public:
 				}
 				break;
 			case lib::ECP_MOTOR:
-				the_robot->ecp_command.set_arm_type = lib::MOTOR;
+				the_robot->ecp_command.set_arm_type = lib::MOTOR_POS;
 				the_robot->ecp_command.interpolation_type = lib::MIM;
 				break;
 			case lib::ECP_JOINT:
-				the_robot->ecp_command.set_arm_type = lib::JOINT;
+				the_robot->ecp_command.set_arm_type = lib::JOINT_POS;
 				the_robot->ecp_command.interpolation_type = lib::MIM;
 				break;
 			default:

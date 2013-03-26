@@ -55,7 +55,7 @@ void EcpRobot::init()
 	ecp->ecp_command.get_type = ARM_DEFINITION; // ARM
 //	ecp->ecp_command.get_arm_type = lib::MOTOR;
 	ecp->ecp_command.set_type = ARM_DEFINITION; // ARM
-	ecp->ecp_command.set_arm_type = lib::MOTOR;
+	ecp->ecp_command.set_arm_type = lib::MOTOR_POS;
 	ecp->ecp_command.motion_steps = 0;
 	ecp->ecp_command.value_in_step_no = 0;
 
@@ -108,7 +108,7 @@ void EcpRobot::move_motors(const double final_position[])
 	ecp->ecp_command.get_type = ARM_DEFINITION; // ARM
 //	ecp->ecp_command.get_arm_type = lib::MOTOR;
 	ecp->ecp_command.set_type = ARM_DEFINITION; // ARM
-	ecp->ecp_command.set_arm_type = lib::MOTOR;
+	ecp->ecp_command.set_arm_type = lib::MOTOR_POS;
 	ecp->ecp_command.motion_steps = nr_of_steps;
 	ecp->ecp_command.value_in_step_no = nr_of_steps;
 
@@ -150,7 +150,7 @@ void EcpRobot::move_joints(const double final_position[])
 	ecp->ecp_command.get_type = ARM_DEFINITION; // ARM
 //	ecp->ecp_command.get_arm_type = lib::JOINT;
 	ecp->ecp_command.set_type = ARM_DEFINITION; // ARM
-	ecp->ecp_command.set_arm_type = lib::JOINT;
+	ecp->ecp_command.set_arm_type = lib::JOINT_POS;
 	ecp->ecp_command.motion_type = lib::ABSOLUTE;
 	ecp->ecp_command.interpolation_type = lib::MIM;
 	ecp->ecp_command.motion_steps = nr_of_steps;
