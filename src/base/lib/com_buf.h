@@ -454,8 +454,8 @@ struct c_buffer_arm_t
 		lib::Homog_matrix arm_frame;
 		/*! XYZ + end's orientation relative to the base system. */
 		double arm_coordinates[lib::MAX_SERVOS_NR];
-		/*! Given torque. */
-		double desired_torque[lib::MAX_SERVOS_NR];
+		/*! Given torque or current depending on an arm specification. */
+		double desired_torque_or_current[lib::MAX_SERVOS_NR];
 		double inertia[6], reciprocal_damping[6];
 		lib::Ft_vector force_xyz_torque_xyz;
 		BEHAVIOUR_SPECIFICATION behaviour[6];
@@ -472,7 +472,7 @@ private:
 	{
 		ar & pf_def.arm_frame; // if set_arm_type == FRAME
 		ar & pf_def.arm_coordinates; // otherwise.
-		ar & pf_def.desired_torque;
+		ar & pf_def.desired_torque_or_current;
 		ar & pf_def.inertia;
 		ar & pf_def.reciprocal_damping;
 		ar & pf_def.force_xyz_torque_xyz;
