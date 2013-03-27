@@ -374,7 +374,6 @@ public:
 	 */
 	virtual void unsynchronise();
 
-
 	/*!
 	 * \brief method to compute servo_current_motor_pos, servo_cuurent_joints_pos and surve_current_frame in child classes
 	 *
@@ -530,7 +529,7 @@ public:
 	 *
 	 * The particular type is the field of derived classes
 	 */
-	lib::c_buffer & ecp_instruction;
+	lib::c_buffer & ecp_instruction_;
 
 	/*!
 	 * \brief Reference to base types of reply
