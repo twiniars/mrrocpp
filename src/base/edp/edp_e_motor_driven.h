@@ -438,7 +438,7 @@ public:
 	 * This method typically communicates with hardware to check if the robot is synchronised etc.
 	 * It is reimplemented in the inherited classes
 	 */
-	virtual void get_controller_state(lib::c_buffer &instruction); // by Y
+	virtual void get_controller_state(const lib::c_buffer &instruction); // by Y
 
 	/*!
 	 * \brief The method checks if the hardware is on.
@@ -494,21 +494,21 @@ public:
 	 *
 	 * It decides which variant of master_order is used (single or multi thread)
 	 */
-	virtual void master_order(MT_ORDER nm_task, int nm_tryb) = 0;
+	virtual void master_order(MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction) = 0;
 
 	/*!
 	 * \brief method running ECP command specific methods in two thread version
 	 *
 	 * It uses extra, dedicated transformation thread
 	 */
-	void multi_thread_master_order(common::MT_ORDER nm_task, int nm_tryb);
+	void multi_thread_master_order(common::MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction);
 
 	/*!
 	 * \brief method running ECP command specific methods in single thread version
 	 *
 	 * It does not use extra transformation thread
 	 */
-	void single_thread_master_order(common::MT_ORDER nm_task, int nm_tryb);
+	void single_thread_master_order(common::MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction);
 
 	/*!
 	 * \brief method to receive instruction from ecp of particular type

@@ -97,7 +97,7 @@ public:
 	 *
 	 * Here the single thread variant is chosen
 	 */
-	void master_order(common::MT_ORDER nm_task, int nm_tryb);
+	void master_order(common::MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction);
 
 	/*!
 	 * \brief method to receive instruction from ecp of particular type

@@ -40,9 +40,9 @@ const int16_t torque_offset[lib::bird_hand::NUM_OF_SERVOS] = { 0, 0, 10, 32, 17,
 
 const int16_t motor_inv[lib::bird_hand::NUM_OF_SERVOS] = { 1, 1, 1, 0, 1, 0, 1, 0 };
 
-void effector::master_order(common::MT_ORDER nm_task, int nm_tryb)
+void effector::master_order(common::MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction)
 {
-	manip_effector::single_thread_master_order(nm_task, nm_tryb);
+	manip_effector::single_thread_master_order(nm_task, nm_tryb, instruction);
 }
 
 void effector::get_controller_state(lib::c_buffer &instruction)

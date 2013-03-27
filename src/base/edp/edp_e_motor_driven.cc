@@ -149,20 +149,20 @@ void motor_driven_effector::multi_thread_move_arm(const lib::c_buffer &instructi
 
 }
 
-void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task, int nm_tryb)
+void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction)
 {
 	// przekopiowanie instrukcji z bufora watku komunikacji z ECP (edp_master)
 
 	switch (nm_task)
 	{
 		case common::MT_GET_CONTROLLER_STATE:
-			get_controller_state(ecp_instruction_);
+			get_controller_state(instruction);
 			break;
 		case common::MT_SET_ROBOT_MODEL:
-			set_robot_model(ecp_instruction_);
+			set_robot_model(instruction);
 			break;
 		case common::MT_GET_ARM_POSITION:
-			get_arm_position(nm_tryb, ecp_instruction_);
+			get_arm_position(nm_tryb, instruction);
 			break;
 		case common::MT_GET_ALGORITHMS:
 			get_algorithms();
@@ -174,16 +174,16 @@ void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task,
 			unsynchronise();
 			break;
 		case common::MT_MOVE_ARM:
-			move_arm(ecp_instruction_);
+			move_arm(instruction);
 			break;
 		default: // blad: z reply_type wynika, e odpowied nie ma zawiera narzedzia
 			break;
 	}
 }
 
-void motor_driven_effector::multi_thread_master_order(MT_ORDER nm_task, int nm_tryb)
+void motor_driven_effector::multi_thread_master_order(MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction)
 {
-	mt_tt_obj->master_to_trans_t_order(nm_task, nm_tryb, ecp_instruction_);
+	mt_tt_obj->master_to_trans_t_order(nm_task, nm_tryb, instruction);
 }
 
 motor_driven_effector::motor_driven_effector(shell &_shell, const lib::robot_name_t & l_robot_name, lib::c_buffer & c_buffer_ref, lib::r_buffer & r_buffer_ref) :
@@ -354,11 +354,11 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 			if (instruction.is_set_robot_model())
 				// zmiana modelu robota
 				// set_robot_model();
-				master_order(MT_SET_ROBOT_MODEL, 0);
+				master_order(MT_SET_ROBOT_MODEL, 0, instruction);
 			if (instruction.is_set_arm()) {
 				// przemieszczenie koncowki
 				// move_arm();
-				master_order(MT_MOVE_ARM, 0);
+				master_order(MT_MOVE_ARM, 0, instruction);
 
 				get_arm_position(false, instruction); // Aktualizacja transformera
 			}
@@ -373,7 +373,7 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 				case lib::CONTROLLER_STATE:
 					// odczytanie TCP i orientacji koncowki
 					// get_arm_position(true);
-					master_order(MT_GET_CONTROLLER_STATE, 0);
+					master_order(MT_GET_CONTROLLER_STATE, 0, instruction);
 					break;
 				case lib::ARM:
 				case lib::ROBOT_MODEL:
@@ -387,14 +387,14 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 					}
 
 					if ((instruction.is_get_arm()) || (instruction.is_set_arm())) {
-						master_order(MT_GET_ARM_POSITION, true);
+						master_order(MT_GET_ARM_POSITION, true, instruction);
 					}
 
 					if (instruction.is_get_robot_model()) {
 						if (!((instruction.is_get_arm()) || (instruction.is_set_arm()))) {
 							if (instruction.get_robot_model_type == lib::SERVO_ALGORITHM) {
 								// get_algorithms();
-								master_order(MT_GET_ALGORITHMS, 0);
+								master_order(MT_GET_ALGORITHMS, 0, instruction);
 							}
 						}
 						get_robot_model(instruction);
@@ -416,11 +416,11 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 				// zmiana aktualnie uzywanego modelu robota (narzedzie, kinematic_model_with_tool kinematyczny,
 				// jego korektor, nr algorytmu regulacji i zestawu jego parametrow)
 				//        set_robot_model();
-				master_order(MT_SET_ROBOT_MODEL, 0);
+				master_order(MT_SET_ROBOT_MODEL, 0, instruction);
 			if (instruction.is_set_arm())
 				// przemieszczenie koncowki
 				// move_arm();
-				master_order(MT_MOVE_ARM, 0);
+				master_order(MT_MOVE_ARM, 0, instruction);
 			// Cz GET
 			// ustalenie formatu odpowiedzi
 			switch (reply.reply_type)
@@ -428,7 +428,7 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 				case lib::CONTROLLER_STATE:
 					// odczytanie TCP i orientacji koncowki
 					// get_arm_position(true);
-					master_order(MT_GET_CONTROLLER_STATE, 0);
+					master_order(MT_GET_CONTROLLER_STATE, 0, instruction);
 					break;
 				case lib::ARM:
 				case lib::ROBOT_MODEL:
@@ -444,14 +444,14 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 					if (instruction.is_set_arm()) {
 						get_arm_position(false, instruction);
 					} else if (instruction.is_get_arm()) {
-						master_order(MT_GET_ARM_POSITION, true);
+						master_order(MT_GET_ARM_POSITION, true, instruction);
 					}
 
 					if (instruction.is_get_robot_model()) {
 						if (!instruction.is_set_arm()) {
 							// ewentualna aktualizacja numerow algorytmow i ich zestawow parametrow
 							if (instruction.get_robot_model_type == lib::SERVO_ALGORITHM)
-								master_order(MT_GET_ALGORITHMS, 0);
+								master_order(MT_GET_ALGORITHMS, 0, instruction);
 						}
 						// odczytanie aktualnie uzywanego modelu robota (narzedzie, kinematic_model_with_tool kinematyczny,
 						// jego korektor, nr algorytmu regulacji i zestawu jego parametrow)
@@ -780,7 +780,7 @@ void motor_driven_effector::update_servo_current_motor_pos_abs(double abs_motor_
 	servo_current_motor_pos[i] = abs_motor_position;
 }
 
-void motor_driven_effector::get_controller_state(lib::c_buffer &instruction)
+void motor_driven_effector::get_controller_state(const lib::c_buffer &instruction)
 {
 	//printf("get_controller_state: %d\n", controller_state_edp_buf.is_synchronised); fflush(stdout);
 	reply.controller_state = controller_state_edp_buf;
@@ -1021,7 +1021,7 @@ void motor_driven_effector::synchro_loop(STATE& next_state)
 							variant_reply_to_instruction();
 							/* Zlecenie wykonania synchronizacji */
 
-							master_order(MT_SYNCHRONISE, 0); // by Y przejscie przez watek transfor w celu ujednolicenia
+							master_order(MT_SYNCHRONISE, 0, ecp_instruction_); // by Y przejscie przez watek transfor w celu ujednolicenia
 							// synchronise();
 							// Jezeli synchronizacja okae sie niemoliwa, to zostanie zgloszony wyjatek:
 							/* Oczekiwanie na poprawne zakoczenie synchronizacji */
@@ -1234,7 +1234,7 @@ void motor_driven_effector::post_synchro_loop(STATE& next_state)
 							variant_reply_to_instruction();
 							/* Zlecenie wykonania synchronizacji */
 							// by Y przejscie przez watek transformation w celu ujednolicenia
-							master_order(MT_UNSYNCHRONISE, 0);
+							master_order(MT_UNSYNCHRONISE, 0, ecp_instruction_);
 							// synchronise();
 							// Jezeli synchronizacja okae sie niemoliwa, to zostanie zgloszony wyjatek:
 							/* Oczekiwanie na poprawne zakoczenie synchronizacji */
