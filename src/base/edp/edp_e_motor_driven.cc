@@ -156,13 +156,13 @@ void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task,
 	switch (nm_task)
 	{
 		case common::MT_GET_CONTROLLER_STATE:
-			get_controller_state(instruction);
+			get_controller_state(ecp_instruction);
 			break;
 		case common::MT_SET_ROBOT_MODEL:
-			set_robot_model(instruction);
+			set_robot_model(ecp_instruction);
 			break;
 		case common::MT_GET_ARM_POSITION:
-			get_arm_position(nm_tryb, instruction);
+			get_arm_position(nm_tryb, ecp_instruction);
 			break;
 		case common::MT_GET_ALGORITHMS:
 			get_algorithms();
@@ -174,7 +174,7 @@ void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task,
 			unsynchronise();
 			break;
 		case common::MT_MOVE_ARM:
-			move_arm(instruction);
+			move_arm(ecp_instruction);
 			break;
 		default: // blad: z reply_type wynika, e odpowied nie ma zawiera narzedzia
 			break;
@@ -183,7 +183,7 @@ void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task,
 
 void motor_driven_effector::multi_thread_master_order(MT_ORDER nm_task, int nm_tryb)
 {
-	mt_tt_obj->master_to_trans_t_order(nm_task, nm_tryb, instruction);
+	mt_tt_obj->master_to_trans_t_order(nm_task, nm_tryb, ecp_instruction);
 }
 
 motor_driven_effector::motor_driven_effector(shell &_shell, const lib::robot_name_t & l_robot_name, lib::c_buffer & c_buffer_ref, lib::r_buffer & r_buffer_ref) :
@@ -197,7 +197,7 @@ motor_driven_effector::motor_driven_effector(shell &_shell, const lib::robot_nam
 		current_motor_pos(lib::MAX_SERVOS_NR),
 		step_counter(0),
 		number_of_servos(-1),
-		instruction(c_buffer_ref),
+		ecp_instruction(c_buffer_ref),
 		reply(r_buffer_ref),
 		move_arm_second_phase(false)
 {
@@ -841,7 +841,7 @@ void motor_driven_effector::pre_synchro_loop(STATE& next_state)
 
 							//		std::cout << "AA: " << (int) instruction.get_type << std::endl;
 
-							if ((rep_type(instruction)) == lib::CONTROLLER_STATE) {
+							if ((rep_type(ecp_instruction)) == lib::CONTROLLER_STATE) {
 								// master_order(MT_GET_CONTROLLER_STATE, 0);
 								reply.reply_type = lib::ACKNOWLEDGE;
 								reply.reply_type = lib::ACKNOWLEDGE;
@@ -850,7 +850,7 @@ void motor_driven_effector::pre_synchro_loop(STATE& next_state)
 								//		printf("receive_instruction 6\n");
 								flushall()
 								;
-								interpret_instruction(instruction);
+								interpret_instruction(ecp_instruction);
 								//	printf("receive_instruction 7\n");
 								flushall()
 								;
@@ -1029,12 +1029,12 @@ void motor_driven_effector::synchro_loop(STATE& next_state)
 							break;
 						case lib::SET:
 							// instrukcja wlasciwa => zle jej wykonanie
-							if (pre_synchro_motion(instruction)) {
+							if (pre_synchro_motion(ecp_instruction)) {
 								/* Potwierdzenie przyjecia instrukcji ruchow presynchronizacyjnych do wykonania */
 								reply.reply_type = lib::ACKNOWLEDGE;
 								variant_reply_to_instruction();
 								/* Zlecenie wykonania ruchow presynchronizacyjnych */
-								interpret_instruction(instruction);
+								interpret_instruction(ecp_instruction);
 								// Jezeli wystapil blad w trakcie realizacji ruchow presynchronizacyjnych,
 								// to zostanie zgloszony wyjatek:
 
@@ -1287,7 +1287,7 @@ void motor_driven_effector::post_synchro_loop(STATE& next_state)
 					break;
 				case EXECUTE_INSTRUCTION:
 					// wykonanie instrukcji - wszelkie bledy powoduja zgloszenie wyjtku NonFatal_error_2 lub Fatal_error
-					interpret_instruction(instruction);
+					interpret_instruction(ecp_instruction);
 					next_state = WAIT;
 					break;
 				case WAIT:
@@ -1436,7 +1436,7 @@ void motor_driven_effector::main_loop()
 lib::INSTRUCTION_TYPE motor_driven_effector::receive_instruction()
 {
 	//printf("receive_instruction motor_driven_effector\n");
-	return common::effector::receive_instruction(instruction);
+	return common::effector::receive_instruction(ecp_instruction);
 }
 
 void motor_driven_effector::variant_reply_to_instruction()

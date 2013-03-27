@@ -530,7 +530,7 @@ public:
 	 *
 	 * The particular type is the field of derived classes
 	 */
-	lib::c_buffer & instruction;
+	lib::c_buffer & ecp_instruction;
 
 	/*!
 	 * \brief Reference to base types of reply
