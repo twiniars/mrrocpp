@@ -194,10 +194,7 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 					case 1: // zestaw parametrow nr 1
 						current_algorithm_parameters_no = algorithm_parameters_no;
 						current_algorithm_no = algorithm_no;
-						a = 0;
-						b0 = 0;
-						b1 = 0;
-						k_feedforward = 0;
+
 						break;
 					default: // blad - nie ma takiego zestawu parametrow dla tego algorytmu
 						// => przywrocic stary algorytm i j stary zestaw parametrow
@@ -238,10 +235,9 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 
 		case 1: // algorytm nr 1
 		{
-			current_reg_kp = 100;
-			// obliczenie nowej wartosci wypelnienia PWM algorytm PD + I
-			set_value_new = (1 + a) * set_value_old - a * set_value_very_old
-					+ b0 * (step_new_pulse - position_increment_new) - b1 * (step_old_pulse - position_increment_old);
+			current_reg_kp = 1; // zerowe extra wzmocnienie
+			// przepisanie zadanej wartosci pradu
+			set_value_new = master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0];
 		}
 			break;
 
