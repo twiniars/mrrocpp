@@ -53,6 +53,10 @@ enum SERVO_COMMAND
 struct edp_master_command
 {
 	/*! Code for the instruction sent to SERVO_GROUP. */
+	// kopia rozkazu z ecp
+	lib::c_buffer sb_instruction_;
+
+
 	SERVO_COMMAND instruction_code;
 	union
 	{

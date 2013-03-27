@@ -14,6 +14,7 @@
 // Klasa edp_sarkofag_effector.
 //#include "base/edp/sarkofag/edp_sarkofag_effector.h"
 #include "base/edp/reader.h"
+#include "base/edp/servo_gr.h"
 // Klasa hardware_interface.
 //#include "base/edp/sarkofag/hi_sarkofag.h"
 // Klasa servo_buffer.

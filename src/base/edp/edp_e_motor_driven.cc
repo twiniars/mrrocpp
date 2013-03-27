@@ -195,9 +195,9 @@ motor_driven_effector::motor_driven_effector(shell &_shell, const lib::robot_nam
 		desired_motor_pos_old(lib::MAX_SERVOS_NR),
 		desired_motor_pos_new(lib::MAX_SERVOS_NR),
 		current_motor_pos(lib::MAX_SERVOS_NR),
+		ecp_instruction_(c_buffer_ref),
 		step_counter(0),
 		number_of_servos(-1),
-		ecp_instruction_(c_buffer_ref),
 		reply(r_buffer_ref),
 		move_arm_second_phase(false)
 {

@@ -204,6 +204,13 @@ protected:
 	 */
 	lib::MotorArray current_motor_pos;
 
+	/*!
+	 * \brief Reference to base types of instruction
+	 *
+	 * The particular type is the field of derived classes
+	 */
+	lib::c_buffer & ecp_instruction_;
+
 public:
 
 	bool servo_mode;
@@ -523,13 +530,6 @@ public:
 	 * It is reimplemented in derived classes to call the template class specialized with particular class type
 	 */
 	virtual void variant_reply_to_instruction();
-
-	/*!
-	 * \brief Reference to base types of instruction
-	 *
-	 * The particular type is the field of derived classes
-	 */
-	lib::c_buffer & ecp_instruction_;
 
 	/*!
 	 * \brief Reference to base types of reply
