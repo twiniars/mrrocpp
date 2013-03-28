@@ -436,7 +436,7 @@ void wgt_single_motor_move::move_it_current()
 	try {
 
 		if (robot->state.edp.pid != -1) {
-
+			interface.ui_msg->message("move it currents");
 			robot->ui_ecp_robot->move_currents(robot->desired_current);
 
 			ui.doubleSpinBox_des_si->setValue(robot->desired_current[0]);

@@ -432,6 +432,12 @@
      <property name="buttonSymbols">
       <enum>QAbstractSpinBox::NoButtons</enum>
      </property>
+     <property name="minimum">
+      <number>-100000</number>
+     </property>
+     <property name="maximum">
+      <number>100000</number>
+     </property>
     </widget>
    </item>
    <item row="11" column="2">
@@ -460,7 +466,14 @@
     </widget>
    </item>
    <item row="11" column="3" colspan="2">
-    <widget class="QSpinBox" name="spinBox_des_current"/>
+    <widget class="QSpinBox" name="spinBox_des_current">
+     <property name="minimum">
+      <number>-100000</number>
+     </property>
+     <property name="maximum">
+      <number>100000</number>
+     </property>
+    </widget>
    </item>
    <item row="11" column="5">
     <widget class="QPushButton" name="pushButton_l_current">
@@ -521,7 +534,11 @@
     </widget>
    </item>
    <item row="12" column="5" colspan="3">
-    <widget class="QSpinBox" name="spinBox_step_current"/>
+    <widget class="QSpinBox" name="spinBox_step_current">
+     <property name="maximum">
+      <number>1000</number>
+     </property>
+    </widget>
    </item>
    <item row="13" column="3">
     <widget class="QPushButton" name="pushButton_import_current">
