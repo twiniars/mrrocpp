@@ -212,9 +212,13 @@ motor_driven_effector::motor_driven_effector(shell &_shell, const lib::robot_nam
 	startedCallbackRegistered_ = false;
 	stoppedCallbackRegistered_ = false;
 
+	float velocity_limit_global_factor_max_glocal_factor =
+			config.value <float>("velocity_limit_global_factor_max_glocal_factor", lib::UI_SECTION);
+
 	if (config.exists("velocity_limit_global_factor")) {
 		float _velocity_limit_global_factor = config.value <float>("velocity_limit_global_factor");
-		if ((_velocity_limit_global_factor > 0) && (_velocity_limit_global_factor <= 1)) {
+		if ((_velocity_limit_global_factor > 0)
+				&& (_velocity_limit_global_factor <= velocity_limit_global_factor_max_glocal_factor)) {
 			velocity_limit_global_factor = _velocity_limit_global_factor;
 		} else {
 			msg->message(lib::NON_FATAL_ERROR, "bad velocity_limit_global_factor, defaults loaded");
