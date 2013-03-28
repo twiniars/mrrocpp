@@ -671,6 +671,11 @@ struct r_buffer_arm_t
 	struct
 	{
 		/*!
+		 *  Average value
+		 */
+		unsigned short average_value[lib::MAX_SERVOS_NR];
+
+		/*!
 		 *  Average module
 		 */
 		unsigned short average_module[lib::MAX_SERVOS_NR];
@@ -725,6 +730,7 @@ private:
 		ar & pf_def.force_xyz_torque_xyz;
 		ar & gripper_reg_state;
 
+		ar & measured_current.average_value;
 		ar & measured_current.average_module;
 		ar & measured_current.minimum_module;
 		ar & measured_current.maximum_module;

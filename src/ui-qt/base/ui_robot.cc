@@ -59,8 +59,8 @@ UiRobot::UiRobot(Interface& _interface, lib::robot_name_t _robot_name, int _numb
 	current_pos = new double[number_of_servos];
 	desired_pos = new double[number_of_servos];
 
-	current_current = new double[number_of_servos];
-	desired_current = new double[number_of_servos];
+	current_current = new short[number_of_servos];
+	desired_current = new short[number_of_servos];
 
 }
 
