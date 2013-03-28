@@ -63,6 +63,7 @@ public:
 		tmp_cmd.trans_t_task = nm_task; // force, arm etc.
 		tmp_cmd.trans_t_tryb = nm_tryb; // tryb dla zadania
 		tmp_cmd.instruction = _instruction;
+		printf("iiiii: %f\n\n\n", tmp_cmd.instruction.arm.pf_def.desired_torque_or_current[0]);
 
 		// odwieszenie watku transformation
 		master_to_trans_synchroniser.command();

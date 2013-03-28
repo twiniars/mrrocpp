@@ -66,7 +66,7 @@ void EcpRobot::init()
 // ---------------------------------------------------------------
 void EcpRobot::move_currents(const short des_cur[])
 {
-
+//	printf("move_currents: \n\n\n");
 	int nr_of_steps = 10;
 
 	ecp->ecp_command.instruction_type = lib::SET_GET;
@@ -82,18 +82,15 @@ void EcpRobot::move_currents(const short des_cur[])
 
 	if (nr_of_steps < 1) // Nie wykowywac bo zadano ruch do aktualnej pozycji
 		return;
-	for (int j = 0; j < ecp->number_of_servos; j++)
-		ecp->ecp_command.arm.pf_def.desired_torque_or_current[j] = des_cur[j];
+	for (int j = 0; j < ecp->number_of_servos; j++) {
+		ecp->ecp_command.arm.pf_def.desired_torque_or_current[j] = double(des_cur[j]);
+		//	printf("ggg: %f\n\n\n", ecp->ecp_command.arm.pf_def.desired_torque_or_current[j]);
+	}
 
 	// printf("\n ilosc krokow: %d, po ilu komun: %d, odleglosc 1: %f\n",ecp_command.motion_steps, ecp_command.value_in_step_no, ecp_command.arm.pf_def.arm_coordinates[1]);
 
 	execute_motion();
 
-	if (ecp->is_synchronised())
-		for (int j = 0; j < ecp->number_of_servos; j++) // Przepisanie aktualnych polozen
-				{
-			current_position[j] = ecp->reply_package.arm.pf_def.motor_coordinates[j];
-		}
 }
 
 // ---------------------------------------------------------------

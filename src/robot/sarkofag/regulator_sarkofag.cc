@@ -237,7 +237,10 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 		{
 			current_reg_kp = 1; // zerowe extra wzmocnienie
 			// przepisanie zadanej wartosci pradu
+			printf("nnnnn: %f\n", master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0]);
+
 			set_value_new = master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0];
+			printf("aaaaa: %f\n", set_value_new);
 		}
 			break;
 
