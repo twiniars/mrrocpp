@@ -44,8 +44,8 @@ private:
 	Ui::wgt_single_motor_moveClass ui;
 	mrrocpp::ui::common_012::UiRobot* robot;
 
-	void init_mr_and_si();
-	void copy_mr_and_si();
+	void init_all();
+	void copy_all();
 
 	void synchro_depended_widgets_disable(bool _set_disabled);
 
@@ -87,6 +87,15 @@ private slots:
 	void on_pushButton_execute_si_clicked();
 	void on_pushButton_l_si_clicked();
 	void on_pushButton_r_si_clicked();
+
+	void on_pushButton_read_current_clicked();
+	void on_pushButton_export_current_clicked();
+	void on_pushButton_import_current_clicked();
+	void on_pushButton_copy_current_clicked();
+
+	void on_pushButton_execute_current_clicked();
+	void on_pushButton_l_current_clicked();
+	void on_pushButton_r_current_clicked();
 
 };
 

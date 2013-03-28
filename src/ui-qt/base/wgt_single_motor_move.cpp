@@ -62,8 +62,8 @@ void wgt_single_motor_move::synchro_depended_widgets_disable(bool _set_disabled)
 
 void wgt_single_motor_move::init_and_copy_slot()
 {
-	init_mr_and_si();
-	copy_mr_and_si();
+	init_all();
+	copy_all();
 }
 
 void wgt_single_motor_move::synchro_depended_init_slot()
@@ -83,24 +83,23 @@ void wgt_single_motor_move::synchro_depended_init_slot()
 		}
 
 	} // end try
-	CATCH_SECTION_UI_PTR
-}
+	CATCH_SECTION_UI_PTR}
 
-/***************************
- * MOTORS
- ****************************/
+	/***************************
+	 * MOTORS
+	 ****************************/
 
 void wgt_single_motor_move::on_pushButton_read_mr_clicked()
 {
-	init_mr_and_si();
+	init_all();
 }
 
-void wgt_single_motor_move::init_mr_and_si()
+void wgt_single_motor_move::init_all()
 {
 	init_mr();
 	init_si();
 }
-void wgt_single_motor_move::copy_mr_and_si()
+void wgt_single_motor_move::copy_all()
 {
 	copy_mr();
 	copy_si();
@@ -128,8 +127,7 @@ void wgt_single_motor_move::init_mr()
 		}
 
 	} // end try
-	CATCH_SECTION_UI_PTR
-}
+	CATCH_SECTION_UI_PTR}
 
 void wgt_single_motor_move::on_pushButton_import_mr_clicked()
 {
@@ -221,23 +219,22 @@ void wgt_single_motor_move::move_it_mr()
 			if (robot->state.edp.is_synchronised) {
 				ui.doubleSpinBox_des_mr->setValue(robot->desired_pos[0]);
 
-				init_mr_and_si();
+				init_all();
 			}
 
 		} // end if (robot->state.edp.pid!=-1)
 
 	} // end try
 
-	CATCH_SECTION_UI_PTR
-}
+	CATCH_SECTION_UI_PTR}
 
-/***************************
- * JOINS
- ****************************/
+	/***************************
+	 * JOINS
+	 ****************************/
 
 void wgt_single_motor_move::on_pushButton_read_si_clicked()
 {
-	init_mr_and_si();
+	init_all();
 }
 
 void wgt_single_motor_move::init_si()
@@ -268,8 +265,7 @@ void wgt_single_motor_move::init_si()
 		}
 
 	} // end try
-	CATCH_SECTION_UI_PTR
-}
+	CATCH_SECTION_UI_PTR}
 
 void wgt_single_motor_move::on_pushButton_import_si_clicked()
 {
@@ -361,12 +357,49 @@ void wgt_single_motor_move::move_it_si()
 			if (robot->state.edp.is_synchronised) {
 				ui.doubleSpinBox_des_si->setValue(robot->desired_pos[0]);
 
-				init_mr_and_si();
+				init_all();
 			}
 
 		} // end if (robot->state.edp.pid!=-1)
 
 	} // end try
 
-	CATCH_SECTION_UI_PTR
+	CATCH_SECTION_UI_PTR}
+
+// CURRENT
+
+void wgt_single_motor_move::on_pushButton_read_current_clicked()
+{
+
 }
+
+void wgt_single_motor_move::on_pushButton_export_current_clicked()
+{
+
+}
+
+void wgt_single_motor_move::on_pushButton_import_current_clicked()
+{
+
+}
+
+void wgt_single_motor_move::on_pushButton_copy_current_clicked()
+{
+
+}
+
+void wgt_single_motor_move::on_pushButton_execute_current_clicked()
+{
+
+}
+
+void wgt_single_motor_move::on_pushButton_l_current_clicked()
+{
+
+}
+
+void wgt_single_motor_move::on_pushButton_r_current_clicked()
+{
+
+}
+

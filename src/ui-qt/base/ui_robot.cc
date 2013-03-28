@@ -58,6 +58,10 @@ UiRobot::UiRobot(Interface& _interface, lib::robot_name_t _robot_name, int _numb
 
 	current_pos = new double[number_of_servos];
 	desired_pos = new double[number_of_servos];
+
+	current_current = new double[number_of_servos];
+	desired_current = new double[number_of_servos];
+
 }
 
 UiRobot::~UiRobot()
@@ -84,7 +88,6 @@ double UiRobot::getDesiredPos(int i)
 {
 	return desired_pos[i];
 }
-
 
 void UiRobot::setup_menubar()
 {
@@ -258,9 +261,9 @@ const lib::robot_name_t UiRobot::getName()
 
 void UiRobot::close_all_windows()
 {
-	BOOST_FOREACH(wgt_pair_t &wgt, wgts) {
-		wgt.second->dwgt->close();
-	}
+	BOOST_FOREACH(wgt_pair_t &wgt, wgts){
+	wgt.second->dwgt->close();
+}
 
 }
 
@@ -610,59 +613,59 @@ void UiRobot::reload_configuration()
 						boost::tokenizer <boost::char_separator <char> > tokens(text, sep);
 
 						int j = 0;
-						BOOST_FOREACH(std::string t, tokens) {
+						BOOST_FOREACH(std::string t, tokens){
 
-							if (i < 3) {
-								//value = boost::lexical_cast<double>(my_string);
+						if (i < 3) {
+							//value = boost::lexical_cast<double>(my_string);
 
-								state.edp.preset_position[i][j] = boost::lexical_cast <double>(t);
-							} else {
-								state.edp.front_position[j] = boost::lexical_cast <double>(t);
-							}
-
-							if (j == number_of_servos) {
-								break;
-							}
-							j++;
+							state.edp.preset_position[i][j] = boost::lexical_cast <double>(t);
+						} else {
+							state.edp.front_position[j] = boost::lexical_cast <double>(t);
 						}
 
-					} else {
-						for (int j = 0; j < number_of_servos; j++) {
-							if (i < 3) {
-								state.edp.preset_position[i][j] = 0.0;
-							} else {
-								state.edp.front_position[j] = 0.0;
-								printf("nie zdefiniowano front_position w common.ini\n");
-							}
-
+						if (j == number_of_servos) {
+							break;
 						}
+						j++;
+					}
+
+				} else {
+					for (int j = 0; j < number_of_servos; j++) {
+						if (i < 3) {
+							state.edp.preset_position[i][j] = 0.0;
+						} else {
+							state.edp.front_position[j] = 0.0;
+							printf("nie zdefiniowano front_position w common.ini\n");
+						}
+
 					}
 				}
+			}
 
-				if (interface.config->exists(lib::ROBOT_TEST_MODE, state.edp.section_name))
-					state.edp.test_mode = interface.config->value <int>(lib::ROBOT_TEST_MODE, state.edp.section_name);
-				else
-					state.edp.test_mode = 0;
+			if (interface.config->exists(lib::ROBOT_TEST_MODE, state.edp.section_name))
+			state.edp.test_mode = interface.config->value <int>(lib::ROBOT_TEST_MODE, state.edp.section_name);
+			else
+			state.edp.test_mode = 0;
 
-				state.edp.hardware_busy_attach_point = interface.config->get_edp_hardware_busy_file(robot_name);
+			state.edp.hardware_busy_attach_point = interface.config->get_edp_hardware_busy_file(robot_name);
 
-				state.edp.network_resourceman_attach_point =
-						interface.config->get_edp_resourceman_attach_point(robot_name);
+			state.edp.network_resourceman_attach_point =
+			interface.config->get_edp_resourceman_attach_point(robot_name);
 
-				state.edp.network_reader_attach_point = interface.config->get_edp_reader_attach_point(robot_name);
+			state.edp.network_reader_attach_point = interface.config->get_edp_reader_attach_point(robot_name);
 
-				if (!interface.config->exists("node_name", state.edp.section_name)) {
-					state.edp.node_name = "localhost";
-				} else {
-					state.edp.node_name = interface.config->value <std::string>("node_name", state.edp.section_name);
-				}
-				break;
+			if (!interface.config->exists("node_name", state.edp.section_name)) {
+				state.edp.node_name = "localhost";
+			} else {
+				state.edp.node_name = interface.config->value <std::string>("node_name", state.edp.section_name);
+			}
+			break;
 			case UI_EDP_WAITING_TO_START_READER:
 			case UI_EDP_WAITING_TO_STOP_READER:
-				// nie robi nic bo EDP pracuje
-				break;
+			// nie robi nic bo EDP pracuje
+			break;
 			default:
-				break;
+			break;
 		}
 
 	} else {
@@ -670,14 +673,14 @@ void UiRobot::reload_configuration()
 		{
 			case UI_EDP_INACTIVE:
 			case UI_EDP_OFF:
-				state.edp.state = UI_EDP_INACTIVE;
-				break;
+			state.edp.state = UI_EDP_INACTIVE;
+			break;
 			case UI_EDP_WAITING_TO_START_READER:
 			case UI_EDP_WAITING_TO_STOP_READER:
-				// nie robi nic bo EDP pracuje
-				break;
+			// nie robi nic bo EDP pracuje
+			break;
 			default:
-				break;
+			break;
 		}
 	}
 
