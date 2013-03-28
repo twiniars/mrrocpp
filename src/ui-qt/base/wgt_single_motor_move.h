@@ -61,6 +61,12 @@ private:
 	void get_desired_position_si();
 	void move_it_si();
 
+	void init_current();
+	void copy_current();
+
+	void get_desired_current();
+	void move_it_current();
+
 signals:
 	void synchro_depended_init_signal();
 	void init_and_copy_signal();

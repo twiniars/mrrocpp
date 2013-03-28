@@ -98,11 +98,13 @@ void wgt_single_motor_move::init_all()
 {
 	init_mr();
 	init_si();
+	init_current();
 }
 void wgt_single_motor_move::copy_all()
 {
 	copy_mr();
 	copy_si();
+	copy_current();
 }
 
 void wgt_single_motor_move::init_mr()
@@ -366,40 +368,111 @@ void wgt_single_motor_move::move_it_si()
 
 	CATCH_SECTION_UI_PTR}
 
-// CURRENT
+	/***************************
+	 * CURRENT
+	 ****************************/
 
 void wgt_single_motor_move::on_pushButton_read_current_clicked()
 {
-
+	init_all();
 }
 
 void wgt_single_motor_move::on_pushButton_export_current_clicked()
 {
+	std::stringstream buffer(std::stringstream::in | std::stringstream::out);
 
+	buffer << widget_label.toStdString() << " CURRENT\n " << ui.spinBox_des_current->value();
+
+	interface.ui_msg->message(buffer.str());
 }
 
 void wgt_single_motor_move::on_pushButton_import_current_clicked()
 {
+	double val[robot->number_of_servos];
 
+	interface.get_main_window()->get_lineEdit_position(val, robot->number_of_servos);
+
+	ui.spinBox_des_current->setValue(short(val[0]));
 }
 
 void wgt_single_motor_move::on_pushButton_copy_current_clicked()
 {
-
+	copy_current();
 }
 
 void wgt_single_motor_move::on_pushButton_execute_current_clicked()
 {
-
+	get_desired_current();
+	move_it_current();
 }
 
 void wgt_single_motor_move::on_pushButton_l_current_clicked()
 {
-
+	get_desired_current();
+	robot->desired_current[0] -= ui.spinBox_step_current->value();
+	move_it_current();
 }
 
 void wgt_single_motor_move::on_pushButton_r_current_clicked()
 {
+	get_desired_current();
+	robot->desired_current[0] += ui.spinBox_step_current->value();
+	move_it_current();
+}
 
+void wgt_single_motor_move::get_desired_current()
+{
+
+	if (robot->state.edp.pid != -1) {
+
+		robot->desired_current[0] = ui.spinBox_des_current->value();
+
+	}
+}
+
+void wgt_single_motor_move::move_it_current()
+{
+	// wychwytania ew. bledow ECP::robot
+	try {
+
+		if (robot->state.edp.pid != -1) {
+
+			robot->ui_ecp_robot->move_currents(robot->desired_current);
+
+			ui.doubleSpinBox_des_si->setValue(robot->desired_current[0]);
+
+			init_all();
+
+		} // end if (robot->state.edp.pid!=-1)
+
+	} // end try
+
+	CATCH_SECTION_UI_PTR}
+
+void wgt_single_motor_move::init_current()
+{
+
+	try {
+
+		if (robot->state.edp.pid != -1) {
+
+			robot->ui_ecp_robot->read_currents(robot->current_current); // Odczyt polozenia walow silnikow
+			ui.spinBox_cur_current->setValue(robot->current_current[0]);
+
+			robot->desired_current[0] = robot->current_current[0];
+
+		}
+
+	} // end try
+	CATCH_SECTION_UI_PTR}
+
+void wgt_single_motor_move::copy_current()
+{
+
+	if (robot->state.edp.pid != -1) {
+
+		ui.spinBox_des_current->setValue(ui.spinBox_cur_current->value());
+
+	}
 }
 

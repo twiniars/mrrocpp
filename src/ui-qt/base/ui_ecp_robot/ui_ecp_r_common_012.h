@@ -42,7 +42,7 @@ public:
 	EcpRobot(common::UiRobot& _ui_robot); // Konstruktor
 
 	void init();
-
+	void move_currents(const short des_cur[lib::MAX_SERVOS_NR]);
 	void move_motors(const double final_position[lib::MAX_SERVOS_NR]);
 	void move_joints(const double final_position[lib::MAX_SERVOS_NR]);
 
@@ -61,6 +61,9 @@ public:
 	// Zlecenie ruchu
 	void set_kinematic(uint8_t kinematic_model_no);
 	void set_servo_algorithm(uint8_t algorithm_no[lib::MAX_SERVOS_NR], uint8_t parameters_no[lib::MAX_SERVOS_NR]);
+
+	// Odczyt pradu
+	void read_currents(short current_current[lib::MAX_SERVOS_NR]);
 
 	// Odczyt polozenia
 	void read_motors(double current_position[lib::MAX_SERVOS_NR]);
