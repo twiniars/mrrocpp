@@ -43,6 +43,35 @@ effector::~effector()
 	}
 }
 
+void effector::check_kernel_version()
+{
+	if (!robot_test_mode) {
+		FILE* pipe = popen("uname -r", "r");
+		if (!pipe) {
+
+		}
+		char buffer[128];
+		std::string result = "";
+		while (!feof(pipe)) {
+			if (fgets(buffer, 128, pipe) != NULL)
+				result += buffer;
+		}
+		pclose(pipe);
+
+//	std::cout << "stderr: " << result << 'n';
+
+		if (std::string::npos != result.find("generic")) {
+			std::stringstream buffer(std::stringstream::in | std::stringstream::out);
+
+			buffer << "GENERIC LINUX KERNEL RUNNING IN HARDWARE MODE: " << result;
+
+			msg->message(lib::NON_FATAL_ERROR, buffer.str());
+		}
+
+	}
+
+}
+
 /*--------------------------------------------------------------------------*/
 void effector::initialize_communication()
 {
