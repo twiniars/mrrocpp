@@ -28,7 +28,6 @@ void effector::create_threads()
 
 void effector::master_order(common::MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction)
 {
-	printf("gggggg: %f\n\n\n", instruction.arm.pf_def.desired_torque_or_current[0]);
 
 	motor_driven_effector::multi_thread_master_order(nm_task, nm_tryb, instruction);
 }

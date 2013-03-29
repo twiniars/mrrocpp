@@ -45,17 +45,13 @@ void manip_trans_t::operator()()
 		error = boost::exception_ptr();
 
 		master.move_arm_second_phase = false;
-		printf("jjjjjjj: %f\n\n\n", tmp_cmd.instruction.arm.pf_def.desired_torque_or_current[0]);
 
 		// przekopiowanie instrukcji z bufora watku komunikacji z ECP (edp_master)
 
 		current_cmd = tmp_cmd;
-		printf("kkkkkk: %f\n\n\n", current_cmd.instruction.arm.pf_def.desired_torque_or_current[0]);
 
 		// w celu zapewnienia extra informacji regulatorom, generalnie do usuniecia
-		master.sb->command.sb_instruction_ = current_cmd.instruction;
-		printf("lllllllll: %f\n\n\n", current_cmd.instruction.arm.pf_def.desired_torque_or_current[0]);
-		printf("mmmmm: %f\n\n\n", master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0]);
+		master.sb->servo_command.sb_instruction_ = current_cmd.instruction;
 
 		//        master.current_instruction = master.instruction;
 

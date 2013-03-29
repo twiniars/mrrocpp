@@ -133,7 +133,6 @@ void motor_driven_effector::multi_thread_move_arm(const lib::c_buffer &instructi
 	switch (instruction.set_arm_type)
 	{
 		case lib::MOTOR:
-			printf("mmmmm11111: %f\n\n\n", sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0]);
 
 			compute_motors(instruction);
 			move_servos();
@@ -185,7 +184,6 @@ void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task,
 
 void motor_driven_effector::multi_thread_master_order(MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction)
 {
-	printf("hhhhhhhh: %f\n\n\n", instruction.arm.pf_def.desired_torque_or_current[0]);
 
 	mt_tt_obj->master_to_trans_t_order(nm_task, nm_tryb, instruction);
 }
@@ -350,9 +348,7 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 	reply.error_no.error0 = OK;
 	reply.error_no.error1 = OK;
 
-	printf("aaaaassss: %f\n\n\n", instruction.arm.pf_def.desired_torque_or_current[0]);
-
-	// Wykonanie instrukcji
+		// Wykonanie instrukcji
 	switch (instruction.instruction_type)
 	{
 		case lib::SET:
@@ -430,7 +426,6 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 			if (instruction.is_set_arm())
 				// przemieszczenie koncowki
 				// move_arm();
-				printf("ddddd: %f\n\n\n", instruction.arm.pf_def.desired_torque_or_current[0]);
 
 			master_order(MT_MOVE_ARM, 0, instruction);
 			// Cz GET
@@ -753,7 +748,6 @@ void motor_driven_effector::move_servos()
 {
 	/* Wyslanie polecenia ruchu do procesu SERVO_GROUP oraz odebranie wyniku
 	 realizacji pierwszej fazy ruchu */
-	printf("mmmmm2222222: %f\n\n\n", sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0]);
 
 	/* Uformowanie rozkazu ruchu dla SERVO_GROUP */
 	sb->servo_command.instruction_code = MOVE;
@@ -781,7 +775,6 @@ void motor_driven_effector::move_servos()
 	/* Wyslanie makrokroku do realizacji procesowi SERVO_GROUP */
 	/* Odebranie od procesu SERVO_GROUP informacji o realizacji pierwszej fazy ruchu */
 	sb->send_to_SERVO_GROUP();
-	printf("mmmmm33333: %f\n\n\n", sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0]);
 
 }
 

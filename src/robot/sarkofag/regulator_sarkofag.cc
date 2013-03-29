@@ -30,6 +30,9 @@ namespace sarkofag {
 NL_regulator_8_sarkofag::NL_regulator_8_sarkofag(uint8_t _axis_number, uint8_t reg_no, uint8_t reg_par_no, double aa, double bb0, double bb1, double k_ff, common::motor_driven_effector &_master, common::REG_OUTPUT _reg_output) :
 		NL_regulator(_axis_number, reg_no, reg_par_no, aa, bb0, bb1, k_ff, _master, _reg_output)
 {
+// pzredefiniwoane na potrzeby eksperymentþów
+	strict_current_mode = true;
+
 	desired_velocity_limit = 0.5;
 	reg_state = next_reg_state = prev_reg_state = lib::GRIPPER_START_STATE;
 	sum_of_currents = current_index = 0;
@@ -237,10 +240,9 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 		{
 			current_reg_kp = 1; // zerowe extra wzmocnienie
 			// przepisanie zadanej wartosci pradu
-			printf("nnnnn: %f\n", master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0]);
 
 			set_value_new = master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0];
-			printf("aaaaa: %f\n", set_value_new);
+			//	printf("set_value_new case 1: %f\n", set_value_new);
 		}
 			break;
 
