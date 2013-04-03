@@ -50,7 +50,7 @@ public:
 	void move_arm(const lib::c_buffer &);
 	void get_arm_position(bool, lib::c_buffer &);
 
-	void master_order(common::MT_ORDER nm_task, int nm_tryb);
+	void master_order(common::MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction);
 
 	/*!
 	 * \brief The particular type of instruction send form ECP to EDP

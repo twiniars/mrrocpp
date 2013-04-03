@@ -53,11 +53,20 @@ enum ECP_REPLY
 
 //------------------------------------------------------------------------------
 /*!
- *  Type of arm position definition.
+ *  Type of arm coordinates definition.
  */
 enum POSE_SPECIFICATION
 {
 	INVALID_END_EFFECTOR, FRAME, JOINT, MOTOR, PF_VELOCITY
+};
+
+//------------------------------------------------------------------------------
+/*!
+ *  Type of axis definition.
+ */
+enum AXIS_CONTROL_MODE_SPECIFICATION
+{
+	POSITION_CM, CURRENT_CM
 };
 
 //------------------------------------------------------------------------------
@@ -450,12 +459,13 @@ struct c_buffer_arm_t
 	//----------------------------------------------------------
 	struct
 	{
+		AXIS_CONTROL_MODE_SPECIFICATION axis_control_mode;
 		/*!  End's trihedron relative to the base system. */
 		lib::Homog_matrix arm_frame;
 		/*! XYZ + end's orientation relative to the base system. */
 		double arm_coordinates[lib::MAX_SERVOS_NR];
-		/*! Given torque. */
-		double desired_torque[lib::MAX_SERVOS_NR];
+		/*! Given torque or current depending on an arm specification. */
+		double desired_torque_or_current[lib::MAX_SERVOS_NR];
 		double inertia[6], reciprocal_damping[6];
 		lib::Ft_vector force_xyz_torque_xyz;
 		BEHAVIOUR_SPECIFICATION behaviour[6];
@@ -470,9 +480,10 @@ private:
 	template <class Archive>
 	void serialize(Archive & ar, const unsigned int version)
 	{
+		ar & pf_def.axis_control_mode;
 		ar & pf_def.arm_frame; // if set_arm_type == FRAME
 		ar & pf_def.arm_coordinates; // otherwise.
-		ar & pf_def.desired_torque;
+		ar & pf_def.desired_torque_or_current;
 		ar & pf_def.inertia;
 		ar & pf_def.reciprocal_damping;
 		ar & pf_def.force_xyz_torque_xyz;
@@ -660,6 +671,11 @@ struct r_buffer_arm_t
 	struct
 	{
 		/*!
+		 *  Average value
+		 */
+		unsigned short average_value[lib::MAX_SERVOS_NR];
+
+		/*!
 		 *  Average module
 		 */
 		unsigned short average_module[lib::MAX_SERVOS_NR];
@@ -714,6 +730,7 @@ private:
 		ar & pf_def.force_xyz_torque_xyz;
 		ar & gripper_reg_state;
 
+		ar & measured_current.average_value;
 		ar & measured_current.average_module;
 		ar & measured_current.minimum_module;
 		ar & measured_current.maximum_module;
@@ -818,7 +835,7 @@ public:
 	/*!
 	 * \brief template method to put data into the memory (serialize)
 	 */
-template	<typename BUFFER_TYPE>
+	template <typename BUFFER_TYPE>
 	void set(const BUFFER_TYPE & buffer)
 	{
 		xdr_oarchive <> oa;

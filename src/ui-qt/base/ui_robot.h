@@ -240,6 +240,8 @@ public:
 
 	double *current_pos; // pozycja biezaca
 	double *desired_pos; // pozycja zadana
+	short *current_current; // prad zmierzony [ma]
+	short *desired_current; // prad zadany [ma]
 
 protected:
 	QAction *EDP_Load;

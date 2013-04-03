@@ -89,7 +89,8 @@ bool tfg::next_step()
 	the_robot->ecp_command.value_in_step_no = 998;
 
 	std::stringstream ss(std::stringstream::in | std::stringstream::out);
-	ss << "position: " << the_robot->reply_package.arm.pf_def.joint_coordinates[0] << ", node_counter:  " << node_counter;
+	ss << "position: " << the_robot->reply_package.arm.pf_def.joint_coordinates[0] << ", node_counter:  "
+			<< node_counter;
 
 	sr_ecp_msg.message(ss.str().c_str());
 
