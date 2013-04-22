@@ -112,12 +112,13 @@ void imu::operator()()
 			}
 			sr_msg->message(lib::FATAL_ERROR, error0);
 
-		}
-
-		catch (...) {
-			std::cerr << "unidentified error in EDP imu thread" << std::endl;
-			sr_msg->message(lib::SYSTEM_ERROR, "error in EDP imu thread: see console");
+		} catch (std::runtime_error & e) {
+			std::cerr << "std runtime_error in EDP imu thread" << std::endl;
+			sr_msg->message(lib::SYSTEM_ERROR, "std runtime_error in EDP imu thread: see console");
 			raise(SIGUSR2);
+
+		} catch (...) {
+			std::cerr << "unidentified error in EDP imu thread" << std::endl;
 		}
 
 		//	sr_msg->message("imu operator() in while");

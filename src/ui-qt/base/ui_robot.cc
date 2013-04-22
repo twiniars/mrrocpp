@@ -192,7 +192,9 @@ int UiRobot::edp_create_int()
 
 						state.edp.state = UI_EDP_WAITING_TO_START_READER;
 						//	printf("connect_to_reader \n");
-						connect_to_reader();
+						if (!connect_to_reader()) {
+							BOOST_THROW_EXCEPTION(ecp::exception::se_r());
+						}
 						//	printf("get_edp_state \n");
 						get_edp_state();
 						//	printf(" get_edp_state za \n");
@@ -242,7 +244,7 @@ int UiRobot::edp_create_int()
 
 void UiRobot::get_edp_state()
 {
-	// odczytanie poczatkowego stanu robota (komunikuje sie z EDP)
+// odczytanie poczatkowego stanu robota (komunikuje sie z EDP)
 	lib::controller_state_t robot_controller_initial_state_tmp;
 
 	ui_get_controler_state(robot_controller_initial_state_tmp);
@@ -274,7 +276,7 @@ void UiRobot::abort_thread()
 	tid = NULL;
 }
 
-void UiRobot::connect_to_reader()
+int UiRobot::connect_to_reader()
 {
 	short tmp = 0;
 	// kilka sekund  (~1) na otworzenie urzadzenia
@@ -284,9 +286,10 @@ void UiRobot::connect_to_reader()
 			boost::this_thread::sleep(lib::CONNECT_DELAY);
 		} else {
 			perror("blad odwolania do READER");
-			break;
+			return 0;
 		}
 	}
+	return 1;
 }
 
 bool UiRobot::pulse_reader_start_exec_pulse()
