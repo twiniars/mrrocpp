@@ -1,3 +1,6 @@
+#include "signal.h"
+#include "unistd.h"
+
 #include <iostream>
 #include <exception>
 
@@ -7,6 +10,8 @@
 #include "reader.h"
 #include "base/kinematics/kinematic_model_with_tool.h"
 #include "edp_imu_sensor.h"
+
+using namespace mrrocpp::lib::exception;
 
 namespace mrrocpp {
 namespace edp {
@@ -111,6 +116,8 @@ void imu::operator()()
 
 		catch (...) {
 			std::cerr << "unidentified error in EDP imu thread" << std::endl;
+			sr_msg->message(lib::SYSTEM_ERROR, "error in EDP imu thread: see console");
+			raise(SIGUSR2);
 		}
 
 		//	sr_msg->message("imu operator() in while");
