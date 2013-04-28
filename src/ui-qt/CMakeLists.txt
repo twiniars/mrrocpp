@@ -235,6 +235,7 @@ ADD_EXECUTABLE(
 TARGET_LINK_LIBRARIES(
 	ui-qt
 	ecp_robot
+	pthread
 	${QT_LIBRARIES}
 	${COMMON_LIBRARIES}
     ${Boost_REGEX_LIBRARY}
