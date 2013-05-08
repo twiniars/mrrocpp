@@ -166,7 +166,7 @@ public:
 	void close_all_windows();
 	void EDP_slay_int();
 	void abort_edp();
-	void connect_to_reader(void);
+	int connect_to_reader(void);
 	void connect_to_ecp_pulse_channel(void);
 	void pulse_ecp_execute(int code, int value);
 	virtual void delete_ui_ecp_robot();
@@ -240,6 +240,8 @@ public:
 
 	double *current_pos; // pozycja biezaca
 	double *desired_pos; // pozycja zadana
+	short *current_current; // prad zmierzony [ma]
+	short *desired_current; // prad zadany [ma]
 
 protected:
 	QAction *EDP_Load;

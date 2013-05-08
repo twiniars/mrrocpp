@@ -203,6 +203,9 @@ public:
 	 */
 	virtual void create_threads() = 0;
 
+	// checks kernel version and monits if no real time kernel is running
+	void check_kernel_version();
+
 };
 /************************ EDP_EFFECTOR ****************************/
 

@@ -14,6 +14,7 @@
 #include "base/lib/mis_fun.h"
 #include "base/edp/edp_e_motor_driven.h"
 #include "base/edp/manip_trans_t.h"
+#include "base/edp/servo_gr.h"
 
 /********************************* GLOBALS **********************************/
 
@@ -48,6 +49,10 @@ void manip_trans_t::operator()()
 		// przekopiowanie instrukcji z bufora watku komunikacji z ECP (edp_master)
 
 		current_cmd = tmp_cmd;
+
+		// w celu zapewnienia extra informacji regulatorom, generalnie do usuniecia
+		master.sb->servo_command.sb_instruction_ = current_cmd.instruction;
+
 		//        master.current_instruction = master.instruction;
 
 		try {
@@ -110,7 +115,8 @@ void manip_trans_t::operator()()
 				error = boost::current_exception();
 				trans_t_to_master_synchroniser.command();
 				printf("transformation thread error sp\n");
-				flushall();
+				flushall()
+				;
 
 			} else {
 				error = boost::current_exception();
@@ -118,7 +124,8 @@ void manip_trans_t::operator()()
 				error_existed++;
 				if (error_existed <= 3) {
 					printf("transformation thread error pp: %d\n", error_existed);
-					flushall();
+					flushall()
+					;
 				}
 			}
 

@@ -58,6 +58,13 @@ void IMU::setFactors(double gf, double af)
 
 ImuData IMU::getReading()
 {
+
+	struct timespec delay;
+	delay.tv_nsec = 1 * 1000000;
+	delay.tv_sec = 0;
+
+	int timeout_counter = 0;
+
 	for (;;) {
 		fd_set rfds;
 
@@ -76,7 +83,11 @@ ImuData IMU::getReading()
 			//	throw std::runtime_error("imu 16362 <0 !!!");
 		} else if (select_retval == 0) {
 			printf("imu 16362 ==0 timeout !!! \n");
-			//	throw std::runtime_error("imu 16362 ==0  timeout !!!");
+			nanosleep(&delay, NULL);
+			if ((timeout_counter++) >= 10) {
+				throw std::runtime_error("imu 16362 ==0  timeout !!!");
+			}
+
 		} else {
 			//printf("imu 16362 >0  \n");
 			int ret = read(fd, data + dlen, 50 - dlen);

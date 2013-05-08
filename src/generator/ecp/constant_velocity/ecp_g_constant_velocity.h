@@ -114,7 +114,7 @@ public:
 	 * Loads the whole trajectory chain (possibly more than one position) stored in a text file.
 	 * @param file_name name of the file with the trajectory
 	 */
-	bool load_trajectory_from_file(const char* file_name);
+	virtual bool load_trajectory_from_file(const char* file_name);
 
 private:
 	/**
@@ -132,7 +132,7 @@ private:
 	 * Calculates trajectory.
 	 * @return true if calculation was successful.
 	 */
-	bool calculate();
+	virtual bool calculate();
 	/**
 	 * Method used to print list of positions.
 	 */

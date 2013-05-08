@@ -33,6 +33,9 @@ regulator::regulator(uint8_t _axis_number, uint8_t reg_no, uint8_t reg_par_no, c
 	// Inicjuje zmienne, ktore kazdy regulator konkretny musi miec i aktualizowac,
 	// niezaleznie od tego czy sa mu niezbedne, czy nie.
 
+	// tymczasowo do przedefiniowania w klasach potomnych
+	strict_current_mode = false;
+
 	algorithm_no = reg_no; // przeslany numer algorytmu
 	current_algorithm_no = reg_no; // numer aktualnie uzywanego algorytmu
 	algorithm_parameters_no = reg_par_no; // przeslany numer zestawu parametrow algorytmu
@@ -253,10 +256,13 @@ void NL_regulator::compute_set_value_final_computations()
 		master.rb_obj->step_data.measured_current[axis_number] = measured_current;
 	}
 
-	if (set_value_new > MAX_PWM)
-		set_value_new = MAX_PWM;
-	if (set_value_new < -MAX_PWM)
-		set_value_new = -MAX_PWM;
+	if (!strict_current_mode) {
+
+		if (set_value_new > MAX_PWM)
+			set_value_new = MAX_PWM;
+		if (set_value_new < -MAX_PWM)
+			set_value_new = -MAX_PWM;
+	}
 
 	int display_axis_number = master.sb->display_axis_number;
 

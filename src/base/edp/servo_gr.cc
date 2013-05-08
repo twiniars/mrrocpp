@@ -92,6 +92,7 @@ void servo_buffer::compute_current_measurement_statistics()
 
 		// dla pierwszego kroku
 		if (step_number == 1) {
+			master.reply.arm.measured_current.average_value[k] = measured_current;
 			master.reply.arm.measured_current.average_cubic[k] = pow(measured_current, 3);
 			master.reply.arm.measured_current.average_module[k] = abs(measured_current);
 			master.reply.arm.measured_current.average_square[k] = pow(measured_current, 2);
@@ -106,10 +107,12 @@ void servo_buffer::compute_current_measurement_statistics()
 			//			printf(">>>>current for %d : %d\n", k, measured_current);
 			float average_cubic = master.reply.arm.measured_current.average_cubic[k];
 			float average_square = master.reply.arm.measured_current.average_square[k];
+			unsigned short average_value = master.reply.arm.measured_current.average_value[k];
 			unsigned short average_module = master.reply.arm.measured_current.average_module[k];
 			unsigned short minimum_module = master.reply.arm.measured_current.minimum_module[k];
 			unsigned short maximum_module = master.reply.arm.measured_current.maximum_module[k];
 
+			average_value = ADD_NEXT_VALUE_TO_AVERAGE(average_value, step_number, measured_current);
 			average_cubic = ADD_NEXT_VALUE_TO_AVERAGE(average_cubic, step_number, pow(measured_current, 3));
 			average_square = ADD_NEXT_VALUE_TO_AVERAGE(average_square, step_number, pow(measured_current,2));
 			average_module = ADD_NEXT_VALUE_TO_AVERAGE(average_module, step_number, abs(measured_current));
@@ -122,6 +125,7 @@ void servo_buffer::compute_current_measurement_statistics()
 			//			printf("min    %d %d\n", master.reply.arm.measured_current.minimum_module[k], minimum_module);
 			//			printf("max    %d %d\n", master.reply.arm.measured_current.maximum_module[k], maximum_module);
 
+			master.reply.arm.measured_current.average_value[k] = average_value;
 			master.reply.arm.measured_current.average_cubic[k] = average_cubic;
 			master.reply.arm.measured_current.average_module[k] = average_module;
 			master.reply.arm.measured_current.average_square[k] = average_square;
@@ -235,7 +239,7 @@ void servo_buffer::send_to_SERVO_GROUP()
 
 	if ((sg_reply.error.error0 != OK) || (sg_reply.error.error1 != OK)) {
 		printf("a: %llx, :%llx\n", sg_reply.error.error0, sg_reply.error.error1);
-		BOOST_THROW_EXCEPTION(fe() << mrrocpp_error0(sg_reply.error.error0) << mrrocpp_error1( sg_reply.error.error1));
+		BOOST_THROW_EXCEPTION(fe() << mrrocpp_error0(sg_reply.error.error0) << mrrocpp_error1(sg_reply.error.error1));
 	} // end: if((sg_reply.error.error0 != OK) || (sg_reply.error.error1 != OK))
 
 	// skopiowanie odczytow do transformera

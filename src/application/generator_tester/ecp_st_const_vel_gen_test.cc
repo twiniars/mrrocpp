@@ -1,8 +1,10 @@
 #include <vector>
 
+
 #include "base/lib/typedefs.h"
 #include "base/lib/impconst.h"
 #include "base/lib/com_buf.h"
+
 
 #include "base/lib/sr/srlib.h"
 #include "application/generator_tester/ecp_st_const_vel_gen_test.h"
@@ -29,28 +31,11 @@ const_vel_gen_test::const_vel_gen_test(task::task & _ecp_t) :
 		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_JOINT, 6);
 		cvgenjoint->set_debug(true);
 
-		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_MOTOR, 6);
+		cvgenmotor = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_MOTOR, 6);
 		cvgenmotor->set_debug(true);
 
 		track = false;
 		postument = true;
-		conv = false;
-
-		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_EULER_ZYZ, 6);
-		cvgeneuler->set_debug(true);
-
-		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_ANGLE_AXIS, 6);
-		cvgenangle->set_debug(true);
-
-	} else if (_ecp_t.ecp_m_robot->robot_name == lib::irp6ot_m::ROBOT_NAME) {
-		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_JOINT, 7);
-		cvgenjoint->set_debug(true);
-
-		cvgenmotor = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_MOTOR, 7);
-		cvgenmotor->set_debug(true);
-
-		track = true;
-		postument = false;
 		conv = false;
 
 		cvgeneuler = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_EULER_ZYZ, 6);
@@ -58,6 +43,23 @@ const_vel_gen_test::const_vel_gen_test(task::task & _ecp_t) :
 
 		cvgenangle = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_ANGLE_AXIS, 6);
 		cvgenangle->set_debug(true);
+
+	} else if (_ecp_t.ecp_m_robot->robot_name == lib::irp6ot_m::ROBOT_NAME) {
+		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_JOINT, 7);
+		cvgenjoint->set_debug(false);
+
+		cvgenmotor = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_MOTOR, 7);
+		cvgenmotor->set_debug(false);
+
+		track = true;
+		postument = false;
+		conv = false;
+
+		cvgeneuler = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_EULER_ZYZ, 6);
+		cvgeneuler->set_debug(false);
+
+		cvgenangle = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_XYZ_ANGLE_AXIS, 6);
+		cvgenangle->set_debug(false);
 
 	} else if (_ecp_t.ecp_m_robot->robot_name == lib::conveyor::ROBOT_NAME) {
 		cvgenjoint = (boost::shared_ptr <constant_velocity>) new constant_velocity(_ecp_t, lib::ECP_JOINT, 1);
@@ -79,6 +81,7 @@ const_vel_gen_test::const_vel_gen_test(task::task & _ecp_t) :
 	}
 
 	network_path = _ecp_t.config.value <std::string>("trajectory_file", lib::MP_SECTION);
+	//network_path1 = _ecp_t.config.value <std::string>("trajectory_file1", lib::MP_SECTION);
 }
 
 void const_vel_gen_test::conditional_execution()
@@ -88,12 +91,24 @@ void const_vel_gen_test::conditional_execution()
 	std::vector <double> coordinates2(7); //track
 	std::vector <double> coordinates4(1); //conveyor
 
+
 	//network_path = "../../src/application/generator_tester/optimizedTraj.trj";
 	//cvgenjoint->load_coordinates_from_file(network_path.c_str());
 	//cvgenjoint->Move();
 
 	//network_path = "../../src/application/generator_tester/trajectory.trj";
 	cvgenjoint->load_trajectory_from_file(network_path.c_str());
+	//network_path = std::string(ecp_t.mrrocpp_network_path);
+
+	if (cvgenjoint->calculate_interpolate()
+	//	 && cvgenjoint->detect_jerks(1) == 0
+	) {
+		cvgenjoint->Move();
+	}
+
+	sr_ecp_msg.message("teeeeest");
+
+	//cvgenjoint->load_trajectory_from_file(network_path1.c_str());
 	//network_path = std::string(ecp_t.mrrocpp_network_path);
 
 	if (cvgenjoint->calculate_interpolate()

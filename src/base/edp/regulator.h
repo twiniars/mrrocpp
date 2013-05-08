@@ -37,6 +37,9 @@ protected:
 	// ponizsze zmienne musza byc zawsze aktualizowany, ze wzgledu na
 	// "bezszelestne" przelaczanie algorytmow.
 
+	//czy zastosowane czyste sterowanie pradowe bez ograniczenia pwm?
+	bool strict_current_mode;
+
 	int measured_current; // wartosc zmierzona pradu
 
 	double position_increment_old; // przedosatnio odczytany przyrost polozenie (delta y[k-2]
@@ -178,7 +181,7 @@ public:
 
 	virtual ~NL_regulator();
 
-	void compute_set_value_final_computations();
+	virtual void compute_set_value_final_computations();
 
 };
 // ----------------------------------------------------------------------

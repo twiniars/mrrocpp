@@ -110,6 +110,7 @@ void motor_driven_effector::single_thread_move_arm(const lib::c_buffer &instruct
 	switch (instruction.set_arm_type)
 	{
 		case lib::MOTOR:
+
 			compute_motors(instruction);
 			move_servos();
 			break;
@@ -132,6 +133,7 @@ void motor_driven_effector::multi_thread_move_arm(const lib::c_buffer &instructi
 	switch (instruction.set_arm_type)
 	{
 		case lib::MOTOR:
+
 			compute_motors(instruction);
 			move_servos();
 			mt_tt_obj->trans_t_to_master_synchroniser.command();
@@ -148,7 +150,7 @@ void motor_driven_effector::multi_thread_move_arm(const lib::c_buffer &instructi
 
 }
 
-void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task, int nm_tryb)
+void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction)
 {
 	// przekopiowanie instrukcji z bufora watku komunikacji z ECP (edp_master)
 
@@ -180,8 +182,9 @@ void motor_driven_effector::single_thread_master_order(common::MT_ORDER nm_task,
 	}
 }
 
-void motor_driven_effector::multi_thread_master_order(MT_ORDER nm_task, int nm_tryb)
+void motor_driven_effector::multi_thread_master_order(MT_ORDER nm_task, int nm_tryb, lib::c_buffer &instruction)
 {
+
 	mt_tt_obj->master_to_trans_t_order(nm_task, nm_tryb, instruction);
 }
 
@@ -194,9 +197,9 @@ motor_driven_effector::motor_driven_effector(shell &_shell, const lib::robot_nam
 		desired_motor_pos_old(lib::MAX_SERVOS_NR),
 		desired_motor_pos_new(lib::MAX_SERVOS_NR),
 		current_motor_pos(lib::MAX_SERVOS_NR),
+		ecp_instruction_(c_buffer_ref),
 		step_counter(0),
 		number_of_servos(-1),
-		instruction(c_buffer_ref),
 		reply(r_buffer_ref),
 		move_arm_second_phase(false)
 {
@@ -211,9 +214,13 @@ motor_driven_effector::motor_driven_effector(shell &_shell, const lib::robot_nam
 	startedCallbackRegistered_ = false;
 	stoppedCallbackRegistered_ = false;
 
+	float velocity_limit_global_factor_max_glocal_factor =
+			config.value <float>("velocity_limit_global_factor_max_glocal_factor", lib::UI_SECTION);
+
 	if (config.exists("velocity_limit_global_factor")) {
 		float _velocity_limit_global_factor = config.value <float>("velocity_limit_global_factor");
-		if ((_velocity_limit_global_factor > 0) && (_velocity_limit_global_factor <= 1)) {
+		if ((_velocity_limit_global_factor > 0)
+				&& (_velocity_limit_global_factor <= velocity_limit_global_factor_max_glocal_factor)) {
 			velocity_limit_global_factor = _velocity_limit_global_factor;
 		} else {
 			msg->message(lib::NON_FATAL_ERROR, "bad velocity_limit_global_factor, defaults loaded");
@@ -341,7 +348,7 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 	reply.error_no.error0 = OK;
 	reply.error_no.error1 = OK;
 
-	// Wykonanie instrukcji
+		// Wykonanie instrukcji
 	switch (instruction.instruction_type)
 	{
 		case lib::SET:
@@ -353,11 +360,11 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 			if (instruction.is_set_robot_model())
 				// zmiana modelu robota
 				// set_robot_model();
-				master_order(MT_SET_ROBOT_MODEL, 0);
+				master_order(MT_SET_ROBOT_MODEL, 0, instruction);
 			if (instruction.is_set_arm()) {
 				// przemieszczenie koncowki
 				// move_arm();
-				master_order(MT_MOVE_ARM, 0);
+				master_order(MT_MOVE_ARM, 0, instruction);
 
 				get_arm_position(false, instruction); // Aktualizacja transformera
 			}
@@ -372,7 +379,7 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 				case lib::CONTROLLER_STATE:
 					// odczytanie TCP i orientacji koncowki
 					// get_arm_position(true);
-					master_order(MT_GET_CONTROLLER_STATE, 0);
+					master_order(MT_GET_CONTROLLER_STATE, 0, instruction);
 					break;
 				case lib::ARM:
 				case lib::ROBOT_MODEL:
@@ -386,14 +393,14 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 					}
 
 					if ((instruction.is_get_arm()) || (instruction.is_set_arm())) {
-						master_order(MT_GET_ARM_POSITION, true);
+						master_order(MT_GET_ARM_POSITION, true, instruction);
 					}
 
 					if (instruction.is_get_robot_model()) {
 						if (!((instruction.is_get_arm()) || (instruction.is_set_arm()))) {
 							if (instruction.get_robot_model_type == lib::SERVO_ALGORITHM) {
 								// get_algorithms();
-								master_order(MT_GET_ALGORITHMS, 0);
+								master_order(MT_GET_ALGORITHMS, 0, instruction);
 							}
 						}
 						get_robot_model(instruction);
@@ -415,11 +422,12 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 				// zmiana aktualnie uzywanego modelu robota (narzedzie, kinematic_model_with_tool kinematyczny,
 				// jego korektor, nr algorytmu regulacji i zestawu jego parametrow)
 				//        set_robot_model();
-				master_order(MT_SET_ROBOT_MODEL, 0);
+				master_order(MT_SET_ROBOT_MODEL, 0, instruction);
 			if (instruction.is_set_arm())
 				// przemieszczenie koncowki
 				// move_arm();
-				master_order(MT_MOVE_ARM, 0);
+
+			master_order(MT_MOVE_ARM, 0, instruction);
 			// Cz GET
 			// ustalenie formatu odpowiedzi
 			switch (reply.reply_type)
@@ -427,7 +435,7 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 				case lib::CONTROLLER_STATE:
 					// odczytanie TCP i orientacji koncowki
 					// get_arm_position(true);
-					master_order(MT_GET_CONTROLLER_STATE, 0);
+					master_order(MT_GET_CONTROLLER_STATE, 0, instruction);
 					break;
 				case lib::ARM:
 				case lib::ROBOT_MODEL:
@@ -443,14 +451,14 @@ void motor_driven_effector::interpret_instruction(lib::c_buffer &instruction)
 					if (instruction.is_set_arm()) {
 						get_arm_position(false, instruction);
 					} else if (instruction.is_get_arm()) {
-						master_order(MT_GET_ARM_POSITION, true);
+						master_order(MT_GET_ARM_POSITION, true, instruction);
 					}
 
 					if (instruction.is_get_robot_model()) {
 						if (!instruction.is_set_arm()) {
 							// ewentualna aktualizacja numerow algorytmow i ich zestawow parametrow
 							if (instruction.get_robot_model_type == lib::SERVO_ALGORITHM)
-								master_order(MT_GET_ALGORITHMS, 0);
+								master_order(MT_GET_ALGORITHMS, 0, instruction);
 						}
 						// odczytanie aktualnie uzywanego modelu robota (narzedzie, kinematic_model_with_tool kinematyczny,
 						// jego korektor, nr algorytmu regulacji i zestawu jego parametrow)
@@ -767,6 +775,7 @@ void motor_driven_effector::move_servos()
 	/* Wyslanie makrokroku do realizacji procesowi SERVO_GROUP */
 	/* Odebranie od procesu SERVO_GROUP informacji o realizacji pierwszej fazy ruchu */
 	sb->send_to_SERVO_GROUP();
+
 }
 
 void motor_driven_effector::update_servo_current_motor_pos(double motor_position_increment, size_t i)
@@ -779,7 +788,7 @@ void motor_driven_effector::update_servo_current_motor_pos_abs(double abs_motor_
 	servo_current_motor_pos[i] = abs_motor_position;
 }
 
-void motor_driven_effector::get_controller_state(lib::c_buffer &instruction)
+void motor_driven_effector::get_controller_state(const lib::c_buffer &instruction)
 {
 	//printf("get_controller_state: %d\n", controller_state_edp_buf.is_synchronised); fflush(stdout);
 	reply.controller_state = controller_state_edp_buf;
@@ -840,7 +849,7 @@ void motor_driven_effector::pre_synchro_loop(STATE& next_state)
 
 							//		std::cout << "AA: " << (int) instruction.get_type << std::endl;
 
-							if ((rep_type(instruction)) == lib::CONTROLLER_STATE) {
+							if ((rep_type(ecp_instruction_)) == lib::CONTROLLER_STATE) {
 								// master_order(MT_GET_CONTROLLER_STATE, 0);
 								reply.reply_type = lib::ACKNOWLEDGE;
 								reply.reply_type = lib::ACKNOWLEDGE;
@@ -849,7 +858,7 @@ void motor_driven_effector::pre_synchro_loop(STATE& next_state)
 								//		printf("receive_instruction 6\n");
 								flushall()
 								;
-								interpret_instruction(instruction);
+								interpret_instruction(ecp_instruction_);
 								//	printf("receive_instruction 7\n");
 								flushall()
 								;
@@ -1020,7 +1029,7 @@ void motor_driven_effector::synchro_loop(STATE& next_state)
 							variant_reply_to_instruction();
 							/* Zlecenie wykonania synchronizacji */
 
-							master_order(MT_SYNCHRONISE, 0); // by Y przejscie przez watek transfor w celu ujednolicenia
+							master_order(MT_SYNCHRONISE, 0, ecp_instruction_); // by Y przejscie przez watek transfor w celu ujednolicenia
 							// synchronise();
 							// Jezeli synchronizacja okae sie niemoliwa, to zostanie zgloszony wyjatek:
 							/* Oczekiwanie na poprawne zakoczenie synchronizacji */
@@ -1028,12 +1037,12 @@ void motor_driven_effector::synchro_loop(STATE& next_state)
 							break;
 						case lib::SET:
 							// instrukcja wlasciwa => zle jej wykonanie
-							if (pre_synchro_motion(instruction)) {
+							if (pre_synchro_motion(ecp_instruction_)) {
 								/* Potwierdzenie przyjecia instrukcji ruchow presynchronizacyjnych do wykonania */
 								reply.reply_type = lib::ACKNOWLEDGE;
 								variant_reply_to_instruction();
 								/* Zlecenie wykonania ruchow presynchronizacyjnych */
-								interpret_instruction(instruction);
+								interpret_instruction(ecp_instruction_);
 								// Jezeli wystapil blad w trakcie realizacji ruchow presynchronizacyjnych,
 								// to zostanie zgloszony wyjatek:
 
@@ -1233,7 +1242,7 @@ void motor_driven_effector::post_synchro_loop(STATE& next_state)
 							variant_reply_to_instruction();
 							/* Zlecenie wykonania synchronizacji */
 							// by Y przejscie przez watek transformation w celu ujednolicenia
-							master_order(MT_UNSYNCHRONISE, 0);
+							master_order(MT_UNSYNCHRONISE, 0, ecp_instruction_);
 							// synchronise();
 							// Jezeli synchronizacja okae sie niemoliwa, to zostanie zgloszony wyjatek:
 							/* Oczekiwanie na poprawne zakoczenie synchronizacji */
@@ -1286,7 +1295,7 @@ void motor_driven_effector::post_synchro_loop(STATE& next_state)
 					break;
 				case EXECUTE_INSTRUCTION:
 					// wykonanie instrukcji - wszelkie bledy powoduja zgloszenie wyjtku NonFatal_error_2 lub Fatal_error
-					interpret_instruction(instruction);
+					interpret_instruction(ecp_instruction_);
 					next_state = WAIT;
 					break;
 				case WAIT:
@@ -1435,7 +1444,7 @@ void motor_driven_effector::main_loop()
 lib::INSTRUCTION_TYPE motor_driven_effector::receive_instruction()
 {
 	//printf("receive_instruction motor_driven_effector\n");
-	return common::effector::receive_instruction(instruction);
+	return common::effector::receive_instruction(ecp_instruction_);
 }
 
 void motor_driven_effector::variant_reply_to_instruction()
