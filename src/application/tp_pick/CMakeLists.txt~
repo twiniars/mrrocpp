@@ -1,0 +1,7 @@
+add_executable(mp_tp_pick
+	mp_t_tp_pick.cc
+)
+
+target_link_libraries(mp_tp_pick mp)
+
+install(TARGETS mp_tp_pick DESTINATION bin)
