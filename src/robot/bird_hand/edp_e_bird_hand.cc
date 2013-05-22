@@ -45,7 +45,7 @@ void effector::master_order(common::MT_ORDER nm_task, int nm_tryb, lib::c_buffer
 	manip_effector::single_thread_master_order(nm_task, nm_tryb, instruction);
 }
 
-void effector::get_controller_state(lib::c_buffer &instruction)
+void effector::get_controller_state(const lib::c_buffer &instruction)
 {
 
 	lib::JointArray synchro_position(number_of_servos);

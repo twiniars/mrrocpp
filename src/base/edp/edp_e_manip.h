@@ -152,7 +152,7 @@ public:
 	 *
 	 * This method typically communicates with hardware to check if the robot is synchronised etc.
 	 */
-	void get_controller_state(lib::c_buffer &instruction);
+	virtual void get_controller_state(const lib::c_buffer &instruction);
 
 	/*!
 	 * \brief method to set the robot model commanded by ECP
