@@ -221,7 +221,7 @@ void model_with_wrist::set_kinematic_parameters(void)
 	upper_limit_axis[1] = 100;
 	upper_limit_axis[2] = 100;
 	upper_limit_axis[3] = 380;
-	upper_limit_axis[4] = 490;
+	upper_limit_axis[4] = 460;
 	upper_limit_axis[5] = 3000;
 
 	/* -----------------------------------------------------------------------
