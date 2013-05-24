@@ -15,17 +15,17 @@
 
 #include "base/lib/sr/sr_ecp.h"
 #include "base/ecp/ecp_robot.h"
-#include "ecp_g_tff_nose_run.h"
+#include "ecp_g_askubis_sinusoidal_velocity.h"
 
 namespace mrrocpp {
 namespace ecp {
 namespace common {
 namespace generator {
 
-tff_nose_run::tff_nose_run(common::task::task& _ecp_task, int step) :
+askubis_sinusoidal_velocity::askubis_sinusoidal_velocity(common::task::task& _ecp_task, int step) :
 		common::generator::generator(_ecp_task), pulse_check_activated(false), force_meassure(false), step_no(step)
 {
-	generator_name = ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN;
+	generator_name = ecp_mp::generator::ECP_GEN_ASKUBIS_SINUSOIDAL_VELOCITY;
 
 	// domyslnie wszytkie osie podatne a pulse_check nieaktywne
 	configure_behaviour(lib::CONTACT, lib::CONTACT, lib::CONTACT, lib::CONTACT, lib::CONTACT, lib::CONTACT);
@@ -46,19 +46,19 @@ tff_nose_run::tff_nose_run(common::task::task& _ecp_task, int step) :
 
 }
 
-void tff_nose_run::conditional_execution()
+void askubis_sinusoidal_velocity::conditional_execution()
 {
 
-	switch ((ecp_mp::generator::tff_nose_run::communication_type) ecp_t.mp_command.ecp_next_state.variant)
+	switch ((ecp_mp::generator::askubis_sinusoidal_velocity::communication_type) ecp_t.mp_command.ecp_next_state.variant)
 	{
 
-		case ecp_mp::generator::tff_nose_run::behaviour_specification: {
-			ecp_mp::generator::tff_nose_run::behaviour_specification_data_type beh;
+		case ecp_mp::generator::askubis_sinusoidal_velocity::behaviour_specification: {
+			ecp_mp::generator::askubis_sinusoidal_velocity::behaviour_specification_data_type beh;
 			ecp_t.mp_command.ecp_next_state.sg_buf.get(beh);
 			configure_behaviour(beh.behaviour[0], beh.behaviour[1], beh.behaviour[2], beh.behaviour[3], beh.behaviour[4], beh.behaviour[5]);
 			break;
 		}
-		case ecp_mp::generator::tff_nose_run::no_data:
+		case ecp_mp::generator::askubis_sinusoidal_velocity::no_data:
 			break;
 		default:
 			break;
@@ -67,17 +67,17 @@ void tff_nose_run::conditional_execution()
 	Move();
 }
 
-void tff_nose_run::set_force_meassure(bool fm)
+void askubis_sinusoidal_velocity::set_force_meassure(bool fm)
 {
 	force_meassure = fm;
 }
 
-void tff_nose_run::configure_pulse_check(bool pulse_check_activated_l)
+void askubis_sinusoidal_velocity::configure_pulse_check(bool pulse_check_activated_l)
 {
 	pulse_check_activated = pulse_check_activated_l;
 }
 
-void tff_nose_run::configure_behaviour(lib::BEHAVIOUR_SPECIFICATION x, lib::BEHAVIOUR_SPECIFICATION y, lib::BEHAVIOUR_SPECIFICATION z, lib::BEHAVIOUR_SPECIFICATION ax, lib::BEHAVIOUR_SPECIFICATION ay, lib::BEHAVIOUR_SPECIFICATION az)
+void askubis_sinusoidal_velocity::configure_behaviour(lib::BEHAVIOUR_SPECIFICATION x, lib::BEHAVIOUR_SPECIFICATION y, lib::BEHAVIOUR_SPECIFICATION z, lib::BEHAVIOUR_SPECIFICATION ax, lib::BEHAVIOUR_SPECIFICATION ay, lib::BEHAVIOUR_SPECIFICATION az)
 {
 	generator_edp_data.next_behaviour[0] = x;
 	generator_edp_data.next_behaviour[1] = y;
@@ -87,7 +87,7 @@ void tff_nose_run::configure_behaviour(lib::BEHAVIOUR_SPECIFICATION x, lib::BEHA
 	generator_edp_data.next_behaviour[5] = az;
 }
 
-void tff_nose_run::configure_velocity(double x, double y, double z, double ax, double ay, double az)
+void askubis_sinusoidal_velocity::configure_velocity(double x, double y, double z, double ax, double ay, double az)
 {
 	generator_edp_data.next_velocity[0] = x;
 	generator_edp_data.next_velocity[1] = y;
@@ -97,7 +97,7 @@ void tff_nose_run::configure_velocity(double x, double y, double z, double ax, d
 	generator_edp_data.next_velocity[5] = az;
 }
 
-void tff_nose_run::configure_force(double x, double y, double z, double ax, double ay, double az)
+void askubis_sinusoidal_velocity::configure_force(double x, double y, double z, double ax, double ay, double az)
 {
 	generator_edp_data.next_force_xyz_torque_xyz[0] = x;
 	generator_edp_data.next_force_xyz_torque_xyz[1] = y;
@@ -107,7 +107,7 @@ void tff_nose_run::configure_force(double x, double y, double z, double ax, doub
 	generator_edp_data.next_force_xyz_torque_xyz[5] = az;
 }
 
-void tff_nose_run::configure_reciprocal_damping(double x, double y, double z, double ax, double ay, double az)
+void askubis_sinusoidal_velocity::configure_reciprocal_damping(double x, double y, double z, double ax, double ay, double az)
 {
 	generator_edp_data.next_reciprocal_damping[0] = x;
 	generator_edp_data.next_reciprocal_damping[1] = y;
@@ -117,7 +117,7 @@ void tff_nose_run::configure_reciprocal_damping(double x, double y, double z, do
 	generator_edp_data.next_reciprocal_damping[5] = az;
 }
 
-void tff_nose_run::configure_inertia(double x, double y, double z, double ax, double ay, double az)
+void askubis_sinusoidal_velocity::configure_inertia(double x, double y, double z, double ax, double ay, double az)
 {
 	generator_edp_data.next_inertia[0] = x;
 	generator_edp_data.next_inertia[1] = y;
@@ -131,14 +131,14 @@ void tff_nose_run::configure_inertia(double x, double y, double z, double ax, do
 // ---------------------------------    metoda	first_step -------------------------------------
 // ----------------------------------------------------------------------------------------------
 
-bool tff_nose_run::first_step()
+bool askubis_sinusoidal_velocity::first_step()
 {
 	// Generacja trajektorii prostoliniowej o zadany przyrost polozenia i oreintacji
 	// Funkcja zwraca false gdy koniec generacji trajektorii
 	// Funkcja zwraca true gdy generacja trajektorii bedzie kontynuowana
 	// cout << "first_step" << endl;
 
-	//	std::cout << "tff_nose_run" << node_counter << std::endl;
+	//	std::cout << "askubis_sinusoidal_velocity" << node_counter << std::endl;
 
 	lib::Homog_matrix tool_frame(0.0, 0.0, 0.25);
 	the_robot->ecp_command.robot_model.tool_frame_def.tool_frame = tool_frame;
@@ -172,15 +172,17 @@ bool tff_nose_run::first_step()
 // -----------------------------------  metoda	next_step -----------------------------------
 // ----------------------------------------------------------------------------------------------
 
-bool tff_nose_run::next_step()
+bool askubis_sinusoidal_velocity::next_step()
 {
 
-	//	std::cout << "tff_nose_run" << node_counter << std::endl;
+	//	std::cout << "askubis_sinusoidal_velocity" << node_counter << std::endl;
 	// Generacja trajektorii prostoliniowej o zadany przyrost polozenia i orientacji
 	// Funkcja zwraca false gdy koniec generacji trajektorii
 	// Funkcja zwraca true gdy generacja trajektorii bedzie kontynuowana
 	// UWAGA: dzialamy na jednoelementowej liscie robotow
 	//std::cout << "next_step" << std::endl;
+
+	//the_robot->ecp_command.arm.pf_def.
 
 	if (pulse_check_activated && check_and_null_trigger()) { // Koniec odcinka
 		//	ecp_t.set_ecp_reply (lib::TASK_TERMINATED);
@@ -212,7 +214,7 @@ bool tff_nose_run::next_step()
 
 // metoda przeciazona bo nie chcemy rzucac wyjatku wyjscia poza zakres ruchu - UWAGA napisany szkielet skorygowac cialo funkcji
 
-void tff_nose_run::execute_motion(void)
+void askubis_sinusoidal_velocity::execute_motion(void)
 {
 	// Zlecenie wykonania ruchu przez robota jest to polecenie dla EDP
 

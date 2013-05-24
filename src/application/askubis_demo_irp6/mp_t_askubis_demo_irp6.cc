@@ -3,6 +3,7 @@
 // ecp generators to be commanded
 //#include "generator/ecp/askubis_tff_nose_run/ecp_mp_g_askubis_tff_nose_run.h"
 #include "generator/ecp/tff_nose_run/ecp_mp_g_tff_nose_run.h"
+#include "generator/ecp/askubis_sinusoidal_velocity/ecp_mp_g_askubis_sinusoidal_velocity.h"
 #include "generator/ecp/smooth_file_from_mp/ecp_mp_g_smooth_file_from_mp.h"
 #include "generator/ecp/bias_edp_force/ecp_mp_g_bias_edp_force.h"
 
@@ -41,7 +42,7 @@ void askubis_demo::main_task_algorithm(void)
 
 	sr_ecp_msg->message("TFF nose start");
 	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, 1, "", lib::irp6p_m::ROBOT_NAME);
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(false, false, true, false, false, false), lib::irp6p_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_ASKUBIS_SINUSOIDAL_VELOCITY, (int) ecp_mp::generator::askubis_sinusoidal_velocity::behaviour_specification, ecp_mp::generator::askubis_sinusoidal_velocity::behaviour_specification_data_type(false, false, true, false, false, false), lib::irp6p_m::ROBOT_NAME);
 	wait_for_task_termination(false, lib::irp6p_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);
 
 	/*sr_ecp_msg->message("Postument Angle axis");

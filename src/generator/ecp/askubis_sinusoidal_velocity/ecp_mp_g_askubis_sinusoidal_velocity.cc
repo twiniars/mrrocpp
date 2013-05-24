@@ -6,12 +6,12 @@
  * @ingroup generators
  */
 
-#include "ecp_mp_g_tff_nose_run.h"
+#include "ecp_mp_g_askubis_sinusoidal_velocity.h"
 
 namespace mrrocpp {
 namespace ecp_mp {
 namespace generator {
-namespace tff_nose_run {
+namespace askubis_sinusoidal_velocity {
 
 void behaviour_specification_data_type::set_compliance(bool x, bool y, bool z, bool ax, bool ay, bool az)
 {
@@ -55,7 +55,7 @@ void behaviour_specification_data_type::set_compliance(bool x, bool y, bool z, b
 
 behaviour_specification_data_type::behaviour_specification_data_type(bool x, bool y, bool z, bool ax, bool ay, bool az)
 {
-	set_compliance(false, false, true, false, false, false);
+	set_compliance(x, y, z, ax, ay, az);
 }
 
 behaviour_specification_data_type::behaviour_specification_data_type()
