@@ -184,12 +184,13 @@ void model_with_wrist::set_kinematic_parameters(void)
 	 Polozenia synchronizacji - odczyty z enkoderow silnikow.
 	 ------------------------------------------------------------------------- */
 	synchro_motor_position[0] = 0; // tor [m]
-	synchro_motor_position[1] = -10.819; // kolumna [rad]
+	synchro_motor_position[1] = -16.5; // kolumna [rad]
+	//synchro_motor_position[1] = -10.819; // kolumna [rad]
 	//synchro_motor_position[1]= -7.5;		// kolumna [rad]
 	synchro_motor_position[2] = -4.012; // ramie d. [rad]
 	synchro_motor_position[3] = -6.219; // ramie g. [rad]
-	synchro_motor_position[4] = 158.997; // kisc T [rad]
-	synchro_motor_position[5] = 474.4 + 3*M_PI; // stara kisc V [rad] poprawne front position w motorach (6 os z kolei oznaczona jako 5) + 320.25
+	synchro_motor_position[4] = 158.997-8;//3*M_PI;// 158.997; // kisc T [rad]
+	synchro_motor_position[5] = 473; // stara kisc V [rad] poprawne front position w motorach (6 os z kolei oznaczona jako 5) + 320.25
 	synchro_motor_position[6] = 769.7; // nowa kisc N [rad]
 
 	/* -----------------------------------------------------------------------
