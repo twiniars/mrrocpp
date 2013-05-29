@@ -42,6 +42,7 @@ ecp_g_bias_edp_force
 ecp_g_force_tool_change
 ecp_g_tff_gripper_approach
 ecp_g_tff_nose_run
+ecp_g_askubis_sinusoidal_velocity
 ecp_g_tff_rubik_face_rotate
 ecp_g_transparent
 ecp_g_sleep

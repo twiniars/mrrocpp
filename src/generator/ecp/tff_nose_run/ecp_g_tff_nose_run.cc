@@ -133,6 +133,7 @@ void tff_nose_run::configure_inertia(double x, double y, double z, double ax, do
 
 bool tff_nose_run::first_step()
 {
+	std::cout<<"first step"<<std::endl;
 	// Generacja trajektorii prostoliniowej o zadany przyrost polozenia i oreintacji
 	// Funkcja zwraca false gdy koniec generacji trajektorii
 	// Funkcja zwraca true gdy generacja trajektorii bedzie kontynuowana
@@ -174,6 +175,7 @@ bool tff_nose_run::first_step()
 
 bool tff_nose_run::next_step()
 {
+	std::cout<<"next step"<<std::endl;
 
 	//	std::cout << "tff_nose_run" << node_counter << std::endl;
 	// Generacja trajektorii prostoliniowej o zadany przyrost polozenia i orientacji
@@ -215,6 +217,7 @@ bool tff_nose_run::next_step()
 void tff_nose_run::execute_motion(void)
 {
 	// Zlecenie wykonania ruchu przez robota jest to polecenie dla EDP
+	std::cout<<"execute motion"<<std::endl;
 
 	// komunikacja wlasciwa
 	the_robot->send();

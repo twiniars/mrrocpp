@@ -28,6 +28,7 @@ askubis_demo::askubis_demo(lib::configurator &_config) :
 
 void askubis_demo::main_task_algorithm(void)
 {
+	//mrrocpp::ecp::common::generator::askubis_sinusoidal_velocity *gen = new mrrocpp::ecp::common::generator::askubis_sinusoidal_velocity ();
 	sr_ecp_msg->message("askubis Demo irp6 (MP) START");
 
 	sr_ecp_msg->message("Both Joint");
@@ -42,8 +43,12 @@ void askubis_demo::main_task_algorithm(void)
 
 	sr_ecp_msg->message("TFF nose start");
 	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, 1, "", lib::irp6p_m::ROBOT_NAME);
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_ASKUBIS_SINUSOIDAL_VELOCITY, (int) ecp_mp::generator::askubis_sinusoidal_velocity::behaviour_specification, ecp_mp::generator::askubis_sinusoidal_velocity::behaviour_specification_data_type(false, false, true, false, false, false), lib::irp6p_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_ASKUBIS_SINUSOIDAL_VELOCITY, 0, "", lib::irp6p_m::ROBOT_NAME);
 	wait_for_task_termination(false, lib::irp6p_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);
+
+	/*
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(false, false, true, false, false, false), lib::irp6p_m::ROBOT_NAME);
+	wait_for_task_termination(false, lib::irp6p_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);*/
 
 	/*sr_ecp_msg->message("Postument Angle axis");
 

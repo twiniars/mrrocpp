@@ -27,6 +27,14 @@ class askubis_sinusoidal_velocity : public common::generator::generator
 {
 protected:
 
+	double amplituda;
+	double czestotliwosc;
+
+	int nmc;
+	int axes_num;
+	std::vector<double> position;
+
+
 	/**
 	 * @brief if set the trigger pulse from UI finishes generator
 	 */
@@ -44,7 +52,7 @@ protected:
 	{
 		double next_inertia[6], next_reciprocal_damping[6];
 		double next_velocity[lib::MAX_SERVOS_NR], next_force_xyz_torque_xyz[6];
-		lib::BEHAVIOUR_SPECIFICATION next_behaviour[6];
+		//lib::BEHAVIOUR_SPECIFICATION next_behaviour[6];
 	} generator_edp_data;
 
 public:
@@ -79,61 +87,61 @@ public:
 	 */
 	void set_force_meassure(bool fm);
 
-	/**
-	 * @brief Sets behavior parameters for all directions
-	 * @param x linear x direction
-	 * @param y linear y direction
-	 * @param z linear z direction
-	 * @param ax angular x direction
-	 * @param ay angular y direction
-	 * @param az angular z direction
-	 */
-	void
-	configure_behaviour(lib::BEHAVIOUR_SPECIFICATION x, lib::BEHAVIOUR_SPECIFICATION y, lib::BEHAVIOUR_SPECIFICATION z, lib::BEHAVIOUR_SPECIFICATION ax, lib::BEHAVIOUR_SPECIFICATION ay, lib::BEHAVIOUR_SPECIFICATION az);
-
-	/**
-	 * @brief Sets desired velocity for all directions
-	 * @param x linear x direction
-	 * @param y linear y direction
-	 * @param z linear z direction
-	 * @param ax angular x direction
-	 * @param ay angular y direction
-	 * @param az angular z direction
-	 */
-	void configure_velocity(double x, double y, double z, double ax, double ay, double az);
-
-	/**
-	 * @brief Sets desired force for all directions
-	 * @param x linear x direction
-	 * @param y linear y direction
-	 * @param z linear z direction
-	 * @param ax angular x direction
-	 * @param ay angular y direction
-	 * @param az angular z direction
-	 */
-	void configure_force(double x, double y, double z, double ax, double ay, double az);
-
-	/**
-	 * @brief Sets desired reciprocal of damping for all directions
-	 * @param x linear x direction
-	 * @param y linear y direction
-	 * @param z linear z direction
-	 * @param ax angular x direction
-	 * @param ay angular y direction
-	 * @param az angular z direction
-	 */
-	void configure_reciprocal_damping(double x, double y, double z, double ax, double ay, double az);
-
-	/**
-	 * @brief Sets desired inertia for all directions
-	 * @param x linear x direction
-	 * @param y linear y direction
-	 * @param z linear z direction
-	 * @param ax angular x direction
-	 * @param ay angular y direction
-	 * @param az angular z direction
-	 */
-	void configure_inertia(double x, double y, double z, double ax, double ay, double az);
+//	/**
+//	 * @brief Sets behavior parameters for all directions
+//	 * @param x linear x direction
+//	 * @param y linear y direction
+//	 * @param z linear z direction
+//	 * @param ax angular x direction
+//	 * @param ay angular y direction
+//	 * @param az angular z direction
+//	 */
+//	void
+//	configure_behaviour(lib::BEHAVIOUR_SPECIFICATION x, lib::BEHAVIOUR_SPECIFICATION y, lib::BEHAVIOUR_SPECIFICATION z, lib::BEHAVIOUR_SPECIFICATION ax, lib::BEHAVIOUR_SPECIFICATION ay, lib::BEHAVIOUR_SPECIFICATION az);
+//
+//	/**
+//	 * @brief Sets desired velocity for all directions
+//	 * @param x linear x direction
+//	 * @param y linear y direction
+//	 * @param z linear z direction
+//	 * @param ax angular x direction
+//	 * @param ay angular y direction
+//	 * @param az angular z direction
+//	 */
+//	void configure_velocity(double x, double y, double z, double ax, double ay, double az);
+//
+//	/**
+//	 * @brief Sets desired force for all directions
+//	 * @param x linear x direction
+//	 * @param y linear y direction
+//	 * @param z linear z direction
+//	 * @param ax angular x direction
+//	 * @param ay angular y direction
+//	 * @param az angular z direction
+//	 */
+//	void configure_force(double x, double y, double z, double ax, double ay, double az);
+//
+//	/**
+//	 * @brief Sets desired reciprocal of damping for all directions
+//	 * @param x linear x direction
+//	 * @param y linear y direction
+//	 * @param z linear z direction
+//	 * @param ax angular x direction
+//	 * @param ay angular y direction
+//	 * @param az angular z direction
+//	 */
+//	void configure_reciprocal_damping(double x, double y, double z, double ax, double ay, double az);
+//
+//	/**
+//	 * @brief Sets desired inertia for all directions
+//	 * @param x linear x direction
+//	 * @param y linear y direction
+//	 * @param z linear z direction
+//	 * @param ax angular x direction
+//	 * @param ay angular y direction
+//	 * @param az angular z direction
+//	 */
+//	void configure_inertia(double x, double y, double z, double ax, double ay, double az);
 
 	bool first_step();
 	bool next_step();
