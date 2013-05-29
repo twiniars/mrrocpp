@@ -17,8 +17,13 @@
 
 // mp_robots headers
 #include "robot/irp6ot_m/mp_r_irp6ot_m.h"
-#//include "robot/irp6ot_tfg/mp_r_irp6ot_tfg.h"
+
+#include "robot/irp6ot_tfg/mp_r_irp6ot_tfg.h"
+#include "application/irp6_tfg/ecp_mp_g_tfg.h"
+#include "robot/irp6_tfg/dp_tfg.h"
+
 #include "robot/irp6p_m/mp_r_irp6p_m.h"
+
 //#include "robot/irp6p_tfg/mp_r_irp6p_tfg.h"
 //#include "application/irp6_tfg/ecp_mp_g_tfg.h"
 //#include "robot/irp6_tfg/dp_tfg.h"
@@ -37,7 +42,7 @@ void tut::create_robots()
 {
 	ACTIVATE_MP_ROBOT(irp6ot_m);
 	ACTIVATE_MP_ROBOT(irp6p_m);
-	//ACTIVATE_MP_ROBOT(irp6ot_tfg);
+	ACTIVATE_MP_ROBOT(irp6ot_tfg);
 	//ACTIVATE_MP_ROBOT(irp6p_tfg);
 }
 
@@ -81,7 +86,7 @@ Types::Mrrocpp_Proxy::CubeReading tut::read_from_discode()
 {
 	sr_ecp_msg->message("read_from_discode");
 
-	Types::Mrrocpp_Proxy::PBReading reading;
+	Types::Mrrocpp_Proxy::CubeReading reading;
 
 	try {
 		discode->get_reading();
@@ -100,26 +105,35 @@ Types::Mrrocpp_Proxy::CubeReading tut::read_from_discode()
 void tut::main_task_algorithm(void)
 {
 	sr_ecp_msg->message("Tut (MP) START");
-
-	sr_ecp_msg->message("Both Joint");
-
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/pkrajews/doNaukiIZabawy/begin_track.trj", lib::irp6ot_m::ROBOT_NAME);
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/pkrajews/doNaukiIZabawy/begin_post.trj", lib::irp6p_m::ROBOT_NAME);
+	int i;
+	//Czeka na kostkę
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/pkrajews/doNaukiIZabawy/cubePosition/getCube1.trj", lib::irp6ot_m::ROBOT_NAME);
+	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/pkrajews/doNaukiIZabawy/cubePosition/getCube1.trj", lib::irp6p_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.07, lib::irp6ot_tfg::ROBOT_NAME);
 	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/tut/trajectory_track_r.trj", lib::irp6ot_tfg::ROBOT_NAME);
-	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);
-
-	sr_ecp_msg->message("Both Bias");
+	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME,lib::irp6ot_tfg::ROBOT_NAME);
 
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6ot_m::ROBOT_NAME);
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6p_m::ROBOT_NAME);
-	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6p_tfg::ROBOT_NAME);
+	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+
+	std::cout << "WŁÓŻ KOSTKĘ I PRESS ENTER\n";
+	std::cout << "OK\n";
+	//Bierze kostkę
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.059, lib::irp6ot_tfg::ROBOT_NAME);
+	wait_for_task_termination(false, lib::irp6ot_tfg::ROBOT_NAME);
+
+	//Pozycja 1
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/pkrajews/doNaukiIZabawy/cubePosition/showWall1.trj", lib::irp6ot_m::ROBOT_NAME);
+	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/pkrajews/doNaukiIZabawy/cubePosition/getCube1.trj", lib::irp6p_m::ROBOT_NAME);
+	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6ot_m::ROBOT_NAME);
 	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);
 
-	while(1)
+	/*while(1)
 	{
 		bool exist=read_from_discode().objectVisible;
 		if(exist==true) break;
-		std::cout << exist << "\n";
 	}
 
 	sr_ecp_msg->message("Both Joint");
@@ -131,27 +145,20 @@ void tut::main_task_algorithm(void)
 
 	sr_ecp_msg->message("Both Bias");
 
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6ot_m::ROBOT_NAME);
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6p_m::ROBOT_NAME);
-	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6p_tfg::ROBOT_NAME);
-	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);
+	*/
 
-	/*std::cout << "\nPress coś tam\n";
-	int i;
-	std::cin >> i;
 
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/tut/syn_pos_track.trj", lib::irp6ot_m::ROBOT_NAME);
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/tut/syn_pos_post.trj", lib::irp6p_m::ROBOT_NAME);
+	/*EXAMPLE OF USAGE
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/pkrajews/doNaukiIZabawy/cubePosition/getCube1.trj", lib::irp6ot_m::ROBOT_NAME);
+	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/pkrajews/doNaukiIZabawy/cubePosition/getCube1.trj", lib::irp6p_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.07, lib::irp6ot_tfg::ROBOT_NAME);
 	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, 0, "../../src/application/tut/trajectory_track_r.trj", lib::irp6ot_tfg::ROBOT_NAME);
-	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);
-
-	sr_ecp_msg->message("Both Bias");
+	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME,lib::irp6ot_tfg::ROBOT_NAME);//, lib::irp6p_m::ROBOT_NAME);
 
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6ot_m::ROBOT_NAME);
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6p_m::ROBOT_NAME);
-	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_BIAS_EDP_FORCE, 0, "", lib::irp6p_tfg::ROBOT_NAME);
-	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);*/
-
+	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME, lib::irp6p_m::ROBOT_NAME);
+	*/
 
 	sr_ecp_msg->message("Pozycja do zabawy przyjęta");
 
