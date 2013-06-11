@@ -110,11 +110,11 @@ void wgt_base::create_buttons_and_spin_boxes(int desiredPosColumn, int incMoveCo
 	connect(right_signal_mapper, SIGNAL(mapped(int)), this, SLOT(inc_move_right_button_clicked(int)));
 
 	for (int i = 0; i < spinBoxesCount; i++) {
-		button = create_button_to_vector(inc_move_left_buttons, QString("<"));
+		button = create_button_to_vector(inc_move_left_buttons, QString("-"));
 		add_incremental_move_button(button, i, incMoveColumn);
 		connect_to_signal_mapper(button, i, left_signal_mapper);
 
-		button = create_button_to_vector(inc_move_right_buttons, QString(">"));
+		button = create_button_to_vector(inc_move_right_buttons, QString("+"));
 		add_incremental_move_button(button, i, incMoveColumn + 1);
 		connect_to_signal_mapper(button, i, right_signal_mapper);
 	}

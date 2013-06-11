@@ -184,12 +184,13 @@ void model_with_wrist::set_kinematic_parameters(void)
 	 Polozenia synchronizacji - odczyty z enkoderow silnikow.
 	 ------------------------------------------------------------------------- */
 	synchro_motor_position[0] = 0; // tor [m]
-	synchro_motor_position[1] = -10.819; // kolumna [rad]
+	synchro_motor_position[1] = -16.5; // kolumna [rad]
+	//synchro_motor_position[1] = -10.819; // kolumna [rad]
 	//synchro_motor_position[1]= -7.5;		// kolumna [rad]
 	synchro_motor_position[2] = -4.012; // ramie d. [rad]
 	synchro_motor_position[3] = -6.219; // ramie g. [rad]
-	synchro_motor_position[4] = 158.997; // kisc T [rad]
-	synchro_motor_position[5] = 474.4 + M_PI; // stara kisc V [rad] poprawne front position w motorach (6 os z kolei oznaczona jako 5) + 320.25
+	synchro_motor_position[4] = 158.997-8;//3*M_PI;// 158.997; // kisc T [rad]
+	synchro_motor_position[5] = 473; // stara kisc V [rad] poprawne front position w motorach (6 os z kolei oznaczona jako 5) + 320.25
 	synchro_motor_position[6] = 769.7; // nowa kisc N [rad]
 
 	/* -----------------------------------------------------------------------
@@ -211,7 +212,7 @@ void model_with_wrist::set_kinematic_parameters(void)
 	lower_limit_axis[2] = -110;
 	lower_limit_axis[3] = -80;
 	lower_limit_axis[4] = -70;
-	lower_limit_axis[5] = -80;
+	lower_limit_axis[5] = -50; // ograniczenie obrotu starej kisci
 	lower_limit_axis[6] = -1000;
 
 	upper_limit_axis[0] = 1900;
@@ -222,7 +223,7 @@ void model_with_wrist::set_kinematic_parameters(void)
 	upper_limit_axis[2] = 100;
 	upper_limit_axis[3] = 100;
 	upper_limit_axis[4] = 380;
-	upper_limit_axis[5] = 490;
+	upper_limit_axis[5] = 490;// ograniczenie obrotu starej kisci
 	upper_limit_axis[6] = 3000;
 
 	/* -----------------------------------------------------------------------
