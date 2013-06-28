@@ -5,7 +5,7 @@ add_executable(mp_rubic_cube_observer
 	SingleManipulation.cc
 )
 
-target_link_libraries(mp_rubic_cube_observer mp)
+target_link_libraries(mp_rubic_cube_observer mp discode_sensor)
 
 
 install(TARGETS

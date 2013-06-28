@@ -15,10 +15,14 @@
 
 #include "CubeState.h"
 #include "SingleManipulation.h"
+#include "sensor/discode/discode_sensor.h"
+#include "CubeReading.hpp"
 
 namespace mrrocpp {
 namespace mp {
 namespace task {
+
+using mrrocpp::ecp_mp::sensor::discode::discode_sensor;
 
 class rubik_cube_observer : public task
 {
@@ -42,14 +46,19 @@ public:
 	// stl'owa lista manipulacji
 	std::list <common::SingleManipulation> manipulation_list;
 
-	void
-			initiate(common::CUBE_COLOR up_is, common::CUBE_COLOR down_is, common::CUBE_COLOR front_is, common::CUBE_COLOR rear_is, common::CUBE_COLOR left_is, common::CUBE_COLOR right_is);
+	void initiate(common::CUBE_COLOR up_is, common::CUBE_COLOR down_is, common::CUBE_COLOR front_is, common::CUBE_COLOR rear_is, common::CUBE_COLOR left_is, common::CUBE_COLOR right_is);
 
 	// konstruktor
 	rubik_cube_observer(lib::configurator &_config);
 
 	~rubik_cube_observer();
 
+	//konfiguracja discode
+	void configure_discode();
+
+	//DISCODE
+	//odczytanie informacji o lokalizacji kostki
+	Types::Mrrocpp_Proxy::CubeReading read_from_discode();
 	// MANIPULACJA
 	// manipulacja pojedyncza sciana
 	void manipulate(common::CUBE_COLOR face_to_turn, common::CUBE_TURN_ANGLE turn_angle);
@@ -64,6 +73,8 @@ public:
 
 	// OPERACJE
 
+	//obejrzenie sciany
+	void look_at_wall(common::CUBE_WALL wall);
 	// obrot sciany
 	void face_turn_op(common::CUBE_TURN_ANGLE turn_angle);
 	// zmiana sciany (przelozenie kostki)
@@ -81,6 +92,13 @@ public:
 	// methods for mp template
 	void main_task_algorithm(void);
 
+	const std::string config_section_name;
+	bool run_vs;
+	int vs_settle_time;
+	std::string robot_name;
+
+private:
+	boost::shared_ptr<discode_sensor> discode;
 };
 
 } // namespace task

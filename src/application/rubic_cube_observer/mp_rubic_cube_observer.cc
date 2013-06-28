@@ -46,6 +46,10 @@
 #include "robot/festival/const_festival.h"
 
 #include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
+
+using mrrocpp::ecp_mp::sensor::discode::discode_sensor;
+using mrrocpp::ecp_mp::sensor::discode::ds_exception;
 
 namespace mrrocpp {
 namespace mp {
@@ -79,12 +83,59 @@ rubik_cube_observer::rubik_cube_observer(lib::configurator &_config) :
 				new ecp_mp::transmitter::rc_windows(ecp_mp::transmitter::TRANSMITTER_RC_WINDOWS, "[transmitter_rc_windows]", *this);
 
 	}
+	configure_discode();
 }
 
 rubik_cube_observer::~rubik_cube_observer()
 {
 	if (cube_state)
 		delete cube_state;
+}
+
+void rubik_cube_observer::configure_discode()
+{
+	sr_ecp_msg->message("configure_discode");
+	char config_section_name[]= {"[Discode_TEST]"};
+	discode = boost::shared_ptr <mrrocpp::ecp_mp::sensor::discode::discode_sensor>(new mrrocpp::ecp_mp::sensor::discode::discode_sensor(config, config_section_name));
+
+	try {
+		discode->configure_sensor();
+		sr_ecp_msg->message("sensor_ready");
+
+		discode_sensor::discode_sensor_state st;
+		st = discode->get_state();
+
+		if(st == 0) sr_ecp_msg->message("sensor state 0");
+		if(st == 1) sr_ecp_msg->message("sensor state 1");
+		if(st == 2) sr_ecp_msg->message("sensor state 2");
+		if(st == 3) sr_ecp_msg->message("sensor state 3");
+		if(st == 4) sr_ecp_msg->message("sensor state 4");
+
+
+	}catch(mrrocpp::ecp_mp::sensor::discode::ds_exception e){
+		sr_ecp_msg->message("configure_discode error");
+		sr_ecp_msg->message(e.what());
+	}
+}
+
+Types::Mrrocpp_Proxy::CubeReading rubik_cube_observer::read_from_discode()
+{
+	sr_ecp_msg->message("read_from_discode");
+
+	Types::Mrrocpp_Proxy::CubeReading reading;
+
+	try {
+		discode->get_reading();
+		wait_ms(500);
+		reading = discode->retreive_reading <Types::Mrrocpp_Proxy::CubeReading>();
+		sr_ecp_msg->message("reading recived");
+
+	} catch (ds_exception e){
+		sr_ecp_msg->message("read_from_discode error");
+		sr_ecp_msg->message(e.what());
+	}
+
+	return reading;
 }
 
 void rubik_cube_observer::identify_colors() //DO WIZJI (przekladanie i ogladanie scian)
@@ -414,7 +465,72 @@ void rubik_cube_observer::manipulate(common::CUBE_COLOR face_to_turn, common::CU
 		face_turn_op(turn_angle);
 	}
 }
+//pokazanie sciany
+void rubik_cube_observer::look_at_wall(common::CUBE_WALL wall)
+{
+	switch(wall)
+	{
+		case common::FRONT_WALL:
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_front.trj", lib::irp6ot_m::ROBOT_NAME);
+			wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_front.trj", lib::irp6p_m::ROBOT_NAME);
+			wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
+			break;
+		case common::UP_SIDE_WALL:
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_up_side.trj", lib::irp6ot_m::ROBOT_NAME);
+			wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_side.trj", lib::irp6p_m::ROBOT_NAME);
+			wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
+			break;
+		case common::DOWN_SIDE_WALL:
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_down_side.trj", lib::irp6ot_m::ROBOT_NAME);
+			wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_side.trj", lib::irp6p_m::ROBOT_NAME);
+			wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
+			break;
+		case common::LEFT_SIDE_WALL:
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_left_side.trj", lib::irp6ot_m::ROBOT_NAME);
+			wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_side.trj", lib::irp6p_m::ROBOT_NAME);
+			wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
+			break;
+		case common::RIGHT_SIDE_WALL:
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_right_side.trj", lib::irp6ot_m::ROBOT_NAME);
+			wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_side.trj", lib::irp6p_m::ROBOT_NAME);
+			wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
+			break;
+		default:
+			break;
+	}
+	Types::Mrrocpp_Proxy::CubeReading pbr;
+	while(1)
+		{
+			pbr=read_from_discode();
+			if(pbr.exist==true) break;
+		}
 
+	/*sr_ecp_msg->message("JEST KOSTKAJESTKOSTKA");
+	std::string s;
+	for (int i =0;i<3;i++)
+	{
+		for (int j =0;j<3;j++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				s = boost::lexical_cast<std::string>( pbr.color[i][j][l] );//;
+				sr_ecp_msg->message(s);
+				wait_ms(500);
+			}
+		}
+	}*/
+	//std::cout << pbr.color[i][j][0] << " "<< pbr.color[i][j][1] << " " << pbr.color[i][j][2] << "\n" ;
+
+	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_begin_end.trj", lib::irp6ot_m::ROBOT_NAME);
+	//wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
+	//wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
+}
 // obrot sciany
 void rubik_cube_observer::face_turn_op(common::CUBE_TURN_ANGLE turn_angle)
 {
@@ -499,10 +615,10 @@ void rubik_cube_observer::face_turn_op(common::CUBE_TURN_ANGLE turn_angle)
 	send_end_motion_to_ecps(lib::irp6p_m::ROBOT_NAME);
 
 	// uruchomienie tff_nose run dla traka z podatnoscia w dwoch osiach
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(true, true, false, false, false, false), lib::irp6p_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(false, true, true, false, false, false), lib::irp6p_m::ROBOT_NAME);
 
 	// uruchomienie zaciskania chwytaka traka do pozycji zadanej odpowiadajacej calkowitemu zacisnieciu na kostce bez luzu
-        set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.056, lib::irp6p_tfg::ROBOT_NAME);
+    set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.056, lib::irp6p_tfg::ROBOT_NAME);
 
 	// oczekiwania na zakonczenie ruchu chwytaka
 	wait_for_task_termination(false, lib::irp6p_tfg::ROBOT_NAME);
@@ -612,9 +728,9 @@ void rubik_cube_observer::face_change_op(common::CUBE_TURN_ANGLE turn_angle)
 			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_ANGLE_AXIS_FILE_FROM_MP, (int) lib::RELATIVE, "../../src/application/rubic_cube_observer/trj/irp6ot_cube_approach.trj", lib::irp6ot_m::ROBOT_NAME.c_str());
 			break;
 		case common::CCL_90:
-                        set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_fchange_ap_ccl_90_phase_2.trj", lib::irp6ot_m::ROBOT_NAME.c_str());
-                        wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME.c_str());
-                        set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_ANGLE_AXIS_FILE_FROM_MP, (int) lib::RELATIVE, "../../src/application/rubic_cube_observer/trj/irp6ot_cube_approach.trj", lib::irp6ot_m::ROBOT_NAME.c_str());
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_fchange_ap_ccl_90_phase_2.trj", lib::irp6ot_m::ROBOT_NAME.c_str());
+			wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME.c_str());
+			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_ANGLE_AXIS_FILE_FROM_MP, (int) lib::RELATIVE, "../../src/application/rubic_cube_observer/trj/irp6ot_cube_approach.trj", lib::irp6ot_m::ROBOT_NAME.c_str());
 			break;
 		case common::CL_180:
 			set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_fchange_ap_cl_180_phase_2.trj", lib::irp6ot_m::ROBOT_NAME.c_str());
@@ -681,7 +797,7 @@ void rubik_cube_observer::face_change_op(common::CUBE_TURN_ANGLE turn_angle)
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(true, true, false, false, false, false), lib::irp6ot_m::ROBOT_NAME);
 
 	// uruchomienie zaciskania chwytaka traka do pozycji zadanej odpowiadajacej calkowitemu zacisnieciu na kostce bez luzu
-        set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.056, lib::irp6ot_tfg::ROBOT_NAME);
+        set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.055, lib::irp6ot_tfg::ROBOT_NAME);
 
 	// oczekiwania na zakonczenie ruchu chwytaka
 	wait_for_task_termination(false, lib::irp6ot_tfg::ROBOT_NAME);
@@ -934,64 +1050,48 @@ void rubik_cube_observer::main_task_algorithm(void)
 	// ---- tester ----
 	approach_op(vis_servoing);
 
+	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_begin_end.trj", lib::irp6ot_m::ROBOT_NAME);
+	//wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
+	//wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
+	look_at_wall(common::FRONT_WALL);wait_ms(1000);
+	look_at_wall(common::UP_SIDE_WALL);wait_ms(1000);
+	look_at_wall(common::RIGHT_SIDE_WALL);wait_ms(1000);
+	look_at_wall(common::DOWN_SIDE_WALL);wait_ms(1000);
+	look_at_wall(common::LEFT_SIDE_WALL);wait_ms(1000);
+
 	face_turn_op(common::CL_0);
-	face_change_op(common::CL_0);
-	face_turn_op(common::CL_90);
 	face_change_op(common::CL_90);
-	face_turn_op(common::CL_180);
+	face_turn_op(common::CL_0);
 	face_change_op(common::CL_180);
-	face_turn_op(common::CCL_90);
-	face_change_op(common::CCL_90);
+
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_begin_end.trj", lib::irp6ot_m::ROBOT_NAME);
+	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
+	wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
+	look_at_wall(common::FRONT_WALL);wait_ms(1000);
+	look_at_wall(common::UP_SIDE_WALL);wait_ms(1000);
+	look_at_wall(common::RIGHT_SIDE_WALL);wait_ms(1000);
+	look_at_wall(common::DOWN_SIDE_WALL);wait_ms(1000);
+	look_at_wall(common::LEFT_SIDE_WALL);wait_ms(1000);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_begin_end.trj", lib::irp6ot_m::ROBOT_NAME);
+	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
+	wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
+
+
+    //face_turn_op(common::CL_90);
+	//face_change_op(common::CL_90);
+	//face_turn_op(common::CL_180);
+	//face_change_op(common::CL_180);
+	//face_turn_op(common::CCL_90);
+	//face_change_op(common::CCL_90);
 
 	departure_op();
-	// ---- tester ----
-
-	// Zlecenie wykonania kolejnego makrokroku
-	// printf("po start all \n");
-//	for (;;) {
-//		sr_ecp_msg->message("Nowa seria");
-//
-//		if (vis_servoing) {
-//			//printf("if vis servoing\n");
-//			flushall();
-//			BOOST_FOREACH(ecp_mp::sensor_item_t & sensor_item, sensor_m)
-//					{
-//						sensor_item.second->configure_sensor();
-//					}
-//		}
-//
-//		// przechwycenie kostki
-//		approach_op(vis_servoing);
-//
-//		// IDENTIFY COLORS
-//		identify_colors();
-//
-//		if (vis_servoing) {
-//			//printf("if vis servoing 2\n");
-//			flushall();
-//			if (communicate_with_windows_observer()) {
-//				break;
-//			}
-//		}
-//
-//		if ((vis_servoing) && (manipulation_sequence_computed)) {
-//			//printf("trzeci if\n");
-//			flushall();
-//
-//			// wykonanie sekwencji manipulacji
-//			face_turn_op(common::CL_0);
-//
-//			execute_manipulation_sequence();
-//
-//			// zakonczenie zadania
-//			face_change_op(common::CL_0);
-//		}
-//
-//		departure_op();
-//
-//		break;
-//
-//	} // koniec: for(;;) - zewnetrzna petla
+	//Puszczanie kostki
+    set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.065, lib::irp6ot_tfg::ROBOT_NAME);
+    // oczekiwania na zakonczenie ruchu chwytaka
+    wait_for_task_termination(false, lib::irp6ot_tfg::ROBOT_NAME);
 }
 
 // powolanie robotow w zaleznosci od zawartosci pliku konfiguracyjnego
