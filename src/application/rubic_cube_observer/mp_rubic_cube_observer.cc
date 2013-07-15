@@ -465,8 +465,87 @@ void rubik_cube_observer::manipulate(common::CUBE_COLOR face_to_turn, common::CU
 		face_turn_op(turn_angle);
 	}
 }
+//obliczanie układu pól
+void rubik_cube_observer::calculate_color_combination()
+{
+	//Robimy listę wszystkich
+	std::vector<FieldOfCube*> colorsOfCube;
+	colorsOfCube.clear();
+
+	//Tworzenie listy wskaźników do każdego pola
+	for(int i=0;i<6;i++)
+	{
+		for(int j=0;j<3;j++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				wallsOfCube[i].field[j][l].numberOfColor=-1;
+				FieldOfCube *color= &wallsOfCube[i].field[j][l];
+				colorsOfCube.push_back(color);
+			}
+		}
+	}
+
+	for(int i=0;i<6;i++)
+	{
+		FieldOfCube *colorSuitTo=colorsOfCube[0];
+		int maxR=-1;
+		int noOfMaxR=-1;
+		for(int l=0;l<colorsOfCube.size();l++)
+		{
+			if(colorsOfCube[l]->numberOfColor==-1)
+			{
+				int r=pow(colorsOfCube[l]->color[0],3)+pow(colorsOfCube[l]->color[1],3)+pow(colorsOfCube[l]->color[2],3);
+				if(r>maxR)
+				{
+					maxR=r;
+					noOfMaxR=l;
+				}
+			}
+		}
+		colorSuitTo=colorsOfCube[noOfMaxR];
+		FieldOfCube *suitedColors[9];
+		double distancesSuitedColors[9];
+
+		for (int j=0;j<9;j++) distancesSuitedColors[j]=9999;
+
+		for(int l=0;l<colorsOfCube.size();l++)
+		{
+				if(colorsOfCube[l]->numberOfColor!=-1) continue;
+
+				double r=pow(abs((double)colorsOfCube[l]->color[0]-colorSuitTo->color[0]),3)+pow(abs((double)colorsOfCube[l]->color[1]-colorSuitTo->color[1]),3)+pow(abs((double)colorsOfCube[l]->color[2]-colorSuitTo->color[2]),3);
+				r=pow(r,1.0/3);
+
+				double biggestR=-1;
+				int noOfBiggest=0;
+
+				for(int j=0;j<9;j++)
+				{
+					if(biggestR<distancesSuitedColors[j])
+					{
+						noOfBiggest=j;
+						biggestR=distancesSuitedColors[j];
+					}
+				}
+
+				if(r<distancesSuitedColors[noOfBiggest])
+				{
+					suitedColors[noOfBiggest]=colorsOfCube[l];
+					distancesSuitedColors[noOfBiggest]=r;
+				}
+		}
+
+		for(int j=0;j<9; j++)
+		{
+			if(suitedColors[j]!=NULL) suitedColors[j]->numberOfColor=i;
+			else {sr_ecp_msg->message("Something wierd happened in marking colors");wait_ms(200);}
+		}
+
+	}
+}
+
 //pokazanie sciany
-void rubik_cube_observer::look_at_wall(common::CUBE_WALL wall)
+void rubik_cube_observer::look_at_wall(common::CUBE_WALL wall,bool isAfterChanging)
 {
 	switch(wall)
 	{
@@ -509,7 +588,139 @@ void rubik_cube_observer::look_at_wall(common::CUBE_WALL wall)
 			pbr=read_from_discode();
 			if(pbr.exist==true) break;
 		}
+	switch(wall)
+	{
+		case common::FRONT_WALL:
+			for(int i=0; i<3;i++)
+			{
+				for(int j=0;j<3;j++)
+				{
+					if(isAfterChanging)
+					{
+						wallsOfCube[5].field[i][j].color[0]=pbr.color[i][j][0];
+						wallsOfCube[5].field[i][j].color[1]=pbr.color[i][j][1];
+						wallsOfCube[5].field[i][j].color[2]=pbr.color[i][j][2];
+					}
+					else
+					{
+						wallsOfCube[0].field[i][j].color[0]=pbr.color[i][j][0];
+						wallsOfCube[0].field[i][j].color[1]=pbr.color[i][j][1];
+						wallsOfCube[0].field[i][j].color[2]=pbr.color[i][j][2];
+					}
+				}
+			}
+			break;
+		case common::UP_SIDE_WALL:
+			if(!isAfterChanging)
+			{
+				for(int i=0; i<3;i++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						 if(!(i==0 && (j==1 || j==2)))
+						{
+							wallsOfCube[1].field[i][j].color[0]=pbr.color[i][j][0];
+							wallsOfCube[1].field[i][j].color[1]=pbr.color[i][j][1];
+							wallsOfCube[1].field[i][j].color[2]=pbr.color[i][j][2];
+						}
+					}
+				}
+			}
+			else
+			{
+				wallsOfCube[1].field[0][2].color[0]=pbr.color[2][0][0];
+				wallsOfCube[1].field[0][2].color[1]=pbr.color[2][0][1];
+				wallsOfCube[1].field[0][2].color[2]=pbr.color[2][0][2];
 
+				wallsOfCube[1].field[0][1].color[0]=pbr.color[2][1][0];
+				wallsOfCube[1].field[0][1].color[1]=pbr.color[2][1][1];
+				wallsOfCube[1].field[0][1].color[2]=pbr.color[2][1][2];
+			}
+			break;
+		case common::DOWN_SIDE_WALL:
+			if(!isAfterChanging)
+			{
+				for(int i=0; i<3;i++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						if(!(i==0 && (j==1 || j==2)))
+						{
+							wallsOfCube[3].field[i][j].color[0]=pbr.color[i][j][0];
+							wallsOfCube[3].field[i][j].color[1]=pbr.color[i][j][1];
+							wallsOfCube[3].field[i][j].color[2]=pbr.color[i][j][2];
+						}
+					}
+				}
+			}
+			else
+			{
+				wallsOfCube[3].field[0][2].color[0]=pbr.color[2][0][0];
+				wallsOfCube[3].field[0][2].color[1]=pbr.color[2][0][1];
+				wallsOfCube[3].field[0][2].color[2]=pbr.color[2][0][2];
+
+				wallsOfCube[3].field[0][1].color[0]=pbr.color[2][1][0];
+				wallsOfCube[3].field[0][1].color[1]=pbr.color[2][1][1];
+				wallsOfCube[3].field[0][1].color[2]=pbr.color[2][1][2];
+			}
+			break;
+		case common::LEFT_SIDE_WALL:
+			if(!isAfterChanging)
+			{
+				for(int i=0; i<3;i++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						if(!(i==2 && (j==1 || j==2)))
+						{
+							wallsOfCube[2].field[i][j].color[0]=pbr.color[i][j][0];
+							wallsOfCube[2].field[i][j].color[1]=pbr.color[i][j][1];
+							wallsOfCube[2].field[i][j].color[2]=pbr.color[i][j][2];
+						}
+					}
+				}
+			}
+			else
+			{
+				wallsOfCube[4].field[2][1].color[0]=pbr.color[0][1][0];
+				wallsOfCube[4].field[2][1].color[1]=pbr.color[0][1][1];
+				wallsOfCube[4].field[2][1].color[2]=pbr.color[0][1][2];
+
+				wallsOfCube[4].field[2][2].color[0]=pbr.color[0][0][0];
+				wallsOfCube[4].field[2][2].color[1]=pbr.color[0][0][1];
+				wallsOfCube[4].field[2][2].color[2]=pbr.color[0][0][2];
+			}
+			break;
+		case common::RIGHT_SIDE_WALL:
+			if(!isAfterChanging)
+			{
+				for(int i=0; i<3;i++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						if(!(i==2 && (j==1 || j==2)))
+						{
+							wallsOfCube[4].field[i][j].color[0]=pbr.color[i][j][0];
+							wallsOfCube[4].field[i][j].color[1]=pbr.color[i][j][1];
+							wallsOfCube[4].field[i][j].color[2]=pbr.color[i][j][2];
+						}
+					}
+				}
+			}
+			else
+			{
+				wallsOfCube[2].field[2][1].color[0]=pbr.color[0][1][0];
+				wallsOfCube[2].field[2][1].color[1]=pbr.color[0][1][1];
+				wallsOfCube[2].field[2][1].color[2]=pbr.color[0][1][2];
+
+				wallsOfCube[2].field[2][2].color[0]=pbr.color[0][0][0];
+				wallsOfCube[2].field[2][2].color[1]=pbr.color[0][0][1];
+				wallsOfCube[2].field[2][2].color[2]=pbr.color[0][0][2];
+			}
+			break;
+		default:
+			break;
+	}
 	/*sr_ecp_msg->message("JEST KOSTKAJESTKOSTKA");
 	std::string s;
 	for (int i =0;i<3;i++)
@@ -1050,15 +1261,11 @@ void rubik_cube_observer::main_task_algorithm(void)
 	// ---- tester ----
 	approach_op(vis_servoing);
 
-	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_begin_end.trj", lib::irp6ot_m::ROBOT_NAME);
-	//wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
-	//set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
-	//wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
-	look_at_wall(common::FRONT_WALL);wait_ms(1000);
-	look_at_wall(common::UP_SIDE_WALL);wait_ms(1000);
-	look_at_wall(common::RIGHT_SIDE_WALL);wait_ms(1000);
-	look_at_wall(common::DOWN_SIDE_WALL);wait_ms(1000);
-	look_at_wall(common::LEFT_SIDE_WALL);wait_ms(1000);
+	look_at_wall(common::FRONT_WALL,false);wait_ms(1000);
+	look_at_wall(common::UP_SIDE_WALL,false);wait_ms(1000);
+	look_at_wall(common::RIGHT_SIDE_WALL,false);wait_ms(1000);
+	look_at_wall(common::DOWN_SIDE_WALL,false);wait_ms(1000);
+	look_at_wall(common::LEFT_SIDE_WALL,false);wait_ms(1000);
 
 	face_turn_op(common::CL_0);
 	face_change_op(common::CL_90);
@@ -1069,23 +1276,166 @@ void rubik_cube_observer::main_task_algorithm(void)
 	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
 	wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
-	look_at_wall(common::FRONT_WALL);wait_ms(1000);
-	look_at_wall(common::UP_SIDE_WALL);wait_ms(1000);
-	look_at_wall(common::RIGHT_SIDE_WALL);wait_ms(1000);
-	look_at_wall(common::DOWN_SIDE_WALL);wait_ms(1000);
-	look_at_wall(common::LEFT_SIDE_WALL);wait_ms(1000);
+	look_at_wall(common::FRONT_WALL,true);wait_ms(1000);
+	look_at_wall(common::UP_SIDE_WALL,true);wait_ms(1000);
+	look_at_wall(common::RIGHT_SIDE_WALL,true);wait_ms(1000);
+	look_at_wall(common::DOWN_SIDE_WALL,true);wait_ms(1000);
+	look_at_wall(common::LEFT_SIDE_WALL,true);wait_ms(1000);
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_begin_end.trj", lib::irp6ot_m::ROBOT_NAME);
 	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
 	wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
 
+	calculate_color_combination();
 
-    //face_turn_op(common::CL_90);
-	//face_change_op(common::CL_90);
-	//face_turn_op(common::CL_180);
-	//face_change_op(common::CL_180);
-	//face_turn_op(common::CCL_90);
-	//face_change_op(common::CCL_90);
+	/*wait_ms(500);
+	for(int i=0; i<6;i++)
+	{
+		sr_ecp_msg->message("   ");
+		for(int j=0; j<3;j++)
+		{
+			String c11 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[0][j].color[0]);
+			String c12 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[0][j].color[1]);
+			String c13 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[0][j].color[2]);
+			String c14 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[0][j].numberOfColor);
+
+			String c21 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[1][j].color[0]);
+			String c22 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[1][j].color[1]);
+			String c23 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[1][j].color[2]);
+			String c24 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[1][j].numberOfColor);
+
+			String c31 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[2][j].color[0]);
+			String c32 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[2][j].color[1]);
+			String c33 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[2][j].color[2]);
+			String c34 = boost::lexical_cast<std::string>( (int)wallsOfCube[i].field[2][j].numberOfColor);
+
+
+			String s=c11+" "+c12+" "+c13+ " "+ c14 +" | "+c21+" "+c22+" "+c23+ " "+ c24 +" | "+c31+" "+c32+" "+c33 +" "+c34;
+			sr_ecp_msg->message(s);wait_ms(500);
+		}
+	}*/
+
+	wait_ms(500);
+	for(int i=0; i<6;i++)
+	{
+		sr_ecp_msg->message("   ");
+		for(int j=0; j<3;j++)
+		{
+			String c1;
+			switch((int)wallsOfCube[i].field[0][j].numberOfColor)
+			{
+			case 0: c1="Bialy       ";break;
+			case 1: c1="Zolty       ";break;
+			case 2: c1="Pomaranczowy";break;
+			case 3: c1="Niebieski   ";break;
+			case 4: c1="Czerwony    ";break;
+			case 5: c1="Zielony     ";break;
+			}
+			String c2;
+			switch((int)wallsOfCube[i].field[1][j].numberOfColor)
+			{
+			case 0: c2="Bialy       ";break;
+			case 1: c2="Zolty       ";break;
+			case 2: c2="Pomaranczowy";break;
+			case 3: c2="Niebieski   ";break;
+			case 4: c2="Czerwony    ";break;
+			case 5: c2="Zielony     ";break;
+			}
+			String c3;
+			switch((int)wallsOfCube[i].field[2][j].numberOfColor)
+			{
+			case 0: c3="Bialy       ";break;
+			case 1: c3="Zolty       ";break;
+			case 2: c3="Pomaranczowy";break;
+			case 3: c3="Niebieski   ";break;
+			case 4: c3="Czerwony    ";break;
+			case 5: c3="Zielony     ";break;
+			}
+
+
+			String s=c1+" | "+c2+" | "+c3;
+			sr_ecp_msg->message(s);wait_ms(500);
+		}
+	}
+
+	/*String c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12;
+	String s;
+	c1 = boost::lexical_cast<std::string>( (int)wallsOfCube[0].field[0][0].numberOfColor);
+	c2 = boost::lexical_cast<std::string>( (int)wallsOfCube[0].field[1][0].numberOfColor);
+	c3 = boost::lexical_cast<std::string>( (int)wallsOfCube[0].field[2][0].numberOfColor);
+	s=c1+c2+c3;
+	sr_ecp_msg->message(s);wait_ms(500);
+	c1 = boost::lexical_cast<std::string>( (int)wallsOfCube[0].field[0][1].numberOfColor);
+	c2 = boost::lexical_cast<std::string>( (int)wallsOfCube[0].field[1][1].numberOfColor);
+	c3 = boost::lexical_cast<std::string>( (int)wallsOfCube[0].field[2][1].numberOfColor);
+	s=c1+c2+c3;
+	sr_ecp_msg->message(s);wait_ms(500);
+	c1 = boost::lexical_cast<std::string>( (int)wallsOfCube[0].field[0][2].numberOfColor);
+	c2 = boost::lexical_cast<std::string>( (int)wallsOfCube[0].field[1][2].numberOfColor);
+	c3 = boost::lexical_cast<std::string>( (int)wallsOfCube[0].field[2][2].numberOfColor);
+	s=c1+c2+c3;
+	sr_ecp_msg->message(s);wait_ms(500);
+
+
+	c1 = boost::lexical_cast<std::string>( (int)wallsOfCube[4].field[0][0].numberOfColor);
+	c2 = boost::lexical_cast<std::string>( (int)wallsOfCube[4].field[1][0].numberOfColor);
+	c3 = boost::lexical_cast<std::string>( (int)wallsOfCube[4].field[2][0].numberOfColor);
+	c4 = boost::lexical_cast<std::string>( (int)wallsOfCube[3].field[0][0].numberOfColor);
+	c5 = boost::lexical_cast<std::string>( (int)wallsOfCube[3].field[1][0].numberOfColor);
+	c6 = boost::lexical_cast<std::string>( (int)wallsOfCube[3].field[2][0].numberOfColor);
+	c7 = boost::lexical_cast<std::string>( (int)wallsOfCube[2].field[0][0].numberOfColor);
+	c8 = boost::lexical_cast<std::string>( (int)wallsOfCube[2].field[1][0].numberOfColor);
+	c9 = boost::lexical_cast<std::string>( (int)wallsOfCube[2].field[2][0].numberOfColor);
+	c10 = boost::lexical_cast<std::string>( (int)wallsOfCube[1].field[0][0].numberOfColor);
+	c11 = boost::lexical_cast<std::string>( (int)wallsOfCube[1].field[1][0].numberOfColor);
+	c12 = boost::lexical_cast<std::string>( (int)wallsOfCube[1].field[2][0].numberOfColor);
+	s=c1+c2+c3+"|"+c4+c5+c6+"|"+c7+c8+c9+"|"+c10+c11+c12;
+	sr_ecp_msg->message(s);wait_ms(500);
+	c1 = boost::lexical_cast<std::string>( (int)wallsOfCube[4].field[0][1].numberOfColor);
+	c2 = boost::lexical_cast<std::string>( (int)wallsOfCube[4].field[1][1].numberOfColor);
+	c3 = boost::lexical_cast<std::string>( (int)wallsOfCube[4].field[2][1].numberOfColor);
+	c4 = boost::lexical_cast<std::string>( (int)wallsOfCube[3].field[0][1].numberOfColor);
+	c5 = boost::lexical_cast<std::string>( (int)wallsOfCube[3].field[1][1].numberOfColor);
+	c6 = boost::lexical_cast<std::string>( (int)wallsOfCube[3].field[2][1].numberOfColor);
+	c7 = boost::lexical_cast<std::string>( (int)wallsOfCube[2].field[0][1].numberOfColor);
+	c8 = boost::lexical_cast<std::string>( (int)wallsOfCube[2].field[1][1].numberOfColor);
+	c9 = boost::lexical_cast<std::string>( (int)wallsOfCube[2].field[2][1].numberOfColor);
+	c10 = boost::lexical_cast<std::string>( (int)wallsOfCube[1].field[0][1].numberOfColor);
+	c11 = boost::lexical_cast<std::string>( (int)wallsOfCube[1].field[1][1].numberOfColor);
+	c12 = boost::lexical_cast<std::string>( (int)wallsOfCube[1].field[2][1].numberOfColor);
+	s=c1+c2+c3+"|"+c4+c5+c6+"|"+c7+c8+c9+"|"+c10+c11+c12;
+	sr_ecp_msg->message(s);wait_ms(500);
+	c1 = boost::lexical_cast<std::string>( (int)wallsOfCube[4].field[0][2].numberOfColor);
+	c2 = boost::lexical_cast<std::string>( (int)wallsOfCube[4].field[1][2].numberOfColor);
+	c3 = boost::lexical_cast<std::string>( (int)wallsOfCube[4].field[2][2].numberOfColor);
+	c4 = boost::lexical_cast<std::string>( (int)wallsOfCube[3].field[0][2].numberOfColor);
+	c5 = boost::lexical_cast<std::string>( (int)wallsOfCube[3].field[1][2].numberOfColor);
+	c6 = boost::lexical_cast<std::string>( (int)wallsOfCube[3].field[2][2].numberOfColor);
+	c7 = boost::lexical_cast<std::string>( (int)wallsOfCube[2].field[0][2].numberOfColor);
+	c8 = boost::lexical_cast<std::string>( (int)wallsOfCube[2].field[1][2].numberOfColor);
+	c9 = boost::lexical_cast<std::string>( (int)wallsOfCube[2].field[2][2].numberOfColor);
+	c10 = boost::lexical_cast<std::string>( (int)wallsOfCube[1].field[0][2].numberOfColor);
+	c11 = boost::lexical_cast<std::string>( (int)wallsOfCube[1].field[1][2].numberOfColor);
+	c12 = boost::lexical_cast<std::string>( (int)wallsOfCube[1].field[2][2].numberOfColor);
+	s=c1+c2+c3+"|"+c4+c5+c6+"|"+c7+c8+c9+"|"+c10+c11+c12;
+	sr_ecp_msg->message(s);wait_ms(500);
+
+
+	c1 = boost::lexical_cast<std::string>( (int)wallsOfCube[5].field[0][0].numberOfColor);
+	c2 = boost::lexical_cast<std::string>( (int)wallsOfCube[5].field[1][0].numberOfColor);
+	c3 = boost::lexical_cast<std::string>( (int)wallsOfCube[5].field[2][0].numberOfColor);
+	s=c1+c2+c3;
+	sr_ecp_msg->message(s);wait_ms(500);
+	c1 = boost::lexical_cast<std::string>( (int)wallsOfCube[5].field[0][1].numberOfColor);
+	c2 = boost::lexical_cast<std::string>( (int)wallsOfCube[5].field[1][1].numberOfColor);
+	c3 = boost::lexical_cast<std::string>( (int)wallsOfCube[5].field[2][1].numberOfColor);
+	s=c1+c2+c3;
+	sr_ecp_msg->message(s);wait_ms(500);
+	c1 = boost::lexical_cast<std::string>( (int)wallsOfCube[5].field[0][2].numberOfColor);
+	c2 = boost::lexical_cast<std::string>( (int)wallsOfCube[5].field[1][2].numberOfColor);
+	c3 = boost::lexical_cast<std::string>( (int)wallsOfCube[5].field[2][2].numberOfColor);
+	s=c1+c2+c3;
+	sr_ecp_msg->message(s);wait_ms(500);*/
 
 	departure_op();
 	//Puszczanie kostki
