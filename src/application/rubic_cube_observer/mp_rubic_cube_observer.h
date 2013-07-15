@@ -17,6 +17,8 @@
 #include "SingleManipulation.h"
 #include "sensor/discode/discode_sensor.h"
 #include "CubeReading.hpp"
+#include "FieldOfCube.h"
+#include "WallOfCube.h"
 
 namespace mrrocpp {
 namespace mp {
@@ -71,10 +73,12 @@ public:
 
 	bool communicate_with_windows_observer();
 
+	void calculate_color_combination();
+
 	// OPERACJE
 
 	//obejrzenie sciany
-	void look_at_wall(common::CUBE_WALL wall);
+	void look_at_wall(common::CUBE_WALL wall,bool isAfterChanging);
 	// obrot sciany
 	void face_turn_op(common::CUBE_TURN_ANGLE turn_angle);
 	// zmiana sciany (przelozenie kostki)
@@ -96,6 +100,7 @@ public:
 	bool run_vs;
 	int vs_settle_time;
 	std::string robot_name;
+	WallOfCube wallsOfCube[6];
 
 private:
 	boost::shared_ptr<discode_sensor> discode;
