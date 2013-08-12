@@ -9,6 +9,8 @@ namespace common {
 
 // zbior obejmujacy mozliwe stany kostki
 enum CUBE_TURN_ANGLE {UKNOWN_TURN_ANGLE, CL_180, CL_90, CL_0, CCL_90};
+enum CUBE_WALL {UKNOWN_WALL, FRONT_WALL, UP_SIDE_WALL, DOWN_SIDE_WALL, LEFT_SIDE_WALL,RIGHT_SIDE_WALL};
+
 CUBE_TURN_ANGLE read_cube_turn_angle (char input_char);
 
 class SingleManipulation

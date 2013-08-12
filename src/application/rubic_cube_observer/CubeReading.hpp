@@ -19,8 +19,9 @@ namespace Mrrocpp_Proxy {
 class CubeReading: public Reading
 {
 public:
-	CubeReading() : objectVisible(false)
+	CubeReading()
 	{
+		exist=false;
 	}
 
 	virtual ~CubeReading()
@@ -31,8 +32,8 @@ public:
 	{
 		return new CubeReading(*this);
 	}
-
-	bool objectVisible;
+	bool exist;
+	int color[3][3][3];
 
 	virtual void send(boost::shared_ptr<xdr_oarchive<> > & ar){
 		*ar<<*this;
@@ -46,7 +47,8 @@ private:
 //		LOG(LWARNING) << "CubeReading::serialize()\n";
 		ar & boost::serialization::base_object <Reading>(*this);
 
-		ar & objectVisible;
+		ar & exist;
+		ar & color;
 	}
 };
 
