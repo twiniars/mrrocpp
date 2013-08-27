@@ -11,6 +11,7 @@
 
 #include "ecp_mp_g_askubis_sinusoidal_velocity.h"
 #include "base/ecp/ecp_generator.h"
+#include <sys/time.h>
 
 namespace mrrocpp {
 namespace ecp {
@@ -29,7 +30,11 @@ protected:
 
 	double amplituda;
 	double czestotliwosc;
+	double current_pos;
+	mrrocpp::lib::Xyz_Euler_Zyz_vector first_pos;
+	timeval last_timestamp;
 
+	int step;
 	int nmc;
 	int axes_num;
 	std::vector<double> position;

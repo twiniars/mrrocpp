@@ -27,8 +27,8 @@ askubis_sinusoidal_velocity::askubis_sinusoidal_velocity(common::task::task& _ec
 		common::generator::generator(_ecp_task), pulse_check_activated(false), force_meassure(false), step_no(step)
 {
 	generator_name = ecp_mp::generator::ECP_GEN_ASKUBIS_SINUSOIDAL_VELOCITY;
-
-	nmc=100;
+	step=0;
+	nmc=5;//nmc = 5 => 10ms loop
 	axes_num=6;
 
 	// domyslnie wszytkie osie podatne a pulse_check nieaktywne
@@ -167,6 +167,19 @@ bool askubis_sinusoidal_velocity::first_step()
 //		the_robot->ecp_command.arm.pf_def.reciprocal_damping[i] = generator_edp_data.next_reciprocal_damping[i];
 //		the_robot->ecp_command.arm.pf_def.inertia[i] = generator_edp_data.next_inertia[i];
 //	}
+
+	lib::Homog_matrix actual_position_matrix;
+	actual_position_matrix = the_robot->reply_package.arm.pf_def.arm_frame;
+	lib::Xyz_Euler_Zyz_vector euler_vector;
+	actual_position_matrix.get_xyz_euler_zyz(euler_vector);
+	first_pos = euler_vector;
+	current_pos = euler_vector[0];
+
+	timeval start;
+	gettimeofday(&start, NULL);
+	last_timestamp = start;
+
+	step = 0;
 			the_robot->ecp_command.set_type = ARM_DEFINITION;
 			the_robot->ecp_command.motion_steps = nmc;
 			the_robot->ecp_command.value_in_step_no = nmc - 2;
@@ -217,15 +230,28 @@ bool askubis_sinusoidal_velocity::next_step()
 	lib::Xyz_Euler_Zyz_vector euler_vector;
 	actual_position_matrix.get_xyz_euler_zyz(euler_vector);
 
+	step++;
+	double time = step*0.01;
+	double A= 0.001;
+	double B = 0.5;
+	double gain = A*std::sin(2*3.14*B*time*time);
+	//double gain = A*(0.5 - (1/(3.14*(2*sqrt(B)*time)))*std::cos(1/2 * 3.14 *(2*sqrt(B)*time)*(2*sqrt(B)*time)))/(2*sqrt(B));
+	//double gain = A/(2*sqrt(B))*(0.5 - ((1/(2*3.14*sqrt(B)*time)) * std::cos(2*3.14*B*time*time)));
+	current_pos+=gain;
+	mrrocpp::lib::Xyz_Euler_Zyz_vector tmp = first_pos;
+	tmp[0]=current_pos;
 
-	std::cout<<"koordynaty przed: "<<euler_vector[0]<<" "<<euler_vector[1]<<" "<<euler_vector[2]<<" "<<euler_vector[3]<<" "<<euler_vector[4]<<" "<<euler_vector[5]<<" "<<std::endl;
-	euler_vector[0]-=0.01;
+	timeval next;
+	gettimeofday(&next, NULL);
+	int usecdiff = next.tv_usec-last_timestamp.tv_usec;
 
-	std::cout<<"koordynaty po: "<<euler_vector[0]<<" "<<euler_vector[1]<<" "<<euler_vector[2]<<" "<<euler_vector[3]<<" "<<euler_vector[4]<<" "<<euler_vector[5]<<" "<<std::endl;
+	std::cout<<"step no "<<step<<" gain: "<<gain<< " TIME: "<<usecdiff<<" ZADANE: "<<current_pos<</*" pozycja osiagnieta "<<euler_vector[0]<<*/std::endl;//wypisac time
+	//std::cout<<tmp[0]<<" "<<tmp[1]<<" "<<tmp[2]<<" "<<tmp[3]<<" "<<tmp[4]<<" "<<tmp[5]<<" "<<std::endl;
+	last_timestamp = next;
 
 	the_robot->communicate_with_edp = true; //turn on the communication with EDP
 	the_robot->ecp_command.instruction_type = lib::SET;
-	the_robot->ecp_command.arm.pf_def.arm_frame.set_from_xyz_euler_zyz(euler_vector);
+	the_robot->ecp_command.arm.pf_def.arm_frame.set_from_xyz_euler_zyz(tmp);
 
 
 	if (force_meassure) {
