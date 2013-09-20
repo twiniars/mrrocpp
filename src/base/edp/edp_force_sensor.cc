@@ -271,6 +271,33 @@ void force::get_reading(void)
 
 		master.force_dp.write(force_output);
 
+		// przygotowanie odczytu dla readera przetransformowanego do ukladu narzedzia
+
+		lib::Xi_star ft_tr_inv_current_rotation_matrix(!current_frame);
+
+		lib::Homog_matrix current_tool(((mrrocpp::kinematics::common::kinematic_model_with_tool*) master.get_current_kinematic_model())->tool);
+		lib::Xi_f ft_tr_inv_tool_matrix(!current_tool);
+
+		lib::Ft_vector computed_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix * force_output);
+		lib::Ft_vector adjusted_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix
+				* adjusted_force);
+		lib::Ft_vector inertial_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix
+				* inertial_force);
+
+		// scope-locked reader data update
+		{
+			if (master.rb_obj) {
+				boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
+
+				computed_force_in_tool.to_table(master.rb_obj->step_data.computed_force);
+				adjusted_force_in_tool.to_table(master.rb_obj->step_data.adjusted_force);
+				inertial_force_in_tool.to_table(master.rb_obj->step_data.inertial_force);
+				imu_acc.to_table(master.rb_obj->step_data.imu_cartesian_acc);
+			} else {
+				//	std::cerr << " " << std::endl;
+			}
+		}
+
 	} else {
 		// wypisanie komunikatu o przekroczeniu sily progowej
 		std::stringstream buffer(std::stringstream::in | std::stringstream::out);
@@ -280,31 +307,6 @@ void force::get_reading(void)
 		}
 
 		sr_msg->message(lib::NON_FATAL_ERROR, buffer.str());
-	}
-
-	// przygotowanie odczytu dla readera przetransformowanego do ukladu narzedzia
-
-	lib::Xi_star ft_tr_inv_current_rotation_matrix(!current_frame);
-
-	lib::Homog_matrix current_tool(((mrrocpp::kinematics::common::kinematic_model_with_tool*) master.get_current_kinematic_model())->tool);
-	lib::Xi_f ft_tr_inv_tool_matrix(!current_tool);
-
-	lib::Ft_vector computed_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix * force_output);
-	lib::Ft_vector adjusted_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix * adjusted_force);
-	lib::Ft_vector inertial_force_in_tool(ft_tr_inv_tool_matrix * ft_tr_inv_current_rotation_matrix * inertial_force);
-
-	// scope-locked reader data update
-	{
-		if (master.rb_obj) {
-			boost::mutex::scoped_lock lock(master.rb_obj->reader_mutex);
-
-			computed_force_in_tool.to_table(master.rb_obj->step_data.computed_force);
-			adjusted_force_in_tool.to_table(master.rb_obj->step_data.adjusted_force);
-			inertial_force_in_tool.to_table(master.rb_obj->step_data.inertial_force);
-			imu_acc.to_table(master.rb_obj->step_data.imu_cartesian_acc);
-		} else {
-			//	std::cerr << " " << std::endl;
-		}
 	}
 
 }
