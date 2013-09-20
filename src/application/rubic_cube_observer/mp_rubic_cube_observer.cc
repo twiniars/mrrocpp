@@ -829,7 +829,7 @@ void rubik_cube_observer::face_turn_op(common::CUBE_TURN_ANGLE turn_angle)
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(false, true, true, false, false, false), lib::irp6p_m::ROBOT_NAME);
 
 	// uruchomienie zaciskania chwytaka traka do pozycji zadanej odpowiadajacej calkowitemu zacisnieciu na kostce bez luzu
-    set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.056, lib::irp6p_tfg::ROBOT_NAME);
+    set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.058, lib::irp6p_tfg::ROBOT_NAME);
 
 	// oczekiwania na zakonczenie ruchu chwytaka
 	wait_for_task_termination(false, lib::irp6p_tfg::ROBOT_NAME);
@@ -870,7 +870,7 @@ void rubik_cube_observer::face_turn_op(common::CUBE_TURN_ANGLE turn_angle)
 	// rozwarcie chwytaka tracka
 
 	// wlaczenie generatora zacisku na kostce w robocie irp6ot
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::RELATIVE, 0.02, lib::irp6ot_tfg::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::RELATIVE, 0.022, lib::irp6ot_tfg::ROBOT_NAME);
 
 	// uruchomienie generatora empty_gen
 	wait_for_task_termination(false, lib::irp6ot_tfg::ROBOT_NAME);
@@ -1008,7 +1008,7 @@ void rubik_cube_observer::face_change_op(common::CUBE_TURN_ANGLE turn_angle)
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(true, true, false, false, false, false), lib::irp6ot_m::ROBOT_NAME);
 
 	// uruchomienie zaciskania chwytaka traka do pozycji zadanej odpowiadajacej calkowitemu zacisnieciu na kostce bez luzu
-        set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.055, lib::irp6ot_tfg::ROBOT_NAME);
+        set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.058, lib::irp6ot_tfg::ROBOT_NAME);
 
 	// oczekiwania na zakonczenie ruchu chwytaka
 	wait_for_task_termination(false, lib::irp6ot_tfg::ROBOT_NAME);
@@ -1018,7 +1018,7 @@ void rubik_cube_observer::face_change_op(common::CUBE_TURN_ANGLE turn_angle)
 
 	// wstepne rozwarcie chwytaka postumenta
 	//set_next_ecp_state ((int) ecp_mp::subtask::ECP_ST_GRIPPER_OPENING, (int) ecp_mp::generator::RCSC_GO_VAR_1, "",  lib::irp6p_m::ROBOT_NAME);
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::RELATIVE, 0.002, lib::irp6p_tfg::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::RELATIVE, 0.004, lib::irp6p_tfg::ROBOT_NAME);
 	// uruchomienie generatora empty_gen
 	wait_for_task_termination(false, lib::irp6p_tfg::ROBOT_NAME);
 
@@ -1029,7 +1029,7 @@ void rubik_cube_observer::face_change_op(common::CUBE_TURN_ANGLE turn_angle)
 	//wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
 
 	// dalsze rozwarcie chwytaka postumenta
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::RELATIVE, 0.02, lib::irp6p_tfg::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::RELATIVE, 0.023, lib::irp6p_tfg::ROBOT_NAME);
 	// uruchomienie generatora empty_gen
 	wait_for_task_termination(false, lib::irp6p_tfg::ROBOT_NAME);
 
@@ -1198,7 +1198,7 @@ void rubik_cube_observer::approach_op(int mode)
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(true, true, false, false, false, false), lib::irp6ot_m::ROBOT_NAME);
 
 	// uruchomienie zaciskania chwytaka traka do pozycji zadanej odpowiadajacej calkowitemu zacisnieciu na kostce bez luzu
-        set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.056, lib::irp6ot_tfg::ROBOT_NAME);
+        set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.058, lib::irp6ot_tfg::ROBOT_NAME);
 
 	// oczekiwania na zakonczenie ruchu chwytaka
 	wait_for_task_termination(false, lib::irp6ot_tfg::ROBOT_NAME);
@@ -1217,7 +1217,7 @@ void rubik_cube_observer::approach_op(int mode)
 	wait_for_task_termination(false, lib::irp6ot_tfg::ROBOT_NAME);
 	//zaciskanie na kostce
 
-        set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.056, lib::irp6ot_tfg::ROBOT_NAME);
+        set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.058, lib::irp6ot_tfg::ROBOT_NAME);
 	// oczekiwania na zakonczenie ruchu chwytaka
 	wait_for_task_termination(false, lib::irp6ot_tfg::ROBOT_NAME);
 
@@ -1262,10 +1262,17 @@ void rubik_cube_observer::main_task_algorithm(void)
 	approach_op(vis_servoing);
 
 	look_at_wall(common::FRONT_WALL,false);wait_ms(1000);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
+	wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
 	look_at_wall(common::UP_SIDE_WALL,false);wait_ms(1000);
 	look_at_wall(common::RIGHT_SIDE_WALL,false);wait_ms(1000);
 	look_at_wall(common::DOWN_SIDE_WALL,false);wait_ms(1000);
 	look_at_wall(common::LEFT_SIDE_WALL,false);wait_ms(1000);
+
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6ot_sm_watch_wall_begin_end.trj", lib::irp6ot_m::ROBOT_NAME);
+	wait_for_task_termination(false, lib::irp6ot_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
+	wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
 
 	face_turn_op(common::CL_0);
 	face_change_op(common::CL_90);
@@ -1277,6 +1284,8 @@ void rubik_cube_observer::main_task_algorithm(void)
 	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
 	wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
 	look_at_wall(common::FRONT_WALL,true);wait_ms(1000);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_SMOOTH_JOINT_FILE_FROM_MP, (int) lib::ABSOLUTE, "../../src/application/rubic_cube_observer/trj/irp6p_sm_watch_wall_begin_end.trj", lib::irp6p_m::ROBOT_NAME);
+	wait_for_task_termination(false,lib::irp6p_m::ROBOT_NAME);
 	look_at_wall(common::UP_SIDE_WALL,true);wait_ms(1000);
 	look_at_wall(common::RIGHT_SIDE_WALL,true);wait_ms(1000);
 	look_at_wall(common::DOWN_SIDE_WALL,true);wait_ms(1000);
@@ -1288,7 +1297,7 @@ void rubik_cube_observer::main_task_algorithm(void)
 
 	calculate_color_combination();
 
-	/*wait_ms(500);
+	wait_ms(500);
 	for(int i=0; i<6;i++)
 	{
 		sr_ecp_msg->message("   ");
@@ -1313,7 +1322,7 @@ void rubik_cube_observer::main_task_algorithm(void)
 			String s=c11+" "+c12+" "+c13+ " "+ c14 +" | "+c21+" "+c22+" "+c23+ " "+ c24 +" | "+c31+" "+c32+" "+c33 +" "+c34;
 			sr_ecp_msg->message(s);wait_ms(500);
 		}
-	}*/
+	}//*/
 
 	wait_ms(500);
 	for(int i=0; i<6;i++)
