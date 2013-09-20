@@ -100,9 +100,6 @@ void reader_buffer::operator()()
 	}
 
 
-	std::cout<<std::endl<<"test ASKUBIS "<<master.config.exists("reader_meassures_dir")<<std::endl;
-	std::cout<<std::endl<<"test ASKUBIS "<<master.config.value <std::string>("reader_meassures_dir", lib::UI_SECTION)<<std::endl;
-	std::cout<<std::endl<<"test ASKUBIS "<<reader_meassures_dir<<std::endl;
 
 	std::string robot_filename = master.config.get_edp_reader_attach_point();
 
@@ -175,7 +172,6 @@ void reader_buffer::operator()()
 			reader_cnf.imu_cartesian_acc[j] = master.config.check_config(tmp_string);
 		}
 	}
-	std::cout<<std::endl<<"test ASKUBIS computed force"<<reader_cnf.computed_force[2]<<std::endl;
 
 	// ustawienie priorytetu watku
 	if (!master.robot_test_mode) {
@@ -200,7 +196,6 @@ void reader_buffer::operator()()
 		//  throw MP_main_error(lib::SYSTEM_ERROR, (uint64_t) 0);
 	}
 
-	std::cout<<"ASKUBIS before measures start"<<std::endl;
 	// GLOWNA PETLA Z OCZEKIWANIEM NA ZLECENIE POMIAROW
 	for (;;) {
 		// TODO: why, Leo? Why?
@@ -225,7 +220,6 @@ void reader_buffer::operator()()
 			}
 
 		}
-std::cout<<"ASKUBIS measures start"<<std::endl;
 		master.msg->message("measures started");
 
 		// TODO: why, Leo? Why?
@@ -278,7 +272,6 @@ std::cout<<"ASKUBIS measures start"<<std::endl;
 			lib::set_thread_priority(lib::PTHREAD_MIN_PRIORITY); // Najnizszy priorytet podczas proby zapisu do pliku
 		}
 		master.msg->message("measures stopped");
-		std::cout<<"ASKUBIS measures stopped"<<std::endl;
 
 		// przygotowanie nazwy pliku do ktorego beda zapisane pomiary
 		time_of_day = time(NULL);
@@ -287,10 +280,8 @@ std::cout<<"ASKUBIS measures start"<<std::endl;
 		sprintf(file_name, "/%s_%s_pomiar-%d.csv", file_date, robot_filename.c_str(), ++file_counter);
 		strcpy(config_file_with_dir, reader_meassures_dir.c_str());
 
-		std::cout<<"ASKUBIS dir "<<config_file_with_dir<<std::endl;
 		strcat(config_file_with_dir, file_name);
 
-		std::cout<<"ASKUBIS file opened "<<config_file_with_dir<<std::endl;
 
 		std::ofstream outfile(config_file_with_dir, std::ios::out);
 		if (!outfile.good()) // jesli plik nie instnieje
