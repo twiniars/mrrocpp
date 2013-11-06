@@ -166,7 +166,7 @@ fsautomat::fsautomat(lib::configurator &_config) :
 										}
 										befg = new common::generator::bias_edp_force(*this);
 										xmlFree(argument);
-									} else if (!xmlStrcmp(child_node->children->name, (const xmlChar *) "ecp_smooth_gen")) {
+									} else if (!xmlStrcmp(child_node->children->name, (const xmlChar *) "ecp_newsmooth_gen")) {
 										xmlChar *argument = xmlNodeGetContent(child_node->children);
 										if (argument && xmlStrcmp(argument, (const xmlChar *) "")) {
 											axes_num = atoi((char *) argument);

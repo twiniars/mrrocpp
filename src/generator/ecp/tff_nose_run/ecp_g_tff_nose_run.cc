@@ -30,10 +30,28 @@ tff_nose_run::tff_nose_run(common::task::task& _ecp_task, int step) :
 	// domyslnie wszytkie osie podatne a pulse_check nieaktywne
 	configure_behaviour(lib::CONTACT, lib::CONTACT, lib::CONTACT, lib::CONTACT, lib::CONTACT, lib::CONTACT);
 	configure_pulse_check(false);
-	configure_velocity(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	configure_velocity(0.0,0.0,0.0,0.0,0.0,0.0);
 	configure_force(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	//askubis start change
 	configure_reciprocal_damping(lib::FORCE_RECIPROCAL_DAMPING, lib::FORCE_RECIPROCAL_DAMPING, lib::FORCE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING);
 	configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, lib::FORCE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);
+
+
+//	configure_reciprocal_damping(lib::FORCE_RECIPROCAL_DAMPING, lib::FORCE_RECIPROCAL_DAMPING, 0.0025, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING);
+//	configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, lib::FORCE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);
+
+	//configure_reciprocal_damping(lib::FORCE_RECIPROCAL_DAMPING, lib::FORCE_RECIPROCAL_DAMPING, 0.01, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING);
+	//configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, 0.25, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);//eksperymenty askubis
+
+	//configure_reciprocal_damping(lib::FORCE_RECIPROCAL_DAMPING, lib::FORCE_RECIPROCAL_DAMPING, 0.002, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING);
+	//configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, 0.02, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);
+
+	//configure_reciprocal_damping(lib::FORCE_RECIPROCAL_DAMPING, lib::FORCE_RECIPROCAL_DAMPING, 1.0/400, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING);
+	//configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, 0.084, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);
+	//configure_reciprocal_damping(lib::FORCE_RECIPROCAL_DAMPING, lib::FORCE_RECIPROCAL_DAMPING, 1.0/100, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING, lib::TORQUE_RECIPROCAL_DAMPING);
+	//configure_inertia(lib::FORCE_INERTIA, lib::FORCE_INERTIA, 0.25, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA, lib::TORQUE_INERTIA);
+
+	std::cout<<"KOPYTKO 123 test"<<std::endl;
 
 }
 
@@ -124,6 +142,7 @@ void tff_nose_run::configure_inertia(double x, double y, double z, double ax, do
 
 bool tff_nose_run::first_step()
 {
+	std::cout<<"first step"<<std::endl;
 	// Generacja trajektorii prostoliniowej o zadany przyrost polozenia i oreintacji
 	// Funkcja zwraca false gdy koniec generacji trajektorii
 	// Funkcja zwraca true gdy generacja trajektorii bedzie kontynuowana
@@ -155,6 +174,7 @@ bool tff_nose_run::first_step()
 		the_robot->ecp_command.arm.pf_def.inertia[i] = generator_edp_data.next_inertia[i];
 	}
 
+
 	return true;
 }
 
@@ -164,6 +184,7 @@ bool tff_nose_run::first_step()
 
 bool tff_nose_run::next_step()
 {
+//	std::cout<<"next step"<<std::endl;
 
 	//	std::cout << "tff_nose_run" << node_counter << std::endl;
 	// Generacja trajektorii prostoliniowej o zadany przyrost polozenia i orientacji
@@ -191,7 +212,10 @@ bool tff_nose_run::next_step()
 
 		lib::Ft_v_vector force_torque(the_robot->reply_package.arm.pf_def.force_xyz_torque_xyz);
 
-		std::cout << "force: " << force_torque << std::endl;
+
+		std::cout << "force measured: " << force_torque << std::endl;
+
+
 	}
 	return true;
 
@@ -202,6 +226,7 @@ bool tff_nose_run::next_step()
 void tff_nose_run::execute_motion(void)
 {
 	// Zlecenie wykonania ruchu przez robota jest to polecenie dla EDP
+//	std::cout<<"execute motion"<<std::endl;
 
 	// komunikacja wlasciwa
 	the_robot->send();

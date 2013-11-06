@@ -92,11 +92,14 @@ void reader_buffer::operator()()
 	// czytanie konfiguracji
 	std::string reader_meassures_dir;
 
+
 	if (master.config.exists("reader_meassures_dir", lib::UI_SECTION)) {
 		reader_meassures_dir = master.config.value <std::string>("reader_meassures_dir", lib::UI_SECTION);
 	} else {
 		reader_meassures_dir = master.config.return_default_reader_measures_path();
 	}
+
+
 
 	std::string robot_filename = master.config.get_edp_reader_attach_point();
 
@@ -217,7 +220,6 @@ void reader_buffer::operator()()
 			}
 
 		}
-
 		master.msg->message("measures started");
 
 		// TODO: why, Leo? Why?
@@ -279,6 +281,7 @@ void reader_buffer::operator()()
 		strcpy(config_file_with_dir, reader_meassures_dir.c_str());
 
 		strcat(config_file_with_dir, file_name);
+
 
 		std::ofstream outfile(config_file_with_dir, std::ios::out);
 		if (!outfile.good()) // jesli plik nie instnieje

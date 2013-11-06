@@ -4,6 +4,7 @@ add_subdirectory (limit_force)
 add_subdirectory (force_tool_change)
 add_subdirectory (tff_gripper_approach)
 add_subdirectory (tff_nose_run)
+add_subdirectory (askubis_sinusoidal_velocity)
 add_subdirectory (tff_rubik_face_rotate)
 add_subdirectory (transparent)
 add_subdirectory (sleep)
@@ -41,6 +42,7 @@ ecp_g_bias_edp_force
 ecp_g_force_tool_change
 ecp_g_tff_gripper_approach
 ecp_g_tff_nose_run
+ecp_g_askubis_sinusoidal_velocity
 ecp_g_tff_rubik_face_rotate
 ecp_g_transparent
 ecp_g_sleep
