@@ -864,7 +864,7 @@ void rubik_cube_observer::face_turn_op(common::CUBE_TURN_ANGLE turn_angle)
 	send_end_motion_to_ecps(lib::irp6p_m::ROBOT_NAME);
 
 	// uruchomienie tff_nose run dla traka z podatnoscia w dwoch osiach
-	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(false, true, true, false, false, false), lib::irp6p_m::ROBOT_NAME);
+	set_next_ecp_state(ecp_mp::generator::ECP_GEN_TFF_NOSE_RUN, (int) ecp_mp::generator::tff_nose_run::behaviour_specification, ecp_mp::generator::tff_nose_run::behaviour_specification_data_type(true, true, false, false, false, false), lib::irp6p_m::ROBOT_NAME);
 
 	// uruchomienie zaciskania chwytaka traka do pozycji zadanej odpowiadajacej calkowitemu zacisnieciu na kostce bez luzu
     set_next_ecp_state(ecp_mp::generator::ECP_GEN_CONSTANT_VELOCITY, (int) lib::ABSOLUTE, 0.0565, lib::irp6p_tfg::ROBOT_NAME);
