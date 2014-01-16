@@ -224,13 +224,16 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 	b1 = kp;
 	max_output_current = 20000;
 
+
+	double motor;
+
 	switch (algorithm_no)
 	{
 		case 0: {
+
 			// algorytm nr 0
 			current_reg_kp = 100;
 			// obliczenie nowej wartosci wypelnienia PWM algorytm PD + I
-
 			set_value_new = (1 + a) * set_value_old - a * set_value_very_old + b0 * delta_eint - b1 * delta_eint_old;
 			//set_value_new = set_value_old + kp * deviation + ki * delta_eint;
 		}
@@ -238,11 +241,16 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 
 		case 1: // algorytm nr 1
 		{
-			current_reg_kp = 1; // zerowe extra wzmocnienie
+
+			motor = master.current_joints[0];
+
+			current_reg_kp = 1;
+			set_value_new = -1750;
+			//current_reg_kp = 1; // zerowe extra wzmocnienie
 			// przepisanie zadanej wartosci pradu
 
-			set_value_new = master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0];
-			//	printf("set_value_new case 1: %f\n", set_value_new);
+			//set_value_new = master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0];
+				printf("set_value_new case 1: %f\n", set_value_new);
 		}
 			break;
 

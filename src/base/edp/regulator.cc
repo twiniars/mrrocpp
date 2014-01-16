@@ -293,6 +293,7 @@ void NL_regulator::compute_set_value_final_computations()
 									<< "\tmeas. current: " << measured_current << " desired_pwm: " << output_value << " kp: "
 											<< measured_current / output_value << std::endl;
 
+
 			}
 
 		}
@@ -319,6 +320,7 @@ void NL_regulator::compute_set_value_final_computations()
 				std::cout << "desired pos.: " << des << "\tcurrent pos.: " << cur << "\tdeviation: " << dev
 						<< "\tdev_integral: " << abs_pos_dev_int << "\tdes. current: " << output_value
 						<< "\tmeas. current: " << measured_current << "\n";
+				//std::cout << "output: " << output_value << "set_value: " << set_value_new << "current_reg_kp: " << current_reg_kp << std::endl;
 			}
 
 		}

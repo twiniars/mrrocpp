@@ -181,7 +181,7 @@ protected:
 	 *
 	 * for the whole macrostep
 	 */
-	lib::JointArray current_joints;
+
 
 	/*!
 	 * \brief desired motor position for the previous macrostep
@@ -214,6 +214,10 @@ protected:
 public:
 
 	bool servo_mode;
+
+
+	lib::JointArray current_joints;
+
 
 	/*!
 	 * \brief method to read current joint position stored in global_current_joints
