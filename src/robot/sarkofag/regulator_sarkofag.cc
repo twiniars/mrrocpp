@@ -50,6 +50,10 @@ NL_regulator_8_sarkofag::NL_regulator_8_sarkofag(uint8_t _axis_number, uint8_t r
 /*-----------------------------------------------------------------------*/
 uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 {
+
+	double m, p, an, dl, q, zero, S, radian, current_degree; //m - masa, p - przekladania silnika, an - parametr silnika, dl - odleglosc od punktu obrotu do punktu srodka ciezkosci, q - przyspieszenie ziemskie.
+	///////////////////zero - pozycja pi/2 w motors, oneS - jeden stopien w motors
+
 	//	static long iteracja = 0;
 
 	// algorytm regulacji dla serwomechanizmu
@@ -140,6 +144,8 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 						b0 = 0.9017 * 1.5;
 						b1 = 0.7701 * 1.5;
 						k_feedforward = 0.35;
+						//////////////
+
 						break;
 					case 1: // zestaw parametrow nr 1
 						current_algorithm_parameters_no = algorithm_parameters_no;
@@ -166,6 +172,10 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 						b0 = 0;
 						b1 = 0;
 						k_feedforward = 0;
+
+
+												//////////////
+
 						break;
 					case 1: // zestaw parametrow nr 1
 						current_algorithm_parameters_no = algorithm_parameters_no;
@@ -242,15 +252,32 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 		case 1: // algorytm nr 1
 		{
 
-			motor = master.current_joints[0];
 
+			m = 13.975;//_ecp_task.config.value <float>("weight", "[edp_sarkofag]");
+			p = 150;
+			an = 0.105;
+			dl = 0.5175;
+			q = 9.8;
+			S = -0.34;
+			zero = -20.9888;
+
+			motor = reg_abs_current_motor_pos;//master.current_joints[0];
+			current_degree = (motor - zero)/S;
 			current_reg_kp = 1;
-			set_value_new = -1750;
+
+			radian = (current_degree*M_PI)/180.0;
+			set_value_new = -(cos(radian)*(dl*m*q))/(an*p) * 1000; //-4500;//-1933;//-1750;
+
+
+			std::cout << "value: " << set_value_new << "\tmotor.: " << motor << "\trad: " << radian
+												<< "\tcurrent_degree: " << current_degree << "\ts: " << S << std::endl;
+
+			//std::getchar();
 			//current_reg_kp = 1; // zerowe extra wzmocnienie
 			// przepisanie zadanej wartosci pradu
 
 			//set_value_new = master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0];
-				printf("set_value_new case 1: %f\n", set_value_new);
+				//printf("set_value_new case 1: %f\n", set_value_new);
 		}
 			break;
 
