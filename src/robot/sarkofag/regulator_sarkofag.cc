@@ -22,6 +22,8 @@
 
 #include "robot/sarkofag/edp_e_sarkofag.h"
 
+#include "robot/sarkofag/kinematic_model_sarkofag.h"
+
 namespace mrrocpp {
 namespace edp {
 namespace sarkofag {
@@ -51,8 +53,18 @@ NL_regulator_8_sarkofag::NL_regulator_8_sarkofag(uint8_t _axis_number, uint8_t r
 uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 {
 
-	double m, p, an, dl, q, zero, S, radian, current_degree; //m - masa, p - przekladania silnika, an - parametr silnika, dl - odleglosc od punktu obrotu do punktu srodka ciezkosci, q - przyspieszenie ziemskie.
-	///////////////////zero - pozycja pi/2 w motors, oneS - jeden stopien w motors
+	double m, p, an, dl, q, zero, S, radian, current_degree, v_deg, v_rot, bezwladnosc, pozycja_join;
+
+
+	//m - masa,
+	//p - przekladania silnika,
+	//an - parametr silnika,
+	//dl - odleglosc od punktu obrotu do punktu srodka ciezkosci,
+	//q - przyspieszenie ziemskie.
+	//zero - pozycja pi/2 w motors,
+	//oneS - jeden stopien w motors,
+	//v_deg - prędkość kątowa,
+	//v_rot - predkosc obrotowa
 
 	//	static long iteracja = 0;
 
@@ -253,24 +265,26 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 		{
 
 
-			m = 13.975;//_ecp_task.config.value <float>("weight", "[edp_sarkofag]");
-			p = 150;
-			an = 0.105;
-			dl = 0.5175;
-			q = 9.8;
-			S = -0.34;
-			zero = -20.9888;
 
-			motor = reg_abs_current_motor_pos;//master.current_joints[0];
-			current_degree = (motor - zero)/S;
+
+			m = 13.975;//_ecp_task.config.value <float>("weight", "[edp_sarkofag]");
+			p=kinematics::sarkofag::gear;
+			an = 0.105- 0.1*0.105;
+			dl = 0.5175;
+			q = 9.81;
+			S = -0.33333;
+			//zero = -20.9888;
+			//v_deg = ;
+
+			pozycja_join = master.current_joints[0];
+			//current_degree = (motor - zero)/S;
 			current_reg_kp = 1;
 
-			radian = (current_degree*M_PI)/180.0;
-			set_value_new = -(cos(radian)*(dl*m*q))/(an*p) * 1000; //-4500;//-1933;//-1750;
+			//radian = (current_degree*M_PI)/180.0;
+			set_value_new = -(cos(pozycja_join )*(dl*m*q))/(an*p) * 1000; //-4500;//-1933;//-1750;
 
 
-			std::cout << "value: " << set_value_new << "\tmotor.: " << motor << "\trad: " << radian
-												<< "\tcurrent_degree: " << current_degree << "\ts: " << S << std::endl;
+			std::cout << "value: " << set_value_new << "\tjoin.: " << pozycja_join << "\tgear: " << kinematics::sarkofag::gear << std::endl;
 
 			//std::getchar();
 			//current_reg_kp = 1; // zerowe extra wzmocnienie
