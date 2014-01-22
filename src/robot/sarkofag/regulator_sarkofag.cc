@@ -34,11 +34,9 @@ NL_regulator_8_sarkofag::NL_regulator_8_sarkofag(uint8_t _axis_number, uint8_t r
 {
 // pzredefiniwoane na potrzeby eksperymentþów
 	strict_current_mode = true;
-
 	desired_velocity_limit = 0.5;
 	reg_state = next_reg_state = prev_reg_state = lib::GRIPPER_START_STATE;
 	sum_of_currents = current_index = 0;
-
 	display = 0;
 	deviation = 0;
 	deviation_integral = 0;
@@ -268,7 +266,7 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 
 
 			m = 13.975;//_ecp_task.config.value <float>("weight", "[edp_sarkofag]");
-			p=kinematics::sarkofag::gear;
+			p=m_kin.gear;
 			an = 0.105- 0.1*0.105;
 			dl = 0.5175;
 			q = 9.81;
@@ -284,7 +282,7 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 			set_value_new = -(cos(pozycja_join )*(dl*m*q))/(an*p) * 1000; //-4500;//-1933;//-1750;
 
 
-			std::cout << "value: " << set_value_new << "\tjoin.: " << pozycja_join << "\tgear: " << kinematics::sarkofag::gear << std::endl;
+			std::cout << "value: " << set_value_new << "\tjoin.: " << pozycja_join << std::endl;
 
 			//std::getchar();
 			//current_reg_kp = 1; // zerowe extra wzmocnienie

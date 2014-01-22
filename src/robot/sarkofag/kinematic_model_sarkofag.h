@@ -16,12 +16,7 @@ namespace mrrocpp {
 namespace kinematics {
 namespace sarkofag {
 
-double gear;
 
-	// Polozenia synchronizacji (polozenia walow silnikow).
-		double synchro_motor_position;
-		// Polozenia synchronizacji (polozenia we wspolrzednych wewnetrznych).
-		double synchro_joint_position;
 
 
 class model : public common::kinematic_model
@@ -55,7 +50,12 @@ protected:
 
 public:
 
+	double gear;
 
+		// Polozenia synchronizacji (polozenia walow silnikow).
+			double synchro_motor_position;
+			// Polozenia synchronizacji (polozenia we wspolrzednych wewnetrznych).
+			double synchro_joint_position;
 
 
 	// Konstruktor.
