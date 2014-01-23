@@ -51,7 +51,7 @@ NL_regulator_8_sarkofag::NL_regulator_8_sarkofag(uint8_t _axis_number, uint8_t r
 uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 {
 
-	double m, p, an, dl, q, zero, S, radian, current_degree, v_deg, v_rot, bezwladnosc, pozycja_join;
+	double m, p, an, dl, q, zero, pozycja_joint;
 
 
 	//m - masa,
@@ -60,9 +60,6 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 	//dl - odleglosc od punktu obrotu do punktu srodka ciezkosci,
 	//q - przyspieszenie ziemskie.
 	//zero - pozycja pi/2 w motors,
-	//oneS - jeden stopien w motors,
-	//v_deg - prędkość kątowa,
-	//v_rot - predkosc obrotowa
 
 	//	static long iteracja = 0;
 
@@ -266,23 +263,17 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 
 
 			m = 13.975;//_ecp_task.config.value <float>("weight", "[edp_sarkofag]");
-			p=m_kin.gear;
+			//przekladnia
+			pozycja_joint = (reg_abs_current_motor_pos - m_kin.synchro_motor_position) / m_kin.gear ;
 			an = 0.105- 0.1*0.105;
 			dl = 0.5175;
 			q = 9.81;
-			S = -0.33333;
-			//zero = -20.9888;
-			//v_deg = ;
-
-			pozycja_join = master.current_joints[0];
-			//current_degree = (motor - zero)/S;
 			current_reg_kp = 1;
 
-			//radian = (current_degree*M_PI)/180.0;
-			set_value_new = -(cos(pozycja_join )*(dl*m*q))/(an*p) * 1000; //-4500;//-1933;//-1750;
+			set_value_new = -(cos(pozycja_joint )*(dl*m*q))/(an*m_kin.gear) * 1000;
 
 
-			std::cout << "value: " << set_value_new << "\tjoin.: " << pozycja_join << std::endl;
+			std::cout << "\tvalue: " << set_value_new << "\tjoint.: " << pozycja_joint << std::endl;
 
 			//std::getchar();
 			//current_reg_kp = 1; // zerowe extra wzmocnienie

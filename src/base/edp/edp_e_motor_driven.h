@@ -202,7 +202,7 @@ protected:
 	 *
 	 * for the whole macrostep
 	 */
-	lib::MotorArray current_motor_pos;
+
 
 	/*!
 	 * \brief Reference to base types of instruction
@@ -217,6 +217,8 @@ public:
 
 
 	lib::JointArray current_joints;
+
+	lib::MotorArray current_motor_pos;
 
 
 	/*!
