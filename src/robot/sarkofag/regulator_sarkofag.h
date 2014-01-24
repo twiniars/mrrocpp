@@ -29,6 +29,11 @@ class NL_regulator_8_sarkofag : public common::NL_regulator
 	double deviation;
 	double deviation_integral;
 	kinematics::sarkofag::model m_kin;
+	double m; //masa
+	double dl; //punkt srodka masy
+	double an; //stala silnika
+	double q; //przyspieszenie ziemskie
+	double pozycja_joint;
 
 
 public:

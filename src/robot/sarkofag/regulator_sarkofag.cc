@@ -40,6 +40,12 @@ NL_regulator_8_sarkofag::NL_regulator_8_sarkofag(uint8_t _axis_number, uint8_t r
 	display = 0;
 	deviation = 0;
 	deviation_integral = 0;
+	m = master.config.value <float>("weight", "[edp_sarkofag]");
+	dl = master.config.value <float>("weight_pos", "[edp_sarkofag]");
+	an = 0.105- 0.1*0.105;
+	q = 9.81;
+	pozycja_joint = 0;
+
 
 	// Konstruktor regulatora konkretnego
 	// Przy inicjacji nalezy dopilnowac, zeby numery algorytmu regulacji oraz zestawu jego parametrow byly
@@ -50,8 +56,6 @@ NL_regulator_8_sarkofag::NL_regulator_8_sarkofag(uint8_t _axis_number, uint8_t r
 /*-----------------------------------------------------------------------*/
 uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 {
-
-	double m, p, an, dl, q, zero, pozycja_joint;
 
 
 	//m - masa,
@@ -258,25 +262,14 @@ uint8_t NL_regulator_8_sarkofag::compute_set_value(void)
 
 		case 1: // algorytm nr 1
 		{
-
-
-
-
-			m = 13.975;//_ecp_task.config.value <float>("weight", "[edp_sarkofag]");
 			//przekladnia
-			pozycja_joint = (reg_abs_current_motor_pos - m_kin.synchro_motor_position) / m_kin.gear ;
-			an = 0.105- 0.1*0.105;
-			dl = 0.5175;
-			q = 9.81;
+			pozycja_joint = master.servo_current_joints[0];//(reg_abs_current_motor_pos - m_kin.synchro_motor_position) / m_kin.gear ;
+
 			current_reg_kp = 1;
-
 			set_value_new = -(cos(pozycja_joint )*(dl*m*q))/(an*m_kin.gear) * 1000;
-
 
 			std::cout << "\tvalue: " << set_value_new << "\tjoint.: " << pozycja_joint << std::endl;
 
-			//std::getchar();
-			//current_reg_kp = 1; // zerowe extra wzmocnienie
 			// przepisanie zadanej wartosci pradu
 
 			//set_value_new = master.sb->command.sb_instruction_.arm.pf_def.desired_torque_or_current[0];

@@ -160,7 +160,7 @@ protected:
 	 *
 	 * for the single step of servo control
 	 */
-	lib::JointArray servo_current_joints;
+
 
 	/*!
 	 * \brief mutex to handle data set and get of the motor and joint position
@@ -215,6 +215,8 @@ public:
 
 	bool servo_mode;
 
+
+	lib::JointArray servo_current_joints;
 
 	lib::JointArray current_joints;
 
